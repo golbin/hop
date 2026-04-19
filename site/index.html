@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>HOP is Open HWP</title>
+        <meta
+            name="description"
+            content="HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 데스크톱 앱입니다."
+        />
+        <meta property="og:title" content="HOP is Open HWP" />
+        <meta
+            property="og:description"
+            content="HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 데스크톱 앱"
+        />
+        <meta
+            property="og:image"
+            content="../assets/screenshots/hop-editor.webp"
+        />
+        <link rel="icon" href="../assets/logo/favicon.ico" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <main class="page-shell">
+            <section class="intro" aria-labelledby="title">
+                <div class="brand-row">
+                    <img
+                        class="logo"
+                        src="../assets/logo/logo.svg"
+                        alt=""
+                        width="48"
+                        height="48"
+                    />
+                    <span>HOP is Open HWP.</span>
+                </div>
+
+                <div class="intro-grid">
+                    <div class="copy">
+                        <h1 id="title">오픈소스 HWP 앱</h1>
+                        <p class="summary">
+                            HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스
+                            macOS, Windows, Linux용 데스크톱 앱입니다.
+                        </p>
+                        <div class="actions" aria-label="주요 링크">
+                            <a
+                                class="button primary"
+                                href="https://github.com/golbin/hop"
+                                >GitHub</a
+                            >
+                            <a
+                                class="button secondary"
+                                href="https://github.com/golbin/hop/releases"
+                                >모든 릴리즈</a
+                            >
+                        </div>
+                        <section
+                            class="download-panel"
+                            aria-labelledby="download-title"
+                        >
+                            <h2 id="download-title">최신 버전 다운로드</h2>
+                            <div class="download-grid">
+                                <a
+                                    class="download-link"
+                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-macos-arm64.dmg"
+                                    data-download-asset="HOP-macos-arm64.dmg"
+                                >
+                                    <span>macOS</span>
+                                    <small>Apple Silicon .dmg</small>
+                                </a>
+                                <a
+                                    class="download-link"
+                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-macos-x64.dmg"
+                                    data-download-asset="HOP-macos-x64.dmg"
+                                >
+                                    <span>macOS</span>
+                                    <small>Intel .dmg</small>
+                                </a>
+                                <a
+                                    class="download-link"
+                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.msi"
+                                    data-download-asset="HOP-windows-x64.msi"
+                                >
+                                    <span>Windows</span>
+                                    <small>x64 .msi</small>
+                                </a>
+                                <a
+                                    class="download-link"
+                                    href="https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage"
+                                    data-download-asset="HOP-linux-x64.AppImage"
+                                >
+                                    <span>Linux</span>
+                                    <small>x64 AppImage</small>
+                                </a>
+                            </div>
+                            <p class="download-note" id="download-status">
+                                macOS는 signed/notarized 빌드입니다. Windows는
+                                아직 서명되지 않아 실행 시 보안 경고가 뜰 수
+                                있습니다.
+                            </p>
+                        </section>
+                        <p class="credit-note">
+                            HOP는
+                            <a
+                                class="text-link"
+                                href="https://github.com/edwardkim/rhwp"
+                                >rhwp</a
+                            >를 기반으로 합니다. HWP 엔진을 공개해 주신
+                            개발자분께 감사드립니다.
+                        </p>
+                    </div>
+
+                    <figure class="screenshot-wrap">
+                        <img
+                            src="../assets/screenshots/hop-editor.webp"
+                            alt="HOP에서 HWP 문서를 연 화면"
+                        />
+                    </figure>
+                </div>
+            </section>
+        </main>
+        <script src="downloads.js" defer></script>
+    </body>
+</html>

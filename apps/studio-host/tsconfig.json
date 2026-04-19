@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@upstream/*": ["../../third_party/rhwp/rhwp-studio/src/*"],
+      "@/*": ["./src/*", "../../third_party/rhwp/rhwp-studio/src/*"]
+    }
+  },
+  "include": ["src"]
+}

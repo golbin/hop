@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default HOP desktop capability",
+  "windows": ["main", "main*"],
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "log:default",
+    "store:default",
+    "window-state:default"
+  ]
+}

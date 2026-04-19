@@ -1,0 +1,19 @@
+{
+  "name": "hop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HOP is Open HWP",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "apps/studio-host",
+    "apps/desktop"
+  ],
+  "scripts": {
+    "build:studio": "npm --workspace apps/studio-host run build",
+    "build:desktop": "npm --workspace apps/desktop run build",
+    "tauri": "npm --workspace apps/desktop run tauri",
+    "test:desktop": "cd apps/desktop/src-tauri && cargo test",
+    "clippy:desktop": "cd apps/desktop/src-tauri && cargo clippy -- -D warnings"
+  }
+}

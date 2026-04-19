@@ -1,0 +1,44 @@
+# Rust
+/target/
+/target-local/
+Cargo.lock
+!/apps/desktop/src-tauri/Cargo.lock
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+
+# JavaScript
+node_modules/
+apps/*/node_modules/
+apps/studio-host/dist/
+
+*.wasm
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+/assets/fonts/hamchob-r.woff2
+/assets/fonts/hamchod-r.woff2
+/assets/fonts/h2hdrm.woff2
+/assets/fonts/hygprm.woff2
+/assets/fonts/hygtre.woff2
+/assets/fonts/hymjre.woff2
+/assets/fonts/ArialW05-Regular.woff2
+/assets/fonts/Calibri.woff2
+/assets/fonts/CourierNewW05-Regular.woff2
+/assets/fonts/TahomaW05-Regular.woff2
+/assets/fonts/TimesNewRomanW05-Regular.woff2
+/assets/fonts/VerdanaW05-Regular.woff2
+/assets/fonts/MalgunGothicW35-Regular.woff2
+/assets/fonts/WebdingsW95-Regular.woff2
+/assets/fonts/WingdingsW95-3.woff2
+
+.claude/
+
+# 환경변수 (민감 정보)
+.env
+.env.docker

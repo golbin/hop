@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="HOP app icon">
+  <rect width="1024" height="1024" fill="none"/>
+  <rect x="64" y="64" width="896" height="896" rx="214" fill="#111111"/>
+  <g fill="#f7f4ea">
+    <rect x="302" y="222" width="420" height="104" rx="52"/>
+    <path fill-rule="evenodd" d="M512 362a150 150 0 1 1 0 300 150 150 0 0 1 0-300zm0 88a62 62 0 1 0 0 124 62 62 0 0 0 0-124z"/>
+    <rect x="302" y="698" width="420" height="104" rx="52"/>
+  </g>
+</svg>

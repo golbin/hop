@@ -1,0 +1,22 @@
+{
+  "name": "@golbin/hop-studio-host",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HOP studio host overlay for upstream rhwp-studio",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@rhwp/core": "0.7.2",
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.7.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
+  }
+}

@@ -1,0 +1,34 @@
+[package]
+name = "hop-desktop"
+version = "0.1.0"
+edition = "2021"
+description = "HOP - Open HWP desktop app"
+license = "MIT"
+
+[lib]
+name = "hop_desktop"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "hop-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+rhwp = { path = "../../../third_party/rhwp" }
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-log = "2"
+tauri-plugin-single-instance = "2"
+tauri-plugin-store = "2"
+tauri-plugin-window-state = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+tempfile = "3"
+open = "5"
+svg2pdf = "0.13"
+usvg = "0.45"
+pdf-writer = "0.12"

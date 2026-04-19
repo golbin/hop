@@ -1,0 +1,144 @@
+/* 대표 글꼴 등록하기 대화상자 (fs-) */
+
+.fs-body {
+  min-height: 300px;
+}
+
+.fs-toolbar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.fs-icon-btn {
+  width: 32px;
+  height: 28px;
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  padding: 0;
+  text-align: center;
+}
+.fs-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.fs-content {
+  display: flex;
+  gap: 12px;
+  height: 260px;
+}
+
+.fs-list {
+  width: 200px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  overflow-y: auto;
+  background: var(--color-surface);
+}
+
+.fs-list-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  border-bottom: 1px solid #eee;
+}
+.fs-list-item:hover {
+  background: #e8f0fe;
+}
+.fs-list-item.selected {
+  background: #1a73e8;
+  color: #fff;
+}
+.fs-list-item.selected .fs-badge {
+  background: rgba(255,255,255,0.3);
+  color: #fff;
+}
+
+.fs-badge {
+  font-size: var(--font-size-xs);
+  background: var(--color-hover-bg);
+  color: var(--color-text-muted);
+  padding: 1px 5px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.fs-info {
+  flex: 1;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  background: var(--color-surface-raised);
+  overflow-y: auto;
+}
+
+.fs-info-empty {
+  color: var(--color-text-placeholder);
+  font-size: var(--font-size-md);
+  text-align: center;
+  padding-top: 40px;
+}
+
+.fs-info-name {
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
+}
+
+.fs-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: var(--font-size-base);
+}
+
+.fs-info-label {
+  color: var(--color-text-muted);
+  min-width: 50px;
+}
+
+.fs-info-value {
+  color: var(--color-text);
+  text-align: right;
+}
+
+/* 대표 글꼴 편집 대화상자 (fse-) */
+
+.fse-body {
+  min-height: 200px;
+}
+
+.fse-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.fse-label {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  text-align: right;
+}
+
+.fse-name-input {
+  flex: 1;
+}
+
+.fse-select {
+  flex: 1;
+  font-size: var(--font-size-sm);
+}
+
+.fse-sep {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 8px 0;
+}

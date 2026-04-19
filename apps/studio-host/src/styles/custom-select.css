@@ -1,0 +1,188 @@
+/* Cross-platform rhwp-style combo boxes.
+   Native select popups vary heavily by OS, so selects stay as state holders and
+   this layer renders the visible control/menu consistently. */
+
+.native-select-hidden {
+  position: absolute !important;
+  inline-size: 1px !important;
+  block-size: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.custom-select {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+  height: 22px;
+  vertical-align: middle;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.custom-select.sb-combo,
+.custom-select.sb-ls-select,
+.custom-select.dialog-select,
+.custom-select.formula-select {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+}
+
+.custom-select-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15px;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 0 0 6px;
+  border: 1px solid #b0b0b0;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  text-align: left;
+  cursor: default;
+  box-shadow: none;
+}
+
+.custom-select:not(.disabled):hover .custom-select-trigger,
+.custom-select.open .custom-select-trigger {
+  border-color: #9aa6bd;
+  background: #f7f8fb;
+}
+
+.custom-select:focus-visible .custom-select-trigger {
+  border-color: var(--color-focus-border);
+  outline: none;
+}
+
+.custom-select.disabled {
+  opacity: 0.5;
+}
+
+.custom-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border-left: 1px solid #d0d0d0;
+  color: #555;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.custom-select-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 1px);
+  left: 0;
+  z-index: 12000;
+  min-width: 100%;
+  max-width: min(420px, 90vw);
+  max-height: 260px;
+  overflow: auto;
+  padding: 2px;
+  border: 1px solid #aab3c4;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: var(--shadow-dropdown);
+}
+
+.custom-select.open .custom-select-menu {
+  display: block;
+}
+
+.custom-select-option {
+  display: block;
+  width: 100%;
+  min-height: 20px;
+  padding: 3px 20px 3px 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.custom-select-option:hover,
+.custom-select-option.selected {
+  background: var(--color-selected-bg);
+}
+
+.custom-select-option.selected {
+  color: var(--color-text);
+  font-weight: 400;
+}
+
+.custom-select-option:disabled {
+  color: var(--color-text-disabled);
+}
+
+.custom-select-group {
+  padding: 5px 8px 2px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#style-bar .custom-select {
+  height: 22px;
+  font-size: var(--font-size-base);
+}
+
+#style-bar .custom-select-trigger {
+  border-color: #b0b0b0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+#style-bar .custom-select[data-select-id="style-name"] {
+  width: 112px;
+}
+
+#style-bar .custom-select[data-select-id="font-lang"] {
+  width: 76px;
+}
+
+#style-bar .custom-select[data-select-id="font-name"] {
+  width: 180px;
+}
+
+#style-bar .custom-select[data-select-id="linespacing-select"] {
+  width: 78px;
+}
+
+.dialog-wrap .custom-select {
+  height: 22px;
+  font-size: var(--font-size-sm);
+}
+
+.dialog-wrap .custom-select-trigger {
+  padding-left: 6px;
+  font-size: var(--font-size-sm);
+}
+
+.dialog-wrap .custom-select-menu {
+  max-height: 240px;
+}
+
+.fse-select.custom-select {
+  flex: 1;
+}

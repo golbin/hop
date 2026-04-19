@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "HOP",
+  "version": "0.1.0",
+  "identifier": "net.golbin.hop",
+  "build": {
+    "beforeDevCommand": "cd ../.. && npm --workspace apps/studio-host run dev",
+    "beforeBuildCommand": "cd ../.. && npm --workspace apps/studio-host run build",
+    "devUrl": "http://127.0.0.1:7700",
+    "frontendDist": "../../studio-host/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "HOP",
+        "label": "main",
+        "width": 1280,
+        "height": 900,
+        "minWidth": 960,
+        "minHeight": 640
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob: asset: http://asset.localhost; font-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:",
+      "devCsp": "default-src 'self' http://127.0.0.1:7700 ws://127.0.0.1:7700; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; connect-src 'self' http://127.0.0.1:7700 ws://127.0.0.1:7700 ipc: http://ipc.localhost; img-src 'self' data: blob: asset: http://asset.localhost http://127.0.0.1:7700; font-src 'self' data: asset: http://asset.localhost http://127.0.0.1:7700; style-src 'self' 'unsafe-inline' http://127.0.0.1:7700; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' http://127.0.0.1:7700; worker-src 'self' blob: http://127.0.0.1:7700"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "publisher": "golbin.net",
+    "shortDescription": "Open desktop editor for HWP and HWPX documents",
+    "longDescription": "HOP is Open HWP. HOP opens, edits, saves, and exports HWP/HWPX documents.",
+    "category": "Productivity",
+    "copyright": "Copyright (c) 2026 HOP contributors",
+    "icon": [
+      "../../../assets/logo/logo-32.png",
+      "../../../assets/logo/logo-128.png",
+      "../../../assets/logo/logo-256.png",
+      "../../../assets/logo/logo-512.png",
+      "../../../assets/logo/icon.icns",
+      "../../../assets/logo/favicon.ico"
+    ],
+    "fileAssociations": [
+      {
+        "ext": ["hwp"],
+        "name": "HWP Document",
+        "description": "Hangul Word Processor document",
+        "mimeType": "application/x-hwp"
+      },
+      {
+        "ext": ["hwpx"],
+        "name": "HWPX Document",
+        "description": "Hangul Word Processor XML document",
+        "mimeType": "application/vnd.hancom.hwpx"
+      }
+    ]
+  }
+}
