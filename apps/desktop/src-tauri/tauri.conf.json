@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob: asset: http://asset.localhost; font-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:",
+      "csp": "default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob: asset: http://asset.localhost; font-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; worker-src 'self' blob:",
       "devCsp": "default-src 'self' http://127.0.0.1:7700 ws://127.0.0.1:7700; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; connect-src 'self' http://127.0.0.1:7700 ws://127.0.0.1:7700 ipc: http://ipc.localhost; img-src 'self' data: blob: asset: http://asset.localhost http://127.0.0.1:7700; font-src 'self' data: asset: http://asset.localhost http://127.0.0.1:7700; style-src 'self' 'unsafe-inline' http://127.0.0.1:7700; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' http://127.0.0.1:7700; worker-src 'self' blob: http://127.0.0.1:7700"
     }
   },
