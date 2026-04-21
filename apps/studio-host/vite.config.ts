@@ -7,6 +7,9 @@ import { createHopOverrides } from './hop-overrides';
 
 const require = createRequire(import.meta.url);
 const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'));
+const desktopConfig = JSON.parse(
+  readFileSync(resolve(__dirname, '../desktop/src-tauri/tauri.conf.json'), 'utf-8'),
+);
 const upstreamSrc = resolve(__dirname, '../../third_party/rhwp/rhwp-studio/src');
 const hopSrc = resolve(__dirname, 'src');
 const rhwpCore = normalizePath(require.resolve('@rhwp/core/rhwp.js'));
@@ -61,6 +64,7 @@ export default defineConfig({
   plugins: [hopFontAssets()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __HOP_VERSION__: JSON.stringify(desktopConfig.version),
   },
   resolve: {
     alias: [

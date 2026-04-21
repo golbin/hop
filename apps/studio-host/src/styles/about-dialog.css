@@ -1,0 +1,6 @@
+.about-hop-version {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-placeholder);
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
