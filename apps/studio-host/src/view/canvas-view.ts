@@ -6,18 +6,7 @@ import { CanvasPool } from '@upstream/view/canvas-pool';
 import { PageRenderer } from '@upstream/view/page-renderer';
 import { ViewportManager } from '@upstream/view/viewport-manager';
 import { CoordinateSystem } from '@upstream/view/coordinate-system';
-
-export function resolveCanvasLeft(
-  pageLeft: number,
-  viewportWidth: number,
-  pageDisplayWidth: number,
-): number {
-  if (pageLeft >= 0) {
-    return Math.round(pageLeft);
-  }
-
-  return Math.max(0, Math.round((viewportWidth - pageDisplayWidth) / 2));
-}
+import { resolveVirtualScrollPageLeft } from './page-left';
 
 export class CanvasView {
   private virtualScroll: VirtualScroll;
@@ -162,10 +151,12 @@ export class CanvasView {
     }
 
     const pageDisplayWidth = canvas.width / dpr;
-    const pageLeft = this.virtualScroll.getPageLeft(pageIdx);
-    const { width: viewportWidth } = this.viewportManager.getViewportSize();
 
-    canvas.style.left = `${resolveCanvasLeft(pageLeft, viewportWidth, pageDisplayWidth)}px`;
+    canvas.style.left = `${resolveVirtualScrollPageLeft(
+      this.virtualScroll,
+      pageIdx,
+      this.scrollContent.clientWidth,
+    )}px`;
     canvas.style.transform = 'none';
     canvas.style.width = `${pageDisplayWidth}px`;
     canvas.style.height = `${canvas.height / dpr}px`;
