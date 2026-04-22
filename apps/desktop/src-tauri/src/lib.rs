@@ -12,14 +12,16 @@ mod windows;
 
 use std::path::{Path, PathBuf};
 use std::{env, ffi::OsStr};
-use tauri::{AppHandle, Emitter, Manager, RunEvent};
+#[cfg(target_os = "macos")]
+use tauri::RunEvent;
+use tauri::{AppHandle, Emitter, Manager};
 
 use commands::{
     cancel_app_quit, check_external_modification, close_document, create_document,
     create_editor_window, desktop_platform, destroy_current_window, export_pdf,
     export_pdf_from_hwp_bytes, mark_document_dirty, mutate_document, open_document,
-    open_document_with_bytes, print_webview, query_document, render_page_svg,
-    reveal_in_folder, save_document, save_document_as, save_hwp_bytes, take_pending_open_paths,
+    open_document_with_bytes, print_webview, query_document, render_page_svg, reveal_in_folder,
+    save_document, save_document_as, save_hwp_bytes, take_pending_open_paths,
 };
 use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
@@ -84,9 +86,12 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("failed to build HOP desktop app");
 
-    app.run(|app, event| {
+    app.run(|_app, _event| {
         #[cfg(target_os = "macos")]
         {
+            let app = _app;
+            let event = _event;
+
             if let RunEvent::Opened { urls } = &event {
                 let paths = urls
                     .clone()

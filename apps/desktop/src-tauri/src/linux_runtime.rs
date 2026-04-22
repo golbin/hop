@@ -45,10 +45,11 @@ fn requested_gtk_im_module() -> Option<String> {
         .ok()
         .and_then(|value| normalize_im_module(value.trim()))
         .or_else(|| {
-            env::var("XMODIFIERS")
-                .ok()
-                .and_then(|value| value.split("@im=").nth(1))
-                .and_then(normalize_im_module)
+            env::var("XMODIFIERS").ok().and_then(|value| {
+                value
+                    .split_once("@im=")
+                    .and_then(|(_, module)| normalize_im_module(module))
+            })
         })
 }
 
@@ -110,6 +111,8 @@ mod tests {
 
     struct EnvRestore {
         gtk_im_module_file: Option<std::ffi::OsString>,
+        gtk_im_module: Option<std::ffi::OsString>,
+        xmodifiers: Option<std::ffi::OsString>,
         appdir: Option<std::ffi::OsString>,
     }
 
@@ -117,6 +120,8 @@ mod tests {
         fn capture() -> Self {
             Self {
                 gtk_im_module_file: env::var_os("GTK_IM_MODULE_FILE"),
+                gtk_im_module: env::var_os("GTK_IM_MODULE"),
+                xmodifiers: env::var_os("XMODIFIERS"),
                 appdir: env::var_os("APPDIR"),
             }
         }
@@ -128,6 +133,14 @@ mod tests {
                 match &self.gtk_im_module_file {
                     Some(value) => env::set_var("GTK_IM_MODULE_FILE", value),
                     None => env::remove_var("GTK_IM_MODULE_FILE"),
+                }
+                match &self.gtk_im_module {
+                    Some(value) => env::set_var("GTK_IM_MODULE", value),
+                    None => env::remove_var("GTK_IM_MODULE"),
+                }
+                match &self.xmodifiers {
+                    Some(value) => env::set_var("XMODIFIERS", value),
+                    None => env::remove_var("XMODIFIERS"),
                 }
                 match &self.appdir {
                     Some(value) => env::set_var("APPDIR", value),
@@ -170,9 +183,7 @@ mod tests {
         let _lock = ENV_LOCK.lock().unwrap();
         let _restore = EnvRestore::capture();
         let dir = tempfile::tempdir().unwrap();
-        let cache_path = dir
-            .path()
-            .join("usr/lib/gtk-3.0/3.0.0/immodules.cache");
+        let cache_path = dir.path().join("usr/lib/gtk-3.0/3.0.0/immodules.cache");
         fs::create_dir_all(cache_path.parent().unwrap()).unwrap();
         fs::write(&cache_path, "\"xim\"\n").unwrap();
 
@@ -190,6 +201,19 @@ mod tests {
         assert_eq!(normalize_im_module("fcitx5"), Some("fcitx".to_string()));
         assert_eq!(normalize_im_module(""), None);
         assert_eq!(normalize_im_module("   "), None);
+    }
+
+    #[test]
+    fn requested_im_module_falls_back_to_xmodifiers() {
+        let _lock = ENV_LOCK.lock().unwrap();
+        let _restore = EnvRestore::capture();
+
+        unsafe {
+            env::remove_var("GTK_IM_MODULE");
+            env::set_var("XMODIFIERS", "@im=fcitx5");
+        }
+
+        assert_eq!(requested_gtk_im_module(), Some("fcitx".to_string()));
     }
 
     #[test]
