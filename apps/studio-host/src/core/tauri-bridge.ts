@@ -72,6 +72,7 @@ export interface DesktopBridgeApi {
   exportPdfFromCommand(): Promise<string | null>;
   printCurrentWebview(): Promise<void>;
   destroyCurrentWindow(): Promise<void>;
+  cancelAppQuit(): Promise<void>;
   revealInFolder(): Promise<void>;
   getUpdateState(): Promise<DesktopUpdateState>;
   startUpdateInstall(): Promise<void>;
@@ -180,6 +181,10 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
 
   async destroyCurrentWindow(): Promise<void> {
     await this.invoke<void>('destroy_current_window');
+  }
+
+  async cancelAppQuit(): Promise<void> {
+    await this.invoke<void>('cancel_app_quit');
   }
 
   async revealInFolder(): Promise<void> {

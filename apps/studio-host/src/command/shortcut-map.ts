@@ -1,11 +1,10 @@
 import {
   defaultShortcuts as upstreamDefaultShortcuts,
-  matchShortcut,
 } from '@upstream/command/shortcut-map';
 import type { ShortcutDef } from '@upstream/command/shortcut-map';
+import { hasPrimaryModifier } from '../core/platform';
 
 export type { ShortcutDef };
-export { matchShortcut };
 
 const hopShortcuts: [ShortcutDef, string][] = [
   [{ key: 'n', ctrl: true, shift: true }, 'file:new-window'],
@@ -20,6 +19,22 @@ export const defaultShortcuts: [ShortcutDef, string][] = [
   ...hopShortcuts,
   ...upstreamDefaultShortcuts.filter(([shortcut]) => !hopShortcutKeys.has(shortcutKey(shortcut))),
 ];
+
+export function matchShortcut(
+  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>,
+  shortcuts: [ShortcutDef, string][],
+): string | null {
+  const primaryModifier = hasPrimaryModifier(event);
+
+  for (const [def, commandId] of shortcuts) {
+    if ((def.ctrl ?? false) !== primaryModifier) continue;
+    if ((def.shift ?? false) !== event.shiftKey) continue;
+    if ((def.alt ?? false) !== event.altKey) continue;
+    if (event.key.toLowerCase() === def.key) return commandId;
+  }
+
+  return null;
+}
 
 function shortcutKey(shortcut: ShortcutDef): string {
   return [

@@ -2,6 +2,10 @@ use tauri::menu::{Menu, MenuItemBuilder, SubmenuBuilder};
 use tauri::{App, Emitter};
 
 pub fn install(app: &mut App) -> tauri::Result<()> {
+    let app_about = MenuItemBuilder::with_id("file:about", "About HOP").build(app)?;
+    let app_quit = MenuItemBuilder::with_id("app:quit", "Quit HOP")
+        .accelerator("CmdOrCtrl+Q")
+        .build(app)?;
     let new_doc = MenuItemBuilder::with_id("file:new-doc", "New")
         .accelerator("CmdOrCtrl+N")
         .build(app)?;
@@ -23,7 +27,6 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let print = MenuItemBuilder::with_id("file:print", "Print...")
         .accelerator("CmdOrCtrl+P")
         .build(app)?;
-    let about_help = MenuItemBuilder::with_id("file:about", "About HOP").build(app)?;
 
     let undo = MenuItemBuilder::with_id("edit:undo", "Undo")
         .accelerator("CmdOrCtrl+Z")
@@ -54,6 +57,17 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let fit_page = MenuItemBuilder::with_id("view:zoom-fit-page", "Fit Page").build(app)?;
     let fit_width = MenuItemBuilder::with_id("view:zoom-fit-width", "Fit Width").build(app)?;
 
+    let app_menu = SubmenuBuilder::new(app, "HOP")
+        .item(&app_about)
+        .separator()
+        .services()
+        .separator()
+        .hide()
+        .hide_others()
+        .show_all()
+        .separator()
+        .item(&app_quit)
+        .build()?;
     let file_menu = SubmenuBuilder::new(app, "File")
         .item(&new_doc)
         .item(&new_window)
@@ -87,15 +101,20 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
         .minimize()
         .close_window()
         .build()?;
-    let help_menu = SubmenuBuilder::new(app, "Help").item(&about_help).build()?;
 
     let menu = Menu::with_items(
         app,
-        &[&file_menu, &edit_menu, &view_menu, &window_menu, &help_menu],
+        &[&app_menu, &file_menu, &edit_menu, &view_menu, &window_menu],
     )?;
     app.set_menu(menu)?;
     app.on_menu_event(|app, event| {
         let id = event.id().0.as_str();
+        if id == "app:quit" {
+            if let Err(error) = crate::app_quit::request_app_quit(app) {
+                eprintln!("[menu] 앱 종료 요청 실패: {}", error);
+            }
+            return;
+        }
         if id == "file:new-window" {
             let app = app.clone();
             tauri::async_runtime::spawn(async move {

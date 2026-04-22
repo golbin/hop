@@ -287,6 +287,24 @@ pub fn destroy_current_window(window: WebviewWindow) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn cancel_app_quit(app: AppHandle) -> Result<(), String> {
+    crate::app_quit::cancel_app_quit_request(&app)
+}
+
+#[tauri::command]
+pub fn desktop_platform() -> &'static str {
+    if cfg!(target_os = "macos") {
+        "macos"
+    } else if cfg!(windows) {
+        "windows"
+    } else if cfg!(target_os = "linux") {
+        "linux"
+    } else {
+        "unknown"
+    }
+}
+
+#[tauri::command]
 pub async fn create_editor_window(app: AppHandle) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || crate::windows::create_editor_window(&app))
         .await

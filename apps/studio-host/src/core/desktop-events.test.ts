@@ -158,6 +158,33 @@ describe('desktop events', () => {
     expect(bridge.destroyCurrentWindow).toHaveBeenCalled();
   });
 
+  it('routes app quit requests through the existing close guard and cancels on refusal', async () => {
+    const { windowHandlers } = installTauriMocks();
+    (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
+    installDocumentStub();
+
+    const bridge = {
+      takePendingOpenPaths: vi.fn().mockResolvedValue([]),
+      confirmWindowClose: vi.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(false),
+      destroyCurrentWindow: vi.fn().mockResolvedValue(undefined),
+      cancelAppQuit: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await setupDesktopEvents({
+      bridge,
+      dispatcher: { dispatch: vi.fn() } as never,
+      eventBus: { emit: vi.fn() } as never,
+      setMessage: vi.fn(),
+      onUpdateState: vi.fn(),
+    });
+
+    await windowHandlers.get('hop-app-quit-requested')?.({ payload: null });
+    await windowHandlers.get('hop-app-quit-requested')?.({ payload: null });
+
+    expect(bridge.destroyCurrentWindow).toHaveBeenCalledTimes(1);
+    expect(bridge.cancelAppQuit).toHaveBeenCalledTimes(1);
+  });
+
   it('falls back to native close when clean close confirmation fails', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { getCloseHandler } = installTauriMocks();

@@ -1,3 +1,4 @@
+mod app_quit;
 mod commands;
 #[cfg(target_os = "macos")]
 mod menu;
@@ -9,14 +10,14 @@ mod windows;
 
 use std::path::{Path, PathBuf};
 use std::{env, ffi::OsStr};
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, RunEvent};
 
 use commands::{
-    check_external_modification, close_document, create_document, create_editor_window,
-    destroy_current_window, export_pdf, export_pdf_from_hwp_bytes, mark_document_dirty,
-    mutate_document, open_document, open_document_with_bytes, print_webview, query_document,
-    render_page_svg, reveal_in_folder, save_document, save_document_as, save_hwp_bytes,
-    take_pending_open_paths,
+    cancel_app_quit, check_external_modification, close_document, create_document,
+    create_editor_window, desktop_platform, destroy_current_window, export_pdf,
+    export_pdf_from_hwp_bytes, mark_document_dirty, mutate_document, open_document,
+    open_document_with_bytes, print_webview, query_document, render_page_svg,
+    reveal_in_folder, save_document, save_document_as, save_hwp_bytes, take_pending_open_paths,
 };
 use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
@@ -64,6 +65,8 @@ pub fn run() {
             export_pdf_from_hwp_bytes,
             print_webview,
             destroy_current_window,
+            cancel_app_quit,
+            desktop_platform,
             open_document_with_bytes,
             save_hwp_bytes,
             check_external_modification,
@@ -78,13 +81,20 @@ pub fn run() {
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]
-        if let tauri::RunEvent::Opened { urls } = event {
-            let paths = urls
-                .into_iter()
-                .filter_map(|url| url.to_file_path().ok())
-                .filter_map(document_path_from_path)
-                .collect();
-            queue_open_paths(app, paths);
+        {
+            if let RunEvent::Opened { urls } = &event {
+                let paths = urls
+                    .clone()
+                    .into_iter()
+                    .filter_map(|url| url.to_file_path().ok())
+                    .filter_map(document_path_from_path)
+                    .collect();
+                queue_open_paths(app, paths);
+            }
+
+            if let Err(error) = app_quit::handle_run_event(app, &event) {
+                eprintln!("[quit] 앱 종료 흐름 처리 실패: {}", error);
+            }
         }
     });
 }

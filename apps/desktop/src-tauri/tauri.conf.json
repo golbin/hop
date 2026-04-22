@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "HOP",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "identifier": "net.golbin.hop",
   "build": {
     "beforeDevCommand": "cd ../.. && pnpm --filter @golbin/hop-studio-host dev",

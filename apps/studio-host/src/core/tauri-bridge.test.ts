@@ -184,6 +184,7 @@ describe('TauriBridge', () => {
     invokeMock
       .mockResolvedValueOnce({ status: 'available', version: '0.1.3' })
       .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined);
 
     await expect(bridge.getUpdateState()).resolves.toEqual({
@@ -192,10 +193,12 @@ describe('TauriBridge', () => {
     });
     await expect(bridge.startUpdateInstall()).resolves.toBeUndefined();
     await expect(bridge.restartToApplyUpdate()).resolves.toBeUndefined();
+    await expect(bridge.cancelAppQuit()).resolves.toBeUndefined();
 
     expect(invokeMock).toHaveBeenNthCalledWith(1, 'get_update_state', {});
     expect(invokeMock).toHaveBeenNthCalledWith(2, 'start_update_install', {});
     expect(invokeMock).toHaveBeenNthCalledWith(3, 'restart_to_apply_update', {});
+    expect(invokeMock).toHaveBeenNthCalledWith(4, 'cancel_app_quit', {});
   });
 
   it('blocks direct save for HWPX sources', async () => {

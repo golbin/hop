@@ -43,6 +43,8 @@ Tauri 데스크톱 앱은 `apps/desktop/`에서 빌드한다. 배포용 GitHub A
 
 현재 공개 다운로드는 macOS signed/notarized 빌드를 먼저 노출한다. Windows와 Linux는 workflow에서 선택해 빌드할 수 있고, 생성된 경우 고정 이름 asset으로 함께 업로드된다. `HOP-windows-x64.exe`, `HOP-linux-x64.deb`, `HOP-linux-x64.rpm`은 만들어진 경우 함께 올린다. `SHA256SUMS.txt`는 고정 이름으로 복사된 릴리즈 asset과 updater asset 기준으로 생성한다.
 
+Linux 공개 안내에는 AppImage를 기본 링크로 유지하되, AppImage에서 fcitx5 기반 한글 IME가 불안정할 때는 GitHub Releases의 `.deb` 또는 `.rpm` 패키지를 우선 사용하라는 문구를 함께 노출한다.
+
 자동 업데이트는 GitHub Release의 `latest.json`을 사용한다.
 
 ```text

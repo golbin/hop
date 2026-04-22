@@ -1,7 +1,12 @@
 import { createBridge, isTauriRuntime } from '@/core/bridge-factory';
+import {
+  applyDesktopChromePlatformState,
+  installNonEditorContextMenuGuards,
+} from '@/core/desktop-chrome';
 import type { DocumentInfo } from '@/core/types';
 import { EventBus } from '@/core/event-bus';
 import { createDesktopDocument, setupDesktopEvents } from '@/core/desktop-events';
+import { detectDesktopPlatform, hasPrimaryModifier, hydrateDesktopPlatform } from '@/core/platform';
 import { CanvasView } from '@/view/canvas-view';
 import { InputHandler } from '@/engine/input-handler';
 import { Toolbar } from '@/ui/toolbar';
@@ -31,6 +36,7 @@ import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 
 const wasm = createBridge();
 const eventBus = new EventBus();
+let desktopPlatform = detectDesktopPlatform();
 
 type DirtyAwareBridge = {
   markDocumentDirty?(): void;
@@ -97,6 +103,9 @@ const sbZoomVal = () => document.getElementById('sb-zoom-val')!;
 async function initialize(): Promise<void> {
   const msg = sbMessage();
   try {
+    const tauriRuntime = isTauriRuntime();
+    desktopPlatform = await hydrateDesktopPlatform();
+    applyDesktopChromePlatformState(document, desktopPlatform);
     msg.textContent = '웹폰트 로딩 중...';
     await loadWebFonts([]);  // CSS @font-face 등록 + CRITICAL 폰트만 로드
     msg.textContent = '문서 엔진 로딩 중...';
@@ -146,6 +155,7 @@ async function initialize(): Promise<void> {
     enhanceCustomSelects(document);
 
     new MenuBar(document.getElementById('menu-bar')!, eventBus, dispatcher);
+    installNonEditorContextMenuGuards(document);
 
     // 툴바 내 data-cmd 버튼 클릭 → 커맨드 디스패치
     document.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {
@@ -188,7 +198,7 @@ async function initialize(): Promise<void> {
     setupZoomControls();
     setupEventListeners();
     setupGlobalShortcuts();
-    const updateNotice = isTauriRuntime()
+    const updateNotice = tauriRuntime
       ? new UpdateNotice(updateNoticeActions(wasm))
       : null;
     void setupDesktopEvents({
@@ -239,14 +249,21 @@ function setupGlobalShortcuts(): void {
   document.addEventListener('keydown', (e) => {
     // input/textarea 등 편집 가능 요소 내부에서는 무시
     const target = e.target as HTMLElement;
-    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement ||
+      target.isContentEditable
+    ) {
+      return;
+    }
     // InputHandler가 활성 상태이면 자체 처리에 맡김
     if (inputHandler?.isActive()) return;
 
-    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+    const primaryModifier = hasPrimaryModifier(e, desktopPlatform);
 
     // Alt+N / Alt+ㅜ → 새 문서 (문서 미로드 상태에서도 동작)
-    if (e.altKey && !ctrlOrMeta && !e.shiftKey) {
+    if (e.altKey && !primaryModifier && !e.shiftKey) {
       if (e.key === 'n' || e.key === 'N' || e.key === 'ㅜ') {
         e.preventDefault();
         dispatcher.dispatch('file:new-doc');
@@ -254,7 +271,7 @@ function setupGlobalShortcuts(): void {
       }
     }
 
-    if (ctrlOrMeta && !e.altKey) {
+    if (primaryModifier && !e.altKey) {
       let commandId: string | null = null;
       const key = e.key.toLowerCase();
       if (e.shiftKey && key === 'n') commandId = 'file:new-window';
