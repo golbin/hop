@@ -29,7 +29,11 @@ HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Window
 * [Windows x64 (.msi)](https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.msi)
 * [Linux x64 (AppImage)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage)
 
-macOS 빌드는 signed/notarized `.dmg`입니다. Windows 빌드는 아직 서명되지 않아 Edge나 Windows SmartScreen에서 "일반적으로 다운로드되지 않습니다" 또는 실행 경고가 뜰 수 있습니다. 다운로드 항목의 `...` 메뉴에서 `유지`를 선택한 뒤 다운로드할 수 있습니다. Linux에서 AppImage 실행 시 fcitx5 기반 한글 IME가 불안정하면 [GitHub Releases](https://github.com/golbin/hop/releases)에서 `.deb` 또는 `.rpm` 패키지를 우선 사용해 주세요. 전체 릴리즈는 GitHub Releases에서 확인할 수 있습니다.
+macOS 빌드는 signed/notarized `.dmg`입니다. Homebrew를 통해서 설치할 수도 있습니다.
+```sh
+brew install hop
+```
+Windows 빌드는 아직 서명되지 않아 Edge나 Windows SmartScreen에서 "일반적으로 다운로드되지 않습니다" 또는 실행 경고가 뜰 수 있습니다. 다운로드 항목의 `...` 메뉴에서 `유지`를 선택한 뒤 다운로드할 수 있습니다. Linux에서 AppImage 실행 시 fcitx5 기반 한글 IME가 불안정하면 [GitHub Releases](https://github.com/golbin/hop/releases)에서 `.deb` 또는 `.rpm` 패키지를 우선 사용해 주세요. 전체 릴리즈는 GitHub Releases에서 확인할 수 있습니다.
 
 ## 개발하기
 
