@@ -20,6 +20,7 @@ tauri-build = { version = "2", features = [] }
 rhwp = { path = "../../../third_party/rhwp" }
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2.5"
 tauri-plugin-log = "2"
 tauri-plugin-single-instance = "2"
 tauri-plugin-store = "2"

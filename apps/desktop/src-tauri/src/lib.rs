@@ -17,11 +17,11 @@ use tauri::RunEvent;
 use tauri::{AppHandle, Emitter, Manager};
 
 use commands::{
-    cancel_app_quit, check_external_modification, close_document, create_document,
-    create_editor_window, desktop_platform, destroy_current_window, export_pdf,
-    export_pdf_from_hwp_bytes, mark_document_dirty, mutate_document, open_document,
-    open_document_with_bytes, print_webview, query_document, render_page_svg, reveal_in_folder,
-    save_document, save_document_as, save_hwp_bytes, take_pending_open_paths,
+    cancel_app_quit, check_external_modification, close_document, commit_staged_hwp_save,
+    create_document, create_editor_window, desktop_platform, destroy_current_window, export_pdf,
+    export_pdf_from_hwp_bytes, mark_document_dirty, mutate_document, open_document_with_bytes,
+    prepare_staged_hwp_save, print_webview, query_document, render_page_svg, reveal_in_folder,
+    take_pending_open_paths,
 };
 use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
@@ -35,6 +35,7 @@ pub fn run() {
         .manage(AppState::default())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -60,11 +61,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             create_document,
             create_editor_window,
-            open_document,
             close_document,
             mark_document_dirty,
-            save_document,
-            save_document_as,
             render_page_svg,
             query_document,
             mutate_document,
@@ -75,7 +73,8 @@ pub fn run() {
             cancel_app_quit,
             desktop_platform,
             open_document_with_bytes,
-            save_hwp_bytes,
+            prepare_staged_hwp_save,
+            commit_staged_hwp_save,
             check_external_modification,
             take_pending_open_paths,
             reveal_in_folder,

@@ -5,6 +5,8 @@ const invokeMock = vi.hoisted(() => vi.fn());
 const saveMock = vi.hoisted(() => vi.fn());
 const openMock = vi.hoisted(() => vi.fn());
 const messageMock = vi.hoisted(() => vi.fn());
+const writeFileMock = vi.hoisted(() => vi.fn());
+const removeMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: invokeMock,
@@ -14,6 +16,11 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
   open: openMock,
   save: saveMock,
   message: messageMock,
+}));
+
+vi.mock('@tauri-apps/plugin-fs', () => ({
+  writeFile: writeFileMock,
+  remove: removeMock,
 }));
 
 vi.mock('@/core/wasm-bridge', () => ({
@@ -44,6 +51,8 @@ describe('TauriBridge', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (globalThis as { document?: { title: string } }).document = { title: '' };
+    writeFileMock.mockResolvedValue(undefined);
+    removeMock.mockResolvedValue(undefined);
   });
 
   it('opens a native document by path, mirrors bytes into wasm, and updates title state', async () => {
@@ -231,14 +240,18 @@ describe('TauriBridge', () => {
     });
     saveMock.mockResolvedValue('/tmp/report');
     invokeMock.mockImplementation(async (command: string, args: Record<string, unknown>) => {
+      if (command === 'prepare_staged_hwp_save') {
+        expect(args).toEqual({ targetPath: '/tmp/report.hwp' });
+        return '/tmp/report.hwp.hop-save-1234abcd.tmp';
+      }
       if (command === 'check_external_modification') {
         expect(args).toEqual({ docId: 'doc-1', targetPath: '/tmp/report.hwp' });
         return { changed: false };
       }
-      if (command === 'save_hwp_bytes') {
+      if (command === 'commit_staged_hwp_save') {
         expect(args).toEqual({
           docId: 'doc-1',
-          bytes: [1, 2, 3],
+          stagedPath: '/tmp/report.hwp.hop-save-1234abcd.tmp',
           targetPath: '/tmp/report.hwp',
           expectedRevision: 5,
           allowExternalOverwrite: false,
@@ -257,6 +270,11 @@ describe('TauriBridge', () => {
 
     const result = await bridge.saveDocumentAsFromCommand();
 
+    expect(writeFileMock).toHaveBeenCalledWith(
+      '/tmp/report.hwp.hop-save-1234abcd.tmp',
+      new Uint8Array([1, 2, 3]),
+    );
+    expect(removeMock).toHaveBeenCalledWith('/tmp/report.hwp.hop-save-1234abcd.tmp');
     expect(result?.sourcePath).toBe('/tmp/report.hwp');
     expect(result?.revision).toBe(6);
     expect(bridge.hasUnsavedChanges()).toBe(false);
@@ -287,6 +305,40 @@ describe('TauriBridge', () => {
     expect(result).toBeNull();
     expect(invokeMock).toHaveBeenCalledTimes(1);
     expect(messageMock).toHaveBeenCalled();
+  });
+
+  it('removes the staging file even when the native save commit fails', async () => {
+    const bridge = new TauriBridge();
+    applyOpenResult(bridge, {
+      docId: 'doc-1',
+      fileName: 'source.hwp',
+      sourcePath: '/tmp/source.hwp',
+      format: 'hwp',
+      pageCount: 1,
+      revision: 5,
+      dirty: true,
+      warnings: [],
+    });
+    invokeMock.mockImplementation(async (command: string) => {
+      if (command === 'check_external_modification') {
+        return { changed: false };
+      }
+      if (command === 'prepare_staged_hwp_save') {
+        return '/tmp/source.hwp.hop-save-deadbeef.tmp';
+      }
+      if (command === 'commit_staged_hwp_save') {
+        throw new Error('native commit failed');
+      }
+      throw new Error(`unexpected command ${command}`);
+    });
+
+    await expect(bridge.saveDocumentFromCommand()).rejects.toThrow('native commit failed');
+
+    expect(writeFileMock).toHaveBeenCalledWith(
+      '/tmp/source.hwp.hop-save-deadbeef.tmp',
+      new Uint8Array([1, 2, 3]),
+    );
+    expect(removeMock).toHaveBeenCalledWith('/tmp/source.hwp.hop-save-deadbeef.tmp');
   });
 });
 

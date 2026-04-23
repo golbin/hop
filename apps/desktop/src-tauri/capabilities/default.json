@@ -6,6 +6,9 @@
   "permissions": [
     "core:default",
     "dialog:default",
+    "fs:default",
+    "fs:allow-write-file",
+    "fs:allow-remove",
     "log:default",
     "store:default",
     "window-state:default"

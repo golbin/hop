@@ -95,6 +95,20 @@ pnpm --filter hop-desktop tauri build --debug --bundles app
 
 For risky release, packaging, or cross-platform changes, identify which macOS, Windows, and Linux checks are needed before shipping.
 
+## Codex Desktop Note
+
+On macOS, `build:studio` or `vitest` can fail under Codex desktop because Codex may use its own signed Node binary, which can reject native bindings such as `rolldown`.
+
+If `which node` resolves to `/Applications/Codex.app/.../node`, prefer an external Node runtime before running Vite or Vitest. For example:
+
+```bash
+export PATH="$HOME/.nvm/versions/node/v24.4.1/bin:$PATH"
+pnpm run build:studio
+pnpm --filter @golbin/hop-studio-host exec vitest run src/core/tauri-bridge.test.ts
+```
+
+Use `which node` to confirm the external Node is selected.
+
 ## GitHub Actions And Release
 
 - Workflows should use Node 24, Corepack, pnpm, and `pnpm install --frozen-lockfile`.
@@ -105,3 +119,4 @@ For risky release, packaging, or cross-platform changes, identify which macOS, W
 ## Commit And PR
 
 Keep commits small and task-focused. Stage only files related to the current task. Summaries should mention behavior changes, release/build impact, upstream impact, and verification performed.
+Do not create commits or bump versions unless the user explicitly asks.

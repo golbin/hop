@@ -1,5 +1,6 @@
 import { WasmBridge } from '@/core/wasm-bridge';
 import type { DocumentInfo } from '@/core/types';
+import { remove, writeFile } from '@tauri-apps/plugin-fs';
 
 type DocumentFormat = 'hwp' | 'hwpx';
 
@@ -153,14 +154,14 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     if (this.sourceFormat === 'hwpx') {
       throw new Error('HWPX 원본 저장은 아직 안전하게 지원하지 않습니다. 다른 이름으로 저장에서 HWP 파일로 저장하세요.');
     }
-    return this.saveHwpBytes(docId, null);
+    return this.saveHwpThroughStaging(docId, null);
   }
 
   async saveDocumentAsFromCommand(): Promise<DesktopSaveResult | null> {
     const docId = this.ensureDocumentLoaded();
     const targetPath = await this.selectSavePath(this.suggestedHwpName(), 'HWP 문서', ['hwp']);
     if (!targetPath) return null;
-    return this.saveHwpBytes(docId, this.withExtension(targetPath, 'hwp'));
+    return this.saveHwpThroughStaging(docId, this.withExtension(targetPath, 'hwp'));
   }
 
   async exportPdfFromCommand(): Promise<string | null> {
@@ -269,28 +270,42 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     });
   }
 
-  private async saveHwpBytes(docId: string, targetPath: string | null): Promise<DesktopSaveResult | null> {
-    const allowExternalOverwrite = await this.confirmExternalOverwriteIfNeeded(docId, targetPath);
+  private async saveHwpThroughStaging(
+    docId: string,
+    targetPath: string | null,
+  ): Promise<DesktopSaveResult | null> {
+    const finalPath = targetPath ?? this.sourcePath;
+    if (!finalPath) throw new Error('새 문서는 저장 경로가 필요합니다');
+
+    const allowExternalOverwrite = await this.confirmExternalOverwriteIfNeeded(docId, finalPath);
     if (allowExternalOverwrite === null) return null;
 
-    const result = await this.invoke<DesktopSaveResult>('save_hwp_bytes', {
-      docId,
-      bytes: this.currentHwpBytes(),
-      targetPath,
-      expectedRevision: this.revision,
-      allowExternalOverwrite,
-    });
-    this.applyNativeSaveResult(result);
-    return result;
+    const stagedPath = await this.invoke<string>('prepare_staged_hwp_save', { targetPath: finalPath });
+    try {
+      const bytes = super.exportHwp();
+      await writeFile(stagedPath, bytes);
+      const result = await this.invoke<DesktopSaveResult>('commit_staged_hwp_save', {
+        docId,
+        stagedPath,
+        targetPath: finalPath,
+        expectedRevision: this.revision,
+        allowExternalOverwrite,
+      });
+      this.applyNativeSaveResult(result);
+      return result;
+    } finally {
+      await remove(stagedPath).catch(() => undefined);
+    }
   }
 
   private async confirmExternalOverwriteIfNeeded(
     docId: string,
     targetPath: string | null,
   ): Promise<boolean | null> {
+    const effectivePath = targetPath ?? this.sourcePath;
     const status = await this.invoke<ExternalModificationStatus>('check_external_modification', {
       docId,
-      targetPath,
+      targetPath: effectivePath,
     });
     if (!status.changed) return false;
 
