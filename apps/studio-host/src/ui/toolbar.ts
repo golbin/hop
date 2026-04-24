@@ -2,6 +2,7 @@ import type { WasmBridge } from '@/core/wasm-bridge';
 import type { EventBus } from '@/core/event-bus';
 import type { CharProperties, ParaProperties } from '@/core/types';
 import type { CommandDispatcher } from '@/command/dispatcher';
+import { loadWebFonts } from '@/core/font-loader';
 import { userSettings } from '@/core/user-settings';
 import type { FontSet } from '@/core/user-settings';
 import { getLocalFonts } from '@/core/local-fonts';
@@ -33,6 +34,7 @@ export class Toolbar {
   private btnLsUp: HTMLButtonElement;
   private btnLsDown: HTMLButtonElement;
   private fontLang: HTMLSelectElement;
+  private fontApplyRequestId = 0;
 
   private enabled = false;
   private styleDropdownInitialized = false;
@@ -236,36 +238,11 @@ export class Toolbar {
       // 대표 글꼴 세트 선택인지 확인
       const fontSet = this.findFontSetByName(name);
       if (fontSet) {
-        this.applyFontSet(fontSet);
+        void this.applyFontSet(fontSet);
         return;
       }
 
-      const langVal = this.fontLang.value;
-      if (langVal === 'all') {
-        // 전체 언어 일괄 적용
-        const fontId = this.wasm.findOrCreateFontId(name);
-        if (fontId >= 0) {
-          this.eventBus.emit('format-char', { fontId } as CharProperties);
-        }
-      } else {
-        // 특정 언어만 적용 (fontIds 배열)
-        const langIdx = parseInt(langVal, 10);
-        const fontId = this.wasm.findOrCreateFontIdForLang(langIdx, name);
-        if (fontId >= 0 && this.lastFontFamilies) {
-          // 현재 fontIds를 기반으로 해당 언어만 교체
-          const ids: number[] = [];
-          for (let i = 0; i < 7; i++) {
-            if (i === langIdx) {
-              ids.push(fontId);
-            } else {
-              // 다른 언어는 현재 글꼴 ID 유지 (기존 값 조회)
-              const existingName = this.lastFontFamilies[i] || this.lastFontFamilies[0];
-              ids.push(this.wasm.findOrCreateFontIdForLang(i, existingName));
-            }
-          }
-          this.eventBus.emit('format-char', { fontIds: ids } as CharProperties);
-        }
-      }
+      void this.applyFontSelection(name);
     });
 
     // 언어 선택 변경 시 해당 언어의 글꼴명을 드롭다운에 표시
@@ -549,14 +526,7 @@ export class Toolbar {
     // 글꼴명 — 선택된 언어 카테고리에 따라 표시
     const displayFont = this.getDisplayFontFamily(props);
     if (displayFont) {
-      if (!this.fontName.querySelector(`option[value="${CSS.escape(displayFont)}"]`)) {
-        const opt = document.createElement('option');
-        opt.value = displayFont;
-        opt.textContent = displayFont;
-        this.fontName.appendChild(opt);
-      }
-      this.fontName.value = displayFont;
-      syncCustomSelect(this.fontName);
+      this.setFontNameValue(displayFont);
     }
 
     // 글자 크기 (HWPUNIT → pt, 1pt = 100 HWPUNIT)
@@ -612,15 +582,19 @@ export class Toolbar {
       }
     }
     if (displayFont) {
-      if (!this.fontName.querySelector(`option[value="${CSS.escape(displayFont)}"]`)) {
-        const opt = document.createElement('option');
-        opt.value = displayFont;
-        opt.textContent = displayFont;
-        this.fontName.appendChild(opt);
-      }
-      this.fontName.value = displayFont;
-      syncCustomSelect(this.fontName);
+      this.setFontNameValue(displayFont);
     }
+  }
+
+  private setFontNameValue(displayFont: string): void {
+    if (!this.fontName.querySelector(`option[value="${CSS.escape(displayFont)}"]`)) {
+      const opt = document.createElement('option');
+      opt.value = displayFont;
+      opt.textContent = displayFont;
+      this.fontName.appendChild(opt);
+    }
+    this.fontName.value = displayFont;
+    syncCustomSelect(this.fontName);
   }
 
   private setActive(btn: HTMLElement, active: boolean): void {
@@ -651,11 +625,11 @@ export class Toolbar {
 
   /** 로컬 글꼴 optgroup을 #font-name 드롭다운에 추가 */
   private populateLocalFontOptions(): void {
-    const localFonts = getLocalFonts();
-    if (localFonts.length === 0) return;
-
     // 기존 로컬 글꼴 optgroup 제거 (재호출 대비)
     this.fontName.querySelectorAll('optgroup[label="로컬 글꼴"]').forEach(g => g.remove());
+
+    const localFonts = getLocalFonts();
+    if (localFonts.length === 0) return;
 
     const group = document.createElement('optgroup');
     group.label = '로컬 글꼴';
@@ -684,11 +658,57 @@ export class Toolbar {
     return userSettings.getAllFontSets().find(fs => fs.name === name);
   }
 
+  private beginFontApplyRequest(): number {
+    this.fontApplyRequestId += 1;
+    return this.fontApplyRequestId;
+  }
+
+  private isLatestFontApplyRequest(requestId: number): boolean {
+    return requestId === this.fontApplyRequestId;
+  }
+
   /** 대표 글꼴 세트를 7개 언어에 일괄 적용 */
-  private applyFontSet(fs: FontSet): void {
+  private async applyFontSelection(name: string): Promise<void> {
+    const requestId = this.beginFontApplyRequest();
+    await loadWebFonts([name]).catch(() => undefined);
+    if (!this.isLatestFontApplyRequest(requestId)) return;
+
+    const langVal = this.fontLang.value;
+    if (langVal === 'all') {
+      // 전체 언어 일괄 적용
+      const fontId = this.wasm.findOrCreateFontId(name);
+      if (fontId >= 0) {
+        this.eventBus.emit('format-char', { fontId } as CharProperties);
+      }
+      return;
+    }
+
+    // 특정 언어만 적용 (fontIds 배열)
+    const langIdx = parseInt(langVal, 10);
+    const fontId = this.wasm.findOrCreateFontIdForLang(langIdx, name);
+    if (fontId >= 0 && this.lastFontFamilies) {
+      // 현재 fontIds를 기반으로 해당 언어만 교체
+      const ids: number[] = [];
+      for (let i = 0; i < 7; i++) {
+        if (i === langIdx) {
+          ids.push(fontId);
+        } else {
+          // 다른 언어는 현재 글꼴 ID 유지 (기존 값 조회)
+          const existingName = this.lastFontFamilies[i] || this.lastFontFamilies[0];
+          ids.push(this.wasm.findOrCreateFontIdForLang(i, existingName));
+        }
+      }
+      this.eventBus.emit('format-char', { fontIds: ids } as CharProperties);
+    }
+  }
+
+  private async applyFontSet(fs: FontSet): Promise<void> {
+    const requestId = this.beginFontApplyRequest();
     const langKeys: (keyof Omit<FontSet, 'name'>)[] = [
       'korean', 'english', 'chinese', 'japanese', 'other', 'symbol', 'user',
     ];
+    await loadWebFonts(langKeys.map((key) => fs[key])).catch(() => undefined);
+    if (!this.isLatestFontApplyRequest(requestId)) return;
     const ids: number[] = [];
     for (let i = 0; i < 7; i++) {
       const fontName = fs[langKeys[i]];

@@ -1,3 +1,4 @@
+use crate::font_catalog::LocalFontEntry;
 use crate::state::{
     editable_core_from_bytes, AppState, DocumentFormat, DocumentOpenResult,
     ExternalModificationStatus, FileFingerprint, MutationResult, PageSvgResult, SaveResult,
@@ -78,7 +79,12 @@ pub fn mark_document_dirty(doc_id: String, state: State<'_, AppState>) -> Result
 
 #[tauri::command]
 pub fn prepare_staged_hwp_save(app: AppHandle, target_path: String) -> Result<String, String> {
-    prepare_staged_file(&app, PathBuf::from(target_path), ensure_hwp_target_path, staged_hwp_save_path)
+    prepare_staged_file(
+        &app,
+        PathBuf::from(target_path),
+        ensure_hwp_target_path,
+        staged_hwp_save_path,
+    )
 }
 
 #[tauri::command]
@@ -269,6 +275,16 @@ pub fn desktop_platform() -> &'static str {
     } else {
         "unknown"
     }
+}
+
+#[tauri::command]
+pub fn list_local_fonts() -> Result<Vec<LocalFontEntry>, String> {
+    Ok(crate::font_catalog::collect_desktop_local_font_entries())
+}
+
+#[tauri::command]
+pub fn read_local_font(path: String) -> Result<Vec<u8>, String> {
+    crate::font_catalog::read_desktop_local_font(Path::new(&path))
 }
 
 fn allow_frontend_fs_file(app: &AppHandle, path: &Path) -> Result<(), String> {

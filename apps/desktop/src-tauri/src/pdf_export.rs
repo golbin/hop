@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::commands::PageRange;
+use crate::font_catalog;
 use crate::state::atomic_write;
 
 pub fn export_core_to_pdf(
@@ -72,34 +73,6 @@ fn resolve_page_range(page_range: Option<PageRange>, page_count: u32) -> Result<
     Ok((start..=end).collect())
 }
 
-fn create_fontdb() -> usvg::fontdb::Database {
-    let mut fontdb = usvg::fontdb::Database::new();
-    fontdb.load_system_fonts();
-
-    if std::path::Path::new("/mnt/c/Windows/Fonts").exists() {
-        fontdb.load_fonts_dir("/mnt/c/Windows/Fonts");
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        fontdb.load_fonts_dir("/System/Library/Fonts");
-        fontdb.load_fonts_dir("/System/Library/Fonts/Supplemental");
-    }
-
-    fontdb.set_serif_family("바탕");
-    fontdb.set_sans_serif_family("맑은 고딕");
-    fontdb.set_monospace_family("D2Coding");
-
-    #[cfg(target_os = "macos")]
-    {
-        fontdb.set_serif_family("AppleMyungjo");
-        fontdb.set_sans_serif_family("Apple SD Gothic Neo");
-        fontdb.set_monospace_family("Menlo");
-    }
-
-    fontdb
-}
-
 fn add_font_fallbacks(svg: &str) -> String {
     svg.replace(
         "font-family=\"휴먼명조\"",
@@ -126,14 +99,24 @@ fn conversion_options() -> svg2pdf::ConversionOptions {
     }
 }
 
-fn svg_to_pdf(svg_content: &str) -> Result<Vec<u8>, String> {
-    let options = usvg::Options {
-        fontdb: std::sync::Arc::new(create_fontdb()),
+fn pdf_usvg_options() -> usvg::Options<'static> {
+    usvg::Options {
+        fontdb: std::sync::Arc::new(font_catalog::create_pdf_font_database()),
         ..Default::default()
-    };
+    }
+}
+
+fn parse_svg_tree_for_pdf(
+    svg_content: &str,
+    options: &usvg::Options<'static>,
+) -> Result<usvg::Tree, String> {
     let svg_with_fallback = add_font_fallbacks(svg_content);
-    let tree = usvg::Tree::from_str(&svg_with_fallback, &options)
-        .map_err(|e| format!("SVG 파싱 실패: {}", e))?;
+    usvg::Tree::from_str(&svg_with_fallback, options).map_err(|e| format!("SVG 파싱 실패: {}", e))
+}
+
+fn svg_to_pdf(svg_content: &str) -> Result<Vec<u8>, String> {
+    let options = pdf_usvg_options();
+    let tree = parse_svg_tree_for_pdf(svg_content, &options)?;
     svg2pdf::to_pdf(&tree, conversion_options(), svg2pdf::PageOptions::default())
         .map_err(|e| format!("PDF 변환 실패: {:?}", e))
 }
@@ -146,10 +129,7 @@ fn svgs_to_pdf(svg_pages: &[String]) -> Result<Vec<u8>, String> {
         return svg_to_pdf(&svg_pages[0]);
     }
 
-    let options = usvg::Options {
-        fontdb: std::sync::Arc::new(create_fontdb()),
-        ..Default::default()
-    };
+    let options = pdf_usvg_options();
 
     let mut alloc = Ref::new(1);
     let catalog_ref = alloc.bump();
@@ -165,9 +145,7 @@ fn svgs_to_pdf(svg_pages: &[String]) -> Result<Vec<u8>, String> {
     let mut page_datas: Vec<PageData> = Vec::new();
 
     for svg in svg_pages {
-        let svg_with_fallback = add_font_fallbacks(svg);
-        let tree = usvg::Tree::from_str(&svg_with_fallback, &options)
-            .map_err(|e| format!("SVG 파싱 실패: {}", e))?;
+        let tree = parse_svg_tree_for_pdf(svg, &options)?;
 
         let (chunk, svg_ref) = svg2pdf::to_chunk(&tree, conversion_options())
             .map_err(|e| format!("SVG->chunk 변환 실패: {:?}", e))?;

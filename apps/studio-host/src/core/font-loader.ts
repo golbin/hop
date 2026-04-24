@@ -1,3 +1,5 @@
+import { detectLocalFontEntries, ensureLocalFontsAvailable } from './local-fonts';
+
 interface FontEntry {
   name: string;
   file: string;
@@ -83,6 +85,7 @@ const OS_FONT_CANDIDATES = [
 let fontFaceRegistered = false;
 const loadedFiles = new Set<string>();
 const detectedOSFonts = new Set<string>();
+let substituteFontStyle: HTMLStyleElement | null = null;
 
 export function getDetectedOSFonts(): ReadonlySet<string> {
   return detectedOSFonts;
@@ -92,13 +95,16 @@ export async function loadWebFonts(
   docFonts?: string[],
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
+  const targetSet = new Set([...(docFonts ?? []), ...CRITICAL_FONTS]);
+  await hydrateDetectedFonts(targetSet);
+
   if (!fontFaceRegistered) {
-    detectOSFonts();
     registerFontFaces();
     fontFaceRegistered = true;
+  } else {
+    syncRegisteredFontFaces();
   }
 
-  const targetSet = new Set([...(docFonts ?? []), ...CRITICAL_FONTS]);
   const targetFonts = FONT_LIST.filter((font) => {
     if (!targetSet.has(font.name)) return false;
     return !detectedOSFonts.has(font.name);
@@ -126,6 +132,23 @@ export async function loadWebFonts(
   }
 }
 
+async function hydrateDetectedFonts(targetFonts: Set<string>): Promise<void> {
+  const localFontEntries = await detectLocalFontEntries().catch(() => []);
+  for (const entry of localFontEntries) {
+    if (entry.sourceKind !== 'system-installed') continue;
+    detectedOSFonts.add(entry.family);
+  }
+
+  const availableFonts = await ensureLocalFontsAvailable(targetFonts).catch(() => new Set<string>());
+  for (const family of availableFonts) {
+    detectedOSFonts.add(family);
+  }
+
+  if (detectedOSFonts.size === 0) {
+    detectFallbackBrowserFonts();
+  }
+}
+
 function mapFontAliases(fontsToLoad: FontEntry[]): Map<string, string[]> {
   const aliases = new Map<string, string[]>();
   const filesToLoad = new Set(fontsToLoad.map((font) => font.file));
@@ -138,7 +161,7 @@ function mapFontAliases(fontsToLoad: FontEntry[]): Map<string, string[]> {
   return aliases;
 }
 
-function detectOSFonts(): void {
+function detectFallbackBrowserFonts(): void {
   for (const name of OS_FONT_CANDIDATES) {
     try {
       if (document.fonts.check(`16px "${name}"`)) {
@@ -151,11 +174,18 @@ function detectOSFonts(): void {
 }
 
 function registerFontFaces(): void {
-  const style = document.createElement('style');
-  style.textContent = FONT_LIST
+  substituteFontStyle = document.createElement('style');
+  document.head.appendChild(substituteFontStyle);
+  syncRegisteredFontFaces();
+}
+
+function syncRegisteredFontFaces(): void {
+  if (!substituteFontStyle) return;
+
+  substituteFontStyle.textContent = FONT_LIST
+    .filter((font) => !detectedOSFonts.has(font.name))
     .map((font) => `@font-face { font-family: "${font.name}"; src: url("${font.file}") format("${font.format ?? 'woff2'}"); font-display: swap; }`)
     .join('\n');
-  document.head.appendChild(style);
 }
 
 function uniqueFonts(fonts: FontEntry[]): FontEntry[] {
