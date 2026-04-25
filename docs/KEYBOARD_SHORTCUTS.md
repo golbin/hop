@@ -1,11 +1,13 @@
 # Keyboard Shortcuts
 
-Shortcuts use **Cmd** on macOS and **Ctrl** on Windows/Linux.
+Shortcuts use **Cmd** on macOS and **Ctrl** on Windows/Linux. For shortcuts
+that use **Alt**, macOS users should use **Option (⌥)**.
 
 ## File
 
 | Shortcut | Action |
 |---|---|
+| Cmd/Ctrl+N | New Document |
 | Alt+N | New Document |
 | Cmd/Ctrl+Shift+N | New Window |
 | Cmd/Ctrl+O | Open |
@@ -23,6 +25,9 @@ Shortcuts use **Cmd** on macOS and **Ctrl** on Windows/Linux.
 | Cmd/Ctrl+Z | Undo |
 | Cmd/Ctrl+Shift+Z | Redo |
 | Cmd/Ctrl+Y | Redo |
+| Cmd/Ctrl+X | Cut |
+| Cmd/Ctrl+C | Copy |
+| Cmd/Ctrl+V | Paste |
 | Cmd/Ctrl+A | Select All |
 | Cmd/Ctrl+F | Find |
 | Cmd/Ctrl+F2 | Find and Replace |
