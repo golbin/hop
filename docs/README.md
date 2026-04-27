@@ -7,6 +7,7 @@
 ```text
 docs/
   DEVELOPMENT.md             로컬 개발 환경과 주요 명령
+  KEYBOARD_SHORTCUTS.md      키보드 단축키 레퍼런스
   specs/
     initial/
       SPEC.md                초기 제품 및 public beta 스펙
