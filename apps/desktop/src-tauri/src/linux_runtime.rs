@@ -25,14 +25,33 @@ const HOST_GTK_DIR_CANDIDATES: &[&str] = &[
 
 const GTK_IM_MODULE_FALLBACK_ENV: &[&str] = &["QT_IM_MODULE", "SDL_IM_MODULE", "INPUT_METHOD"];
 const GTK_PATH_SEPARATOR: char = ':';
+const OS_RELEASE_PATH: &str = "/etc/os-release";
+const WEBKIT_GRAPHICS_FALLBACK_ENV: &[(&str, &str)] = &[
+    ("WEBKIT_DISABLE_DMABUF_RENDERER", "1"),
+    ("WEBKIT_DISABLE_COMPOSITING_MODE", "1"),
+];
 
 pub fn apply_linux_appimage_runtime_fixes() {
     if !is_appimage_runtime() {
         return;
     }
 
+    apply_webkit_graphics_fallbacks(read_os_release().as_deref());
+
     let host_cache_candidates = host_cache_candidate_paths();
     apply_appimage_runtime_fixes_with_host_caches(&host_cache_candidates);
+}
+
+fn apply_webkit_graphics_fallbacks(os_release: Option<&str>) {
+    if !needs_webkit_graphics_fallback(os_release) {
+        return;
+    }
+
+    for (name, value) in WEBKIT_GRAPHICS_FALLBACK_ENV {
+        if env::var_os(name).is_none() {
+            env::set_var(name, value);
+        }
+    }
 }
 
 fn apply_appimage_runtime_fixes_with_host_caches(host_cache_candidates: &[PathBuf]) {
@@ -60,6 +79,43 @@ fn apply_appimage_runtime_fixes_with_host_caches(host_cache_candidates: &[PathBu
 
 fn is_appimage_runtime() -> bool {
     env::var_os("APPIMAGE").is_some() || env::var_os("APPDIR").is_some()
+}
+
+fn read_os_release() -> Option<String> {
+    fs::read_to_string(OS_RELEASE_PATH).ok()
+}
+
+fn needs_webkit_graphics_fallback(os_release: Option<&str>) -> bool {
+    is_arch_like_os_release(os_release)
+}
+
+fn is_arch_like_os_release(os_release: Option<&str>) -> bool {
+    let Some(contents) = os_release else {
+        return false;
+    };
+
+    contents.lines().any(|line| {
+        let Some((name, value)) = line.split_once('=') else {
+            return false;
+        };
+        if !matches!(name, "ID" | "ID_LIKE") {
+            return false;
+        }
+        os_release_value_tokens(value).any(|token| {
+            matches!(
+                token.as_str(),
+                "arch" | "archlinux" | "cachyos" | "manjaro" | "endeavouros" | "garuda"
+            )
+        })
+    })
+}
+
+fn os_release_value_tokens(value: &str) -> impl Iterator<Item = String> + '_ {
+    value
+        .trim()
+        .trim_matches('"')
+        .split_whitespace()
+        .map(|token| token.to_ascii_lowercase())
 }
 
 fn requested_gtk_im_module() -> Option<String> {
