@@ -1,5 +1,7 @@
 use std::{
-    env, fs,
+    env,
+    ffi::{OsStr, OsString},
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -15,25 +17,44 @@ const HOST_GTK_IM_MODULE_CACHE_CANDIDATES: &[&str] = &[
     "/usr/lib/gtk-3.0/3.0.0/immodules.cache",
 ];
 
+const HOST_GTK_DIR_CANDIDATES: &[&str] = &[
+    "/usr/lib/x86_64-linux-gnu/gtk-3.0",
+    "/usr/lib64/gtk-3.0",
+    "/usr/lib/gtk-3.0",
+];
+
+const GTK_IM_MODULE_FALLBACK_ENV: &[&str] = &["QT_IM_MODULE", "SDL_IM_MODULE", "INPUT_METHOD"];
+
 pub fn apply_linux_appimage_runtime_fixes() {
     if !is_appimage_runtime() {
         return;
     }
-    if has_explicit_im_module_cache_override() {
+
+    let host_cache_candidates = host_cache_candidate_paths();
+    apply_appimage_runtime_fixes_with_host_caches(&host_cache_candidates);
+}
+
+fn apply_appimage_runtime_fixes_with_host_caches(host_cache_candidates: &[PathBuf]) {
+    let requested_module = requested_gtk_im_module();
+    if has_user_im_module_cache_override() {
+        if let Some(module) = requested_module.as_deref() {
+            ensure_gtk_im_module(module);
+        }
         return;
     }
 
-    let Some(requested_module) = requested_gtk_im_module() else {
-        return;
-    };
-    if active_cache_supports_module(&requested_module) {
-        return;
-    }
-    let Some(cache_path) = find_host_im_module_cache(&requested_module) else {
-        return;
-    };
+    if let Some(module) = requested_module.as_deref() {
+        if active_cache_supports_module(module) {
+            ensure_gtk_im_module(module);
+            return;
+        }
 
-    env::set_var("GTK_IM_MODULE_FILE", &cache_path);
+        if let Some(cache_path) = find_im_module_cache(host_cache_candidates, module) {
+            apply_host_im_module_cache(&cache_path);
+            ensure_gtk_im_module(module);
+            return;
+        }
+    }
 }
 
 fn is_appimage_runtime() -> bool {
@@ -41,39 +62,66 @@ fn is_appimage_runtime() -> bool {
 }
 
 fn requested_gtk_im_module() -> Option<String> {
-    env::var("GTK_IM_MODULE")
-        .ok()
-        .and_then(|value| normalize_im_module(value.trim()))
+    env_im_module("GTK_IM_MODULE")
+        .or_else(requested_xim_module)
         .or_else(|| {
-            env::var("XMODIFIERS").ok().and_then(|value| {
-                value
-                    .split_once("@im=")
-                    .and_then(|(_, module)| normalize_im_module(module))
-            })
+            GTK_IM_MODULE_FALLBACK_ENV
+                .iter()
+                .find_map(|name| env_im_module(name))
         })
 }
 
-fn has_explicit_im_module_cache_override() -> bool {
-    env::var_os("GTK_IM_MODULE_FILE").is_some()
+fn env_im_module(name: &str) -> Option<String> {
+    env::var(name)
+        .ok()
+        .and_then(|value| normalize_im_module(&value))
+}
+
+fn requested_xim_module() -> Option<String> {
+    env::var("XMODIFIERS").ok().and_then(|value| {
+        let (_, module) = value.split_once("@im=")?;
+        let module = module
+            .split(|ch: char| ch == ';' || ch.is_whitespace())
+            .next()
+            .unwrap_or(module);
+        normalize_im_module(module)
+    })
+}
+
+fn has_user_im_module_cache_override() -> bool {
+    current_im_module_cache()
+        .as_deref()
+        .is_some_and(|path| !is_appimage_owned_path(path))
+}
+
+fn is_appimage_owned_path(path: &Path) -> bool {
+    env::var_os("APPDIR")
+        .map(PathBuf::from)
+        .is_some_and(|appdir| path.starts_with(appdir))
 }
 
 fn normalize_im_module(value: &str) -> Option<String> {
-    let normalized = value.trim().to_ascii_lowercase();
-    if normalized.is_empty() {
-        None
-    } else if normalized == "fcitx5" {
-        Some("fcitx".to_string())
-    } else {
-        Some(normalized)
+    let normalized = value.trim().trim_matches('"').trim().to_ascii_lowercase();
+
+    match normalized.as_str() {
+        "" | "none" | "simple" | "gtk-im-context-simple" => None,
+        "fcitx5" => Some("fcitx".to_string()),
+        _ => Some(normalized),
     }
 }
 
-fn find_host_im_module_cache(requested_module: &str) -> Option<PathBuf> {
+fn host_cache_candidate_paths() -> Vec<PathBuf> {
     HOST_GTK_IM_MODULE_CACHE_CANDIDATES
         .iter()
-        .map(Path::new)
+        .map(PathBuf::from)
+        .collect()
+}
+
+fn find_im_module_cache(candidates: &[PathBuf], requested_module: &str) -> Option<PathBuf> {
+    candidates
+        .iter()
         .find(|path| cache_supports_module(path, requested_module))
-        .map(Path::to_path_buf)
+        .cloned()
 }
 
 fn active_cache_supports_module(requested_module: &str) -> bool {
@@ -102,133 +150,66 @@ fn cache_supports_module(path: &Path, requested_module: &str) -> bool {
     contents.contains(&needle)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
-
-    struct EnvRestore {
-        gtk_im_module_file: Option<std::ffi::OsString>,
-        gtk_im_module: Option<std::ffi::OsString>,
-        xmodifiers: Option<std::ffi::OsString>,
-        appdir: Option<std::ffi::OsString>,
-    }
-
-    impl EnvRestore {
-        fn capture() -> Self {
-            Self {
-                gtk_im_module_file: env::var_os("GTK_IM_MODULE_FILE"),
-                gtk_im_module: env::var_os("GTK_IM_MODULE"),
-                xmodifiers: env::var_os("XMODIFIERS"),
-                appdir: env::var_os("APPDIR"),
-            }
-        }
-    }
-
-    impl Drop for EnvRestore {
-        fn drop(&mut self) {
-            unsafe {
-                match &self.gtk_im_module_file {
-                    Some(value) => env::set_var("GTK_IM_MODULE_FILE", value),
-                    None => env::remove_var("GTK_IM_MODULE_FILE"),
-                }
-                match &self.gtk_im_module {
-                    Some(value) => env::set_var("GTK_IM_MODULE", value),
-                    None => env::remove_var("GTK_IM_MODULE"),
-                }
-                match &self.xmodifiers {
-                    Some(value) => env::set_var("XMODIFIERS", value),
-                    None => env::remove_var("XMODIFIERS"),
-                }
-                match &self.appdir {
-                    Some(value) => env::set_var("APPDIR", value),
-                    None => env::remove_var("APPDIR"),
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn cache_supports_requested_input_method() {
-        let dir = tempfile::tempdir().unwrap();
-        let cache_path = dir.path().join("immodules.cache");
-        fs::write(&cache_path, "\"fcitx\"\n\"ibus\"\n").unwrap();
-
-        assert!(cache_supports_module(&cache_path, "fcitx"));
-        assert!(cache_supports_module(&cache_path, "ibus"));
-        assert!(!cache_supports_module(&cache_path, "xim"));
-    }
-
-    #[test]
-    fn current_im_module_cache_prefers_explicit_env_override() {
-        let _lock = ENV_LOCK.lock().unwrap();
-        let _restore = EnvRestore::capture();
-        let dir = tempfile::tempdir().unwrap();
-        let cache_path = dir.path().join("immodules.cache");
-        fs::write(&cache_path, "\"fcitx\"\n").unwrap();
-
-        unsafe {
-            env::set_var("GTK_IM_MODULE_FILE", &cache_path);
-            env::remove_var("APPDIR");
-        }
-
-        assert_eq!(current_im_module_cache(), Some(cache_path));
-        assert!(has_explicit_im_module_cache_override());
-    }
-
-    #[test]
-    fn current_im_module_cache_falls_back_to_appdir_bundle_cache() {
-        let _lock = ENV_LOCK.lock().unwrap();
-        let _restore = EnvRestore::capture();
-        let dir = tempfile::tempdir().unwrap();
-        let cache_path = dir.path().join("usr/lib/gtk-3.0/3.0.0/immodules.cache");
-        fs::create_dir_all(cache_path.parent().unwrap()).unwrap();
-        fs::write(&cache_path, "\"xim\"\n").unwrap();
-
-        unsafe {
-            env::remove_var("GTK_IM_MODULE_FILE");
-            env::set_var("APPDIR", dir.path());
-        }
-
-        assert_eq!(current_im_module_cache(), Some(cache_path));
-    }
-
-    #[test]
-    fn normalize_im_module_rejects_empty_values() {
-        assert_eq!(normalize_im_module(" fcitx "), Some("fcitx".to_string()));
-        assert_eq!(normalize_im_module("fcitx5"), Some("fcitx".to_string()));
-        assert_eq!(normalize_im_module(""), None);
-        assert_eq!(normalize_im_module("   "), None);
-    }
-
-    #[test]
-    fn requested_im_module_falls_back_to_xmodifiers() {
-        let _lock = ENV_LOCK.lock().unwrap();
-        let _restore = EnvRestore::capture();
-
-        unsafe {
-            env::remove_var("GTK_IM_MODULE");
-            env::set_var("XMODIFIERS", "@im=fcitx5");
-        }
-
-        assert_eq!(requested_gtk_im_module(), Some("fcitx".to_string()));
-    }
-
-    #[test]
-    fn active_cache_supports_requested_module() {
-        let _lock = ENV_LOCK.lock().unwrap();
-        let _restore = EnvRestore::capture();
-        let dir = tempfile::tempdir().unwrap();
-        let cache_path = dir.path().join("immodules.cache");
-        fs::write(&cache_path, "\"fcitx\"\n").unwrap();
-
-        unsafe {
-            env::set_var("GTK_IM_MODULE_FILE", &cache_path);
-        }
-
-        assert!(active_cache_supports_module("fcitx"));
-        assert!(!active_cache_supports_module("ibus"));
+fn apply_host_im_module_cache(cache_path: &Path) {
+    env::set_var("GTK_IM_MODULE_FILE", cache_path);
+    if let Some(gtk_path) = merged_gtk_paths(
+        env::var_os("GTK_PATH").as_deref(),
+        &host_gtk_path_candidates_for_cache(cache_path),
+    ) {
+        env::set_var("GTK_PATH", gtk_path);
     }
 }
+
+fn ensure_gtk_im_module(module: &str) {
+    if matches!(module, "xim" | "wayland" | "waylandgtk" | "broadway") {
+        return;
+    }
+
+    if env_im_module("GTK_IM_MODULE").as_deref() != Some(module) {
+        env::set_var("GTK_IM_MODULE", module);
+    }
+}
+
+fn host_gtk_path_candidates_for_cache(cache_path: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if let Some(root) = gtk_path_root_for_cache(cache_path) {
+        push_unique_path(&mut paths, root);
+    }
+    for candidate in HOST_GTK_DIR_CANDIDATES {
+        push_unique_path(&mut paths, PathBuf::from(candidate));
+    }
+    paths
+}
+
+fn gtk_path_root_for_cache(cache_path: &Path) -> Option<PathBuf> {
+    cache_path.parent()?.parent().map(Path::to_path_buf)
+}
+
+fn merged_gtk_paths(current: Option<&OsStr>, host_dirs: &[PathBuf]) -> Option<OsString> {
+    let mut values = Vec::new();
+    for dir in host_dirs {
+        push_unique_path(&mut values, dir.clone());
+    }
+
+    if let Some(current) = current {
+        for segment in env::split_paths(current) {
+            push_unique_path(&mut values, segment);
+        }
+    }
+
+    if values.is_empty() {
+        None
+    } else {
+        env::join_paths(values).ok()
+    }
+}
+
+fn push_unique_path(paths: &mut Vec<PathBuf>, path: PathBuf) {
+    if path.as_os_str().is_empty() || paths.iter().any(|existing| existing == &path) {
+        return;
+    }
+    paths.push(path);
+}
+
+#[cfg(test)]
+mod linux_runtime_tests;
