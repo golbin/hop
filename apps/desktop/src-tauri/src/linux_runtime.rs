@@ -24,6 +24,7 @@ const HOST_GTK_DIR_CANDIDATES: &[&str] = &[
 ];
 
 const GTK_IM_MODULE_FALLBACK_ENV: &[&str] = &["QT_IM_MODULE", "SDL_IM_MODULE", "INPUT_METHOD"];
+const GTK_PATH_SEPARATOR: char = ':';
 
 pub fn apply_linux_appimage_runtime_fixes() {
     if !is_appimage_runtime() {
@@ -192,15 +193,22 @@ fn merged_gtk_paths(current: Option<&OsStr>, host_dirs: &[PathBuf]) -> Option<Os
     }
 
     if let Some(current) = current {
-        for segment in env::split_paths(current) {
-            push_unique_path(&mut values, segment);
+        for segment in current.to_string_lossy().split(GTK_PATH_SEPARATOR) {
+            push_unique_path(&mut values, PathBuf::from(segment));
         }
     }
 
     if values.is_empty() {
         None
     } else {
-        env::join_paths(values).ok()
+        let mut joined = OsString::new();
+        for (index, path) in values.iter().enumerate() {
+            if index > 0 {
+                joined.push(GTK_PATH_SEPARATOR.to_string());
+            }
+            joined.push(path);
+        }
+        Some(joined)
     }
 }
 
@@ -212,4 +220,5 @@ fn push_unique_path(paths: &mut Vec<PathBuf>, path: PathBuf) {
 }
 
 #[cfg(test)]
+#[path = "linux_runtime_tests.rs"]
 mod linux_runtime_tests;
