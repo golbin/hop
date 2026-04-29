@@ -4,7 +4,7 @@ HOP는 `edwardkim/rhwp`를 읽기 전용 upstream 의존성으로 사용한다.
 
 * upstream URL: `https://github.com/edwardkim/rhwp.git`
 * submodule 경로: `third_party/rhwp`
-* 기준 고정 커밋: `033617e23847982135c02091a62f55031a3817b5`
+* 기준 고정 커밋: `42cf91b6ba7b50fa1c853c01158a52ef68b45442` (`v0.7.8`)
 * HOP 작업 브랜치: `main`
 
 ## 소유권 규칙
@@ -47,7 +47,7 @@ UPSTREAM_BRANCH=devel RUN_CHECKS=1 scripts/update-upstream.sh
 release tag나 특정 commit으로 pinning하려면 `UPSTREAM_REF`를 사용한다.
 
 ```sh
-UPSTREAM_REF=v0.7.7 RUN_CHECKS=1 scripts/update-upstream.sh
+UPSTREAM_REF=v0.7.8 RUN_CHECKS=1 scripts/update-upstream.sh
 ```
 
 업데이트 후에는 다음을 확인한다.

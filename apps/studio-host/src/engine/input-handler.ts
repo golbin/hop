@@ -174,11 +174,6 @@ export class InputHandler {
   // 양식 개체 오버레이
   private formOverlay: HTMLElement | null = null;
 
-  // 투명선 자동 활성화 상태
-  private wasInCell = false;
-  private manualTransparentBorders = false;
-  private autoTransparentBorders = false;
-
   // IME 조합 상태
   private isComposing = false;
   private compositionAnchor: DocumentPosition | null = null;
@@ -365,11 +360,6 @@ export class InputHandler {
           this.renderTableObjectSelection();
         }
       });
-    });
-
-    // 투명선 수동 토글 상태 추적
-    eventBus.on('transparent-borders-changed', (show) => {
-      this.manualTransparentBorders = show as boolean;
     });
 
     // Toolbar에서 서식 적용 요청 수신 (글꼴명, 크기, 색상 — 커맨드 시스템 미경유)
@@ -1483,7 +1473,6 @@ export class InputHandler {
     }
     this.updateSelection();
     this.emitCursorFormatState();
-    this.checkTransparentBordersTransition();
     this.updateFieldMarkers();
     // 눈금자 다단 영역 표시용 커서 좌표 전달
     const cursorRect = this.cursor.getRect();
@@ -1528,7 +1517,6 @@ export class InputHandler {
     }
     this.updateSelection();
     this.emitCursorFormatState();
-    this.checkTransparentBordersTransition();
   }
 
   /** 클릭 좌표에서 같은 표 내 셀의 row/col을 반환한다. 다른 표이거나 셀이 아니면 null. */
@@ -1778,33 +1766,6 @@ export class InputHandler {
   /** 마우스 드래그로 그림 회전 — 드래그 종료 */
   private finishPictureRotateDrag(e: MouseEvent): void {
     _picture.finishPictureRotateDrag.call(this, e);
-  }
-
-  /** 셀 진입/탈출 시 투명선 자동 ON/OFF */
-  private checkTransparentBordersTransition(): void {
-    const nowInCell = this.cursor.isInCell() && !this.cursor.isInTextBox();
-    if (nowInCell && !this.wasInCell) {
-      // 셀 밖 → 셀 진입: 자동 ON
-      if (!this.manualTransparentBorders) {
-        this.autoTransparentBorders = true;
-        this.wasm.setShowTransparentBorders(true);
-        document.querySelectorAll('[data-cmd="view:border-transparent"]').forEach(el => {
-          el.classList.add('active');
-        });
-        this.eventBus.emit('document-changed');
-      }
-    } else if (!nowInCell && this.wasInCell) {
-      // 셀 안 → 셀 탈출: 자동으로 켜진 경우에만 OFF
-      if (this.autoTransparentBorders && !this.manualTransparentBorders) {
-        this.autoTransparentBorders = false;
-        this.wasm.setShowTransparentBorders(false);
-        document.querySelectorAll('[data-cmd="view:border-transparent"]').forEach(el => {
-          el.classList.remove('active');
-        });
-        this.eventBus.emit('document-changed');
-      }
-    }
-    this.wasInCell = nowInCell;
   }
 
   /** 캐럿이 화면 밖이면 스크롤을 조정한다 */

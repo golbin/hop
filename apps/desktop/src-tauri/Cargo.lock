@@ -3671,7 +3671,7 @@ dependencies = [
 
 [[package]]
 name = "rhwp"
-version = "0.7.7"
+version = "0.7.8"
 dependencies = [
  "base64 0.22.1",
  "byteorder",
@@ -3686,6 +3686,7 @@ dependencies = [
  "paste",
  "pdf-writer",
  "quick-xml 0.39.2",
+ "serde",
  "snafu",
  "strum",
  "subsetter",

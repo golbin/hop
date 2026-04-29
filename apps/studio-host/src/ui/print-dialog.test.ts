@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { PageInfo } from '@/core/types';
 import { isSafePrintSvgReference, openPrintDialog } from './print-dialog';
 
 class FakeElement {
@@ -76,6 +77,22 @@ function makeFakeDOMParser(hasParseerror = false) {
   };
 }
 
+function pageInfo(overrides: Partial<PageInfo> = {}): PageInfo {
+  return {
+    pageIndex: 0,
+    width: 595,
+    height: 842,
+    sectionIndex: 0,
+    marginLeft: 0,
+    marginRight: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    marginHeader: 0,
+    marginFooter: 0,
+    ...overrides,
+  };
+}
+
 describe('isSafePrintSvgReference', () => {
   it('allows image data URIs emitted by rhwp SVG export', () => {
     expect(isSafePrintSvgReference('data:image/png;base64,AAAA')).toBe(true);
@@ -90,11 +107,11 @@ describe('isSafePrintSvgReference', () => {
 
 describe('openPrintDialog', () => {
   let fakeDocument: FakeDocument;
-  let printMock: ReturnType<typeof vi.fn>;
+  let printMock: ReturnType<typeof vi.fn<() => void>>;
 
   beforeEach(() => {
     fakeDocument = new FakeDocument();
-    printMock = vi.fn();
+    printMock = vi.fn<() => void>();
     (globalThis as Record<string, unknown>).document = fakeDocument;
     (globalThis as Record<string, unknown>).window = {
       print: printMock,
@@ -137,7 +154,7 @@ describe('openPrintDialog', () => {
     const doc = {
       fileName: 'test.hwp',
       pageCount: 2,
-      getPageInfo: vi.fn(() => ({ width: 595, height: 842 })),
+      getPageInfo: vi.fn(() => pageInfo()),
       renderPageSvg: vi.fn(() => '<svg></svg>'),
     };
 
@@ -152,7 +169,7 @@ describe('openPrintDialog', () => {
     const doc = {
       fileName: 'test.hwp',
       pageCount: 3,
-      getPageInfo: vi.fn(() => ({ width: 595, height: 842 })),
+      getPageInfo: vi.fn(() => pageInfo()),
       renderPageSvg: vi.fn(() => '<svg></svg>'),
     };
 
@@ -170,7 +187,7 @@ describe('openPrintDialog', () => {
     const doc = {
       fileName: 'bad.hwp',
       pageCount: 1,
-      getPageInfo: vi.fn(() => ({ width: 595, height: 842 })),
+      getPageInfo: vi.fn(() => pageInfo()),
       renderPageSvg: vi.fn(() => '<not-valid-svg>'),
     };
 

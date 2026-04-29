@@ -610,7 +610,6 @@ export function onClick(this: any, e: MouseEvent): void {
         this.selectionRenderer.clear();
         this.renderTableObjectSelection();
         this.eventBus.emit('table-object-selection-changed', true);
-        this.checkTransparentBordersTransition();
         this.textarea.focus();
         return;
       }
@@ -627,7 +626,6 @@ export function onClick(this: any, e: MouseEvent): void {
         this.selectionRenderer.clear();
         this.renderTableObjectSelection();
         this.eventBus.emit('table-object-selection-changed', true);
-        this.checkTransparentBordersTransition();
         this.textarea.focus();
         return;
       }
@@ -643,7 +641,6 @@ export function onClick(this: any, e: MouseEvent): void {
       this.active = true;
       this.isDragging = true;
       this.updateCaret();
-      this.checkTransparentBordersTransition();
       document.addEventListener('mouseup', this.onMouseUpBound, { once: true });
       this.textarea.focus();
       return;
@@ -755,7 +752,6 @@ export function onClick(this: any, e: MouseEvent): void {
     }
     this.selectionRenderer.clear();
     this.emitCursorFormatState();
-    this.checkTransparentBordersTransition();
 
     // 필드(누름틀) 마커 표시 + 상태 표시줄 갱신
     this.updateFieldMarkers();
