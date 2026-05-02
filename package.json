@@ -11,7 +11,7 @@
     "build:desktop": "pnpm --filter hop-desktop build",
     "tauri": "pnpm --filter hop-desktop tauri",
     "test": "pnpm run test:upstream && pnpm run test:studio && pnpm run test:desktop",
-    "test:upstream": "node --test tests/update-upstream.test.mjs",
+    "test:upstream": "node --test tests/update-upstream.test.mjs tests/rhwp-baseline.test.mjs",
     "test:studio": "pnpm --filter @golbin/hop-studio-host test",
     "test:desktop": "cd apps/desktop/src-tauri && cargo test",
     "clippy:desktop": "cd apps/desktop/src-tauri && cargo clippy -- -D warnings"

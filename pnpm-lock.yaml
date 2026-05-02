@@ -17,8 +17,8 @@ importers:
   apps/studio-host:
     dependencies:
       '@rhwp/core':
-        specifier: 0.7.8
-        version: 0.7.8
+        specifier: 0.7.9
+        version: 0.7.9
       '@tauri-apps/api':
         specifier: ^2.10.1
         version: 2.10.1
@@ -62,8 +62,8 @@ packages:
   '@oxc-project/types@0.124.0':
     resolution: {integrity: sha512-VBFWMTBvHxS11Z5Lvlr3IWgrwhMTXV+Md+EQF0Xf60+wAdsGFTBx7X7K/hP4pi8N7dcm1RvcHwDxZ16Qx8keUg==}
 
-  '@rhwp/core@0.7.8':
-    resolution: {integrity: sha512-WfgmH9ItxSn68YFf0CofrRYdA4rk0HbN7bV2kFc/hdfCk19MdlVWyzQ69modmiCvb/AFTPNUcYg5B3iNSP4e0Q==}
+  '@rhwp/core@0.7.9':
+    resolution: {integrity: sha512-J7sKdTNECC2Sl4WErLDONynSF3UAlAzWaJ67T7xFjBxL1eS2yooT3CB8yNfrDOTlUZVtakZSd7LsYzinL/bj1A==}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.15':
     resolution: {integrity: sha512-YYe6aWruPZDtHNpwu7+qAHEMbQ/yRl6atqb/AhznLTnD3UY99Q1jE7ihLSahNWkF4EqRPVC4SiR4O0UkLK02tA==}
@@ -589,7 +589,7 @@ snapshots:
 
   '@oxc-project/types@0.124.0': {}
 
-  '@rhwp/core@0.7.8': {}
+  '@rhwp/core@0.7.9': {}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.15':
     optional: true
