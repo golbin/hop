@@ -12,6 +12,7 @@ const overrideIds = [
   'core/platform',
   'core/tauri-bridge',
   'command/shortcut-map',
+  'command/commands/edit',
   'command/commands/format',
   'command/commands/table',
   'command/commands/file',

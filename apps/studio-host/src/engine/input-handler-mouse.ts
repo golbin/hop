@@ -5,6 +5,36 @@ import type { ContextMenuItem } from '@/ui/context-menu';
 import * as _connector from '@upstream/engine/input-handler-connector';
 import { resolveVirtualScrollPageLeft } from '../view/page-left';
 
+const INVALID_PARAGRAPH_INDEX = 0xFFFFFF00;
+const HIT_TEST_FALLBACK_OFFSETS = [
+  [0, 0],
+  [-4, 0], [4, 0], [0, -4], [0, 4],
+  [-8, 0], [8, 0], [0, -8], [0, 8],
+  [-8, -8], [8, -8], [-8, 8], [8, 8],
+  [-14, 0], [14, 0], [0, -14], [0, 14],
+  [-18, -6], [18, -6], [-18, 6], [18, 6],
+  [-24, 0], [24, 0], [0, -24], [0, 24],
+] as const;
+
+export function hitTestNearPagePoint(
+  wasm: { hitTest: (pageIdx: number, pageX: number, pageY: number) => any },
+  pageIdx: number,
+  pageX: number,
+  pageY: number,
+): any | null {
+  for (const [dx, dy] of HIT_TEST_FALLBACK_OFFSETS) {
+    try {
+      const hit = wasm.hitTest(pageIdx, pageX + dx, pageY + dy);
+      if (hit && hit.paragraphIndex < INVALID_PARAGRAPH_INDEX) {
+        return hit;
+      }
+    } catch {
+      // Try the next nearby point.
+    }
+  }
+  return null;
+}
+
 export function tryHandleCellSelectionClick(this: any, e: MouseEvent): boolean {
   if (!this.cursor.isInCellSelectionMode() || e.button === 2) {
     return false;
@@ -591,10 +621,14 @@ export function onClick(this: any, e: MouseEvent): void {
   }
 
   try {
-    const hit = this.wasm.hitTest(pageIdx, pageX, pageY);
+    const hit = hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY);
+    if (!hit) {
+      this.textarea.focus();
+      return;
+    }
 
     // 머리말/꼬리말 마커 para_index(usize::MAX - hf_idx) 감지 → 무시
-    if (hit.paragraphIndex >= 0xFFFFFF00) {
+    if (hit.paragraphIndex >= INVALID_PARAGRAPH_INDEX) {
       this.textarea.focus();
       return;
     }
@@ -841,6 +875,78 @@ export function onDblClick(this: any, e: MouseEvent): void {
       return;
     }
   }
+
+  if (selectParagraphAtPointer.call(this, e)) {
+    e.preventDefault();
+  }
+}
+
+export function selectParagraphAtPointer(this: any, e: MouseEvent): boolean {
+  const target = e.target as HTMLElement;
+  if (target.closest('#menu-bar') || target.closest('#icon-toolbar') || target.closest('#style-bar')) return false;
+
+  const zoom = this.viewportManager.getZoom();
+  const scrollContent = this.container.querySelector('#scroll-content');
+  if (!scrollContent) return false;
+
+  const contentRect = scrollContent.getBoundingClientRect();
+  const contentX = e.clientX - contentRect.left;
+  const contentY = e.clientY - contentRect.top;
+  const pageIdx = this.virtualScroll.getPageAtY(contentY);
+  if (pageIdx < 0) return false;
+
+  const pageOffset = this.virtualScroll.getPageOffset(pageIdx);
+  const pageLeft = resolveVirtualScrollPageLeft(
+    this.virtualScroll,
+    pageIdx,
+    (scrollContent as HTMLElement).clientWidth,
+  );
+  const pageX = (contentX - pageLeft) / zoom;
+  const pageY = (contentY - pageOffset) / zoom;
+
+  try {
+    const hit = hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY);
+    if (!hit || hit.paragraphIndex >= INVALID_PARAGRAPH_INDEX) return false;
+
+    let start;
+    let end;
+    if (hit.parentParaIndex !== undefined && hit.cellIndex !== undefined && hit.cellParaIndex !== undefined) {
+      const length = this.wasm.getCellParagraphLength(
+        hit.sectionIndex,
+        hit.parentParaIndex,
+        hit.controlIndex!,
+        hit.cellIndex,
+        hit.cellParaIndex,
+      );
+      start = { ...hit, charOffset: 0 };
+      end = { ...hit, charOffset: length };
+    } else {
+      const length = this.wasm.getParagraphLength(hit.sectionIndex, hit.paragraphIndex);
+      start = {
+        sectionIndex: hit.sectionIndex,
+        paragraphIndex: hit.paragraphIndex,
+        charOffset: 0,
+      };
+      end = {
+        sectionIndex: hit.sectionIndex,
+        paragraphIndex: hit.paragraphIndex,
+        charOffset: length,
+      };
+    }
+
+    this.cursor.clearSelection();
+    this.cursor.moveTo(start);
+    this.cursor.setAnchor();
+    this.cursor.moveTo(end);
+    this.active = true;
+    this.isDragging = false;
+    this.updateCaret();
+    this.textarea.focus();
+    return true;
+  } catch (err) {
+    console.warn('[InputHandler] 문단 선택 실패:', err);
+    return false;
+  }
 }
 
 export function onContextMenu(this: any, e: MouseEvent): void {
@@ -883,7 +989,7 @@ export function onContextMenu(this: any, e: MouseEvent): void {
 
   let inTable = false;
   try {
-    const hit = this.wasm.hitTest(pageIdx, pageX, pageY);
+    const hit = hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY);
     inTable = hit.parentParaIndex !== undefined && !hit.isTextBox;
   } catch { /* hitTest 실패 시 표 밖으로 처리 */ }
 
@@ -1092,7 +1198,7 @@ export function onMouseMove(this: any, e: MouseEvent): void {
       this.dragRafId = 0;
       if (!this.isDragging) return;
       const hit = this.hitTestFromEvent(e);
-      if (hit && hit.paragraphIndex < 0xFFFFFF00) {
+      if (hit && hit.paragraphIndex < INVALID_PARAGRAPH_INDEX) {
         this.cursor.moveTo(hit);
         this.updateCaret();
       }
