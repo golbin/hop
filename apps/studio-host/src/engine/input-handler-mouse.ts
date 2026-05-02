@@ -16,6 +16,12 @@ const HIT_TEST_FALLBACK_OFFSETS = [
   [-24, 0], [24, 0], [0, -24], [0, 24],
 ] as const;
 
+const WORD_CHARACTER_RE = /^[\p{L}\p{N}\p{M}_]$/u;
+
+function isWordCharacter(char: string | undefined): boolean {
+  return char !== undefined && WORD_CHARACTER_RE.test(char);
+}
+
 export function hitTestNearPagePoint(
   wasm: { hitTest: (pageIdx: number, pageX: number, pageY: number) => any },
   pageIdx: number,
@@ -507,6 +513,12 @@ export function onClick(this: any, e: MouseEvent): void {
     return;
   }
 
+  // 트리플 클릭: 현재 더블클릭 동작이던 문단 선택을 여기로 이동
+  if (e.button === 0 && e.detail >= 3 && selectParagraphAtPointer.call(this, e)) {
+    e.preventDefault();
+    return;
+  }
+
   // 브라우저 기본 포커스 동작을 방지하여 textarea 포커스 유지
   e.preventDefault();
 
@@ -876,8 +888,53 @@ export function onDblClick(this: any, e: MouseEvent): void {
     }
   }
 
-  if (selectParagraphAtPointer.call(this, e)) {
+  if (selectWordAtPointer.call(this, e)) {
     e.preventDefault();
+  }
+}
+
+export function selectWordAtPointer(this: any, e: MouseEvent): boolean {
+  const target = e.target as HTMLElement;
+  if (target.closest('#menu-bar') || target.closest('#icon-toolbar') || target.closest('#style-bar')) return false;
+
+  const resolved = resolveTextHitAtPointer.call(this, e);
+  if (!resolved) return false;
+
+  const { hit } = resolved;
+
+  try {
+    const text = getParagraphTextForHit.call(this, hit);
+    const chars = Array.from(text);
+    if (chars.length === 0) return false;
+
+    let index = Math.min(hit.charOffset, chars.length - 1);
+    if (!isWordCharacter(chars[index]) && index > 0 && isWordCharacter(chars[index - 1])) {
+      index -= 1;
+    }
+    if (!isWordCharacter(chars[index])) return false;
+
+    let startOffset = index;
+    while (startOffset > 0 && isWordCharacter(chars[startOffset - 1])) {
+      startOffset -= 1;
+    }
+
+    let endOffset = index + 1;
+    while (endOffset < chars.length && isWordCharacter(chars[endOffset])) {
+      endOffset += 1;
+    }
+
+    this.cursor.clearSelection();
+    this.cursor.moveTo({ ...hit, charOffset: startOffset });
+    this.cursor.setAnchor();
+    this.cursor.moveTo({ ...hit, charOffset: endOffset });
+    this.active = true;
+    this.isDragging = false;
+    this.updateCaret();
+    this.textarea.focus();
+    return true;
+  } catch (err) {
+    console.warn('[InputHandler] 단어 선택 실패:', err);
+    return false;
   }
 }
 
@@ -885,54 +942,15 @@ export function selectParagraphAtPointer(this: any, e: MouseEvent): boolean {
   const target = e.target as HTMLElement;
   if (target.closest('#menu-bar') || target.closest('#icon-toolbar') || target.closest('#style-bar')) return false;
 
-  const zoom = this.viewportManager.getZoom();
-  const scrollContent = this.container.querySelector('#scroll-content');
-  if (!scrollContent) return false;
+  const resolved = resolveTextHitAtPointer.call(this, e);
+  if (!resolved) return false;
 
-  const contentRect = scrollContent.getBoundingClientRect();
-  const contentX = e.clientX - contentRect.left;
-  const contentY = e.clientY - contentRect.top;
-  const pageIdx = this.virtualScroll.getPageAtY(contentY);
-  if (pageIdx < 0) return false;
-
-  const pageOffset = this.virtualScroll.getPageOffset(pageIdx);
-  const pageLeft = resolveVirtualScrollPageLeft(
-    this.virtualScroll,
-    pageIdx,
-    (scrollContent as HTMLElement).clientWidth,
-  );
-  const pageX = (contentX - pageLeft) / zoom;
-  const pageY = (contentY - pageOffset) / zoom;
+  const { hit } = resolved;
 
   try {
-    const hit = hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY);
-    if (!hit || hit.paragraphIndex >= INVALID_PARAGRAPH_INDEX) return false;
-
-    let start;
-    let end;
-    if (hit.parentParaIndex !== undefined && hit.cellIndex !== undefined && hit.cellParaIndex !== undefined) {
-      const length = this.wasm.getCellParagraphLength(
-        hit.sectionIndex,
-        hit.parentParaIndex,
-        hit.controlIndex!,
-        hit.cellIndex,
-        hit.cellParaIndex,
-      );
-      start = { ...hit, charOffset: 0 };
-      end = { ...hit, charOffset: length };
-    } else {
-      const length = this.wasm.getParagraphLength(hit.sectionIndex, hit.paragraphIndex);
-      start = {
-        sectionIndex: hit.sectionIndex,
-        paragraphIndex: hit.paragraphIndex,
-        charOffset: 0,
-      };
-      end = {
-        sectionIndex: hit.sectionIndex,
-        paragraphIndex: hit.paragraphIndex,
-        charOffset: length,
-      };
-    }
+    const length = getParagraphLengthForHit.call(this, hit);
+    const start = { ...hit, charOffset: 0 };
+    const end = { ...hit, charOffset: length };
 
     this.cursor.clearSelection();
     this.cursor.moveTo(start);
@@ -947,6 +965,86 @@ export function selectParagraphAtPointer(this: any, e: MouseEvent): boolean {
     console.warn('[InputHandler] 문단 선택 실패:', err);
     return false;
   }
+}
+
+function resolveTextHitAtPointer(this: any, e: MouseEvent): { hit: any } | null {
+  const zoom = this.viewportManager.getZoom();
+  const scrollContent = this.container.querySelector('#scroll-content');
+  if (!scrollContent) return null;
+
+  const contentRect = scrollContent.getBoundingClientRect();
+  const contentX = e.clientX - contentRect.left;
+  const contentY = e.clientY - contentRect.top;
+  const pageIdx = this.virtualScroll.getPageAtY(contentY);
+  if (pageIdx < 0) return null;
+
+  const pageOffset = this.virtualScroll.getPageOffset(pageIdx);
+  const pageLeft = resolveVirtualScrollPageLeft(
+    this.virtualScroll,
+    pageIdx,
+    (scrollContent as HTMLElement).clientWidth,
+  );
+  const pageX = (contentX - pageLeft) / zoom;
+  const pageY = (contentY - pageOffset) / zoom;
+
+  try {
+    const hit = hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY);
+    if (!hit || hit.paragraphIndex >= INVALID_PARAGRAPH_INDEX) return null;
+    return { hit };
+  } catch (err) {
+    console.warn('[InputHandler] 텍스트 위치 확인 실패:', err);
+    return null;
+  }
+}
+
+function getParagraphLengthForHit(this: any, hit: any): number {
+  if ((hit.cellPath?.length ?? 0) > 1 && hit.parentParaIndex !== undefined) {
+    return this.wasm.getCellParagraphLengthByPath(
+      hit.sectionIndex,
+      hit.parentParaIndex,
+      JSON.stringify(hit.cellPath),
+    );
+  }
+
+  if (hit.parentParaIndex !== undefined && hit.cellIndex !== undefined && hit.cellParaIndex !== undefined) {
+    return this.wasm.getCellParagraphLength(
+      hit.sectionIndex,
+      hit.parentParaIndex,
+      hit.controlIndex!,
+      hit.cellIndex,
+      hit.cellParaIndex,
+    );
+  }
+
+  return this.wasm.getParagraphLength(hit.sectionIndex, hit.paragraphIndex);
+}
+
+function getParagraphTextForHit(this: any, hit: any): string {
+  const length = getParagraphLengthForHit.call(this, hit);
+
+  if ((hit.cellPath?.length ?? 0) > 1 && hit.parentParaIndex !== undefined) {
+    return this.wasm.getTextInCellByPath(
+      hit.sectionIndex,
+      hit.parentParaIndex,
+      JSON.stringify(hit.cellPath),
+      0,
+      length,
+    );
+  }
+
+  if (hit.parentParaIndex !== undefined && hit.cellIndex !== undefined && hit.cellParaIndex !== undefined) {
+    return this.wasm.getTextInCell(
+      hit.sectionIndex,
+      hit.parentParaIndex,
+      hit.controlIndex!,
+      hit.cellIndex,
+      hit.cellParaIndex,
+      0,
+      length,
+    );
+  }
+
+  return this.wasm.getTextRange(hit.sectionIndex, hit.paragraphIndex, 0, length);
 }
 
 export function onContextMenu(this: any, e: MouseEvent): void {

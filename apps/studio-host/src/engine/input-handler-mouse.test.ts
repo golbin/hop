@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { hitTestNearPagePoint, selectParagraphAtPointer, tryHandleCellSelectionClick } from './input-handler-mouse';
+import { hitTestNearPagePoint, selectParagraphAtPointer, selectWordAtPointer, tryHandleCellSelectionClick } from './input-handler-mouse';
 
 describe('hitTestNearPagePoint', () => {
   it('falls back to nearby points when the exact click misses text', () => {
@@ -92,7 +92,7 @@ describe('tryHandleCellSelectionClick', () => {
 });
 
 describe('selectParagraphAtPointer', () => {
-  it('selects the whole paragraph under a double-click', () => {
+  it('selects the whole paragraph under a triple-click', () => {
     const clearSelection = vi.fn();
     const moveTo = vi.fn();
     const setAnchor = vi.fn();
@@ -132,6 +132,55 @@ describe('selectParagraphAtPointer', () => {
     expect(handled).toBe(true);
     expect(clearSelection).toHaveBeenCalled();
     expect(moveTo).toHaveBeenNthCalledWith(1, { sectionIndex: 0, paragraphIndex: 3, charOffset: 0 });
+    expect(setAnchor).toHaveBeenCalled();
+    expect(moveTo).toHaveBeenNthCalledWith(2, { sectionIndex: 0, paragraphIndex: 3, charOffset: 12 });
+    expect(updateCaret).toHaveBeenCalled();
+    expect(focus).toHaveBeenCalled();
+  });
+});
+
+describe('selectWordAtPointer', () => {
+  it('selects the word around the double-click point', () => {
+    const clearSelection = vi.fn();
+    const moveTo = vi.fn();
+    const setAnchor = vi.fn();
+    const updateCaret = vi.fn();
+    const focus = vi.fn();
+
+    const handled = selectWordAtPointer.call(
+      {
+        viewportManager: { getZoom: () => 2 },
+        container: {
+          querySelector: () => ({
+            clientWidth: 500,
+            getBoundingClientRect: () => ({ left: 10, top: 20 }),
+          }),
+        },
+        virtualScroll: {
+          getPageAtY: () => 0,
+          getPageOffset: () => 100,
+          getPageLeft: () => null,
+          getPageWidth: () => 400,
+        },
+        wasm: {
+          hitTest: vi.fn(() => ({ sectionIndex: 0, paragraphIndex: 3, charOffset: 7 })),
+          getParagraphLength: vi.fn(() => 13),
+          getTextRange: vi.fn(() => 'Hello 월드_123!'),
+        },
+        cursor: { clearSelection, moveTo, setAnchor },
+        updateCaret,
+        textarea: { focus },
+      },
+      {
+        clientX: 210,
+        clientY: 140,
+        target: { closest: () => null },
+      } as unknown as MouseEvent,
+    );
+
+    expect(handled).toBe(true);
+    expect(clearSelection).toHaveBeenCalled();
+    expect(moveTo).toHaveBeenNthCalledWith(1, { sectionIndex: 0, paragraphIndex: 3, charOffset: 6 });
     expect(setAnchor).toHaveBeenCalled();
     expect(moveTo).toHaveBeenNthCalledWith(2, { sectionIndex: 0, paragraphIndex: 3, charOffset: 12 });
     expect(updateCaret).toHaveBeenCalled();
