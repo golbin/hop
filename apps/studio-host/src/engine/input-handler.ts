@@ -28,6 +28,25 @@ import * as _picture from '@upstream/engine/input-handler-picture';
 import { resolvePageLeft, resolveVirtualScrollPageLeft } from '../view/page-left';
 import { appendSvgElement, appendSvgLine, createOverlayLabel, createSvgRoot } from './svg-dom';
 
+type ClipboardDataLike = {
+  defaultPrevented: boolean;
+  items: DataTransferItemList;
+  getData: (type: string) => string;
+  setData: (type: string, value: string) => void;
+};
+
+function createClipboardDataLike(): ClipboardDataLike {
+  const values = new Map<string, string>();
+  return {
+    defaultPrevented: false,
+    items: [] as unknown as DataTransferItemList,
+    getData: (type: string) => values.get(type) ?? '',
+    setData: (type: string, value: string) => {
+      values.set(type, value);
+    },
+  };
+}
+
 /** 클릭 커서 배치 + 키보드 입력을 처리한다 */
 export class InputHandler {
   private cursor: CursorState;
@@ -936,11 +955,7 @@ export class InputHandler {
     );
     const pageX = (contentX - pageLeft) / zoom;
     const pageY = (contentY - pageOffset) / zoom;
-    try {
-      return this.wasm.hitTest(pageIdx, pageX, pageY);
-    } catch {
-      return null;
-    }
+    return _mouse.hitTestNearPagePoint(this.wasm, pageIdx, pageX, pageY);
   }
 
   /** 클릭 좌표가 표 외곽 경계선 위인지 판별한다 (페이지 좌표 기준) */
@@ -1134,6 +1149,69 @@ export class InputHandler {
   /** 붙여넣기 이벤트 처리 */
   private onPaste(e: ClipboardEvent): void {
     _keyboard.onPaste.call(this, e);
+  }
+
+  private createClipboardEvent(clipboardData: ClipboardDataLike): ClipboardEvent {
+    return {
+      clipboardData,
+      preventDefault: () => {
+        clipboardData.defaultPrevented = true;
+      },
+    } as unknown as ClipboardEvent;
+  }
+
+  private async writeSyntheticClipboard(clipboardData: ClipboardDataLike): Promise<void> {
+    const plain = clipboardData.getData('text/plain');
+    const html = clipboardData.getData('text/html');
+    if (!plain && !html) return;
+
+    try {
+      if (html && typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([plain], { type: 'text/plain' }),
+            'text/html': new Blob([html], { type: 'text/html' }),
+          }),
+        ]);
+        return;
+      }
+      if (plain && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(plain);
+      }
+    } catch {
+      this.focusTextarea();
+      document.execCommand('copy');
+    }
+  }
+
+  private async readSyntheticClipboard(): Promise<ClipboardDataLike> {
+    const clipboardData = createClipboardDataLike();
+
+    try {
+      if (navigator.clipboard?.read) {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          if (item.types.includes('text/html')) {
+            clipboardData.setData('text/html', await (await item.getType('text/html')).text());
+          }
+          if (item.types.includes('text/plain')) {
+            clipboardData.setData('text/plain', await (await item.getType('text/plain')).text());
+          }
+        }
+        return clipboardData;
+      }
+    } catch {
+      // readText fallback below.
+    }
+
+    try {
+      if (navigator.clipboard?.readText) {
+        clipboardData.setData('text/plain', await navigator.clipboard.readText());
+      }
+    } catch {
+      // Empty clipboardData lets the upstream path still use the internal WASM clipboard.
+    }
+    return clipboardData;
   }
 
   // ─── 서식 적용 ─────────────────────────────────────────
@@ -2195,9 +2273,9 @@ export class InputHandler {
       }
       return;
     }
-    // 텍스트 선택 → textarea 포커스 후 execCommand
-    this.focusTextarea();
-    document.execCommand('copy');
+    const clipboardData = createClipboardDataLike();
+    _keyboard.onCopy.call(this, this.createClipboardEvent(clipboardData));
+    void this.writeSyntheticClipboard(clipboardData);
   }
 
   /** 잘라내기 (커맨드 시스템용 — 컨텍스트 메뉴/도구 상자에서 호출) */
@@ -2236,9 +2314,15 @@ export class InputHandler {
       }
       return;
     }
-    // 텍스트 선택 → textarea 포커스 후 execCommand
-    this.focusTextarea();
-    document.execCommand('cut');
+    const clipboardData = createClipboardDataLike();
+    _keyboard.onCut.call(this, this.createClipboardEvent(clipboardData));
+    void this.writeSyntheticClipboard(clipboardData);
+  }
+
+  /** 붙여넣기 (커맨드 시스템용 — 메뉴/도구 상자에서 호출) */
+  async performPaste(): Promise<void> {
+    const clipboardData = await this.readSyntheticClipboard();
+    _keyboard.onPaste.call(this, this.createClipboardEvent(clipboardData));
   }
 
   /** 전체 선택 (커맨드 시스템용) */
