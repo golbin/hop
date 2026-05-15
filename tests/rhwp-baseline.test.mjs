@@ -38,19 +38,20 @@ test('HOP preserves upstream lineseg validation and auto-reflow on document load
   const mainSource = await readFile(join(repoRoot, 'apps/studio-host/src/main.ts'), 'utf8');
 
   assert.match(mainSource, /showValidationModalIfNeeded/);
-  assert.match(mainSource, /currentSourceFormat/);
-  assert.match(mainSource, /sourceFormat\s*===\s*['"]hwpx['"]/);
+  assert.doesNotMatch(mainSource, /currentSourceFormat/);
   assert.match(mainSource, /wasm\.getValidationWarnings\(\)/);
   assert.match(mainSource, /wasm\.reflowLinesegs\(\)/);
   assert.match(mainSource, /canvasView\?\.loadDocument\(\)/);
 
-  const validationStart = mainSource.indexOf('if (sourceFormat ===');
+  const validationStart = mainSource.indexOf('const report = wasm.getValidationWarnings()');
   assert.notEqual(validationStart, -1, 'validation block should call getValidationWarnings');
   const validationEnd = mainSource.indexOf('} catch (error)', validationStart);
   assert.ok(validationEnd > validationStart, 'validation block should be wrapped in its own catch');
 
   const validationBlock = mainSource.slice(validationStart, validationEnd);
+  assert.doesNotMatch(validationBlock, /sourceFormat\s*===\s*['"]hwpx['"]/);
   assert.match(validationBlock, /const report = wasm\.getValidationWarnings\(\)/);
+  assert.match(validationBlock, /normalizedDuringLoad\s*=\s*reflowedCount\s*>\s*0/);
 });
 
 test('HOP keeps unsaved-document guards on local file and new-document replacement paths', async () => {
