@@ -30,6 +30,7 @@ HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Window
 * [Linux x64 (.deb, Ubuntu/Debian 계열 권장)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.deb)
 * [Linux x64 (.rpm, Fedora/openSUSE 계열)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.rpm)
 * [Linux x64 (AppImage, portable)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage)
+* [Linux arm64 (.deb, Ubuntu/Debian 계열)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-arm64.deb)
 * [Arch Linux AUR (`hop-openhwp-bin`)](https://aur.archlinux.org/packages/hop-openhwp-bin)
 
 macOS 빌드는 signed/notarized `.dmg`입니다. Homebrew를 통해서 설치할 수도 있습니다. Homebrew 패키지는 [daeho-ro](https://github.com/daeho-ro)님이 올려주셨습니다.
@@ -48,7 +49,7 @@ Windows 빌드는 아직 서명되지 않아 Edge나 Windows SmartScreen에서 "
 
 ### Linux
 
-Linux에서는 한글 IME와 WebKitGTK 런타임 안정성을 위해 배포판에 맞는 네이티브 패키지를 우선 사용해 주세요. AppImage는 portable 실행이 필요할 때만 권장하며, 일부 Wayland/IME 환경에서는 한영 전환이나 창 표시가 불안정할 수 있습니다.
+Linux에서는 한글 IME와 WebKitGTK 런타임 안정성을 위해 배포판에 맞는 네이티브 패키지를 우선 사용해 주세요. arm64 Linux는 Ubuntu/Debian 계열 `.deb`를 먼저 지원합니다. AppImage는 portable 실행이 필요할 때만 권장하며, 일부 Wayland/IME 환경에서는 한영 전환이나 창 표시가 불안정할 수 있습니다.
 
 Arch, CachyOS, EndeavourOS 계열은 AUR의 `hop-openhwp-bin` 패키지로 설치할 수 있습니다. 이 패키지는 [seunghun-kim](https://github.com/seunghun-kim)님이 올려주셨습니다.
 

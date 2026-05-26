@@ -28,6 +28,11 @@ on:
         required: false
         default: false
         type: boolean
+      linux_arm64:
+        description: Build Linux arm64
+        required: false
+        default: false
+        type: boolean
       create_release:
         description: Create or update a GitHub draft release
         required: false
@@ -129,6 +134,7 @@ jobs:
           [[ "${{ inputs.macos_x64 }}" == "true" ]] && add_platform "macos-x64" "macos-15-intel" "x86_64-apple-darwin" "--target x86_64-apple-darwin"
           [[ "${{ inputs.windows_x64 }}" == "true" ]] && add_platform "windows-x64" "windows-2025" "x86_64-pc-windows-msvc" ""
           [[ "${{ inputs.linux_x64 }}" == "true" ]] && add_platform "linux-x64" "ubuntu-22.04" "x86_64-unknown-linux-gnu" ""
+          [[ "${{ inputs.linux_arm64 }}" == "true" ]] && add_platform "linux-arm64" "ubuntu-22.04-arm" "aarch64-unknown-linux-gnu" "--bundles deb"
 
           count="$(jq '.include | length' <<< "$matrix")"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
@@ -726,6 +732,7 @@ jobs:
           copy_release_asset "windows-x64" "exe" "HOP-windows-x64.exe"
           copy_release_asset "linux-x64" "deb" "HOP-linux-x64.deb"
           copy_release_asset "linux-x64" "rpm" "HOP-linux-x64.rpm"
+          copy_release_asset "linux-arm64" "deb" "HOP-linux-arm64.deb"
 
           copy_updater_asset "macos-arm64" "darwin-aarch64-app" "HOP-updater-macos-arm64.app.tar.gz" "*.app.tar.gz"
           copy_updater_asset "macos-arm64" "darwin-aarch64" "HOP-updater-macos-arm64.app.tar.gz" "*.app.tar.gz"
@@ -738,6 +745,8 @@ jobs:
           copy_updater_asset "linux-x64" "linux-x86_64-deb" "HOP-linux-x64.deb" "*.deb"
           copy_updater_asset "linux-x64" "linux-x86_64-rpm" "HOP-linux-x64.rpm" "*.rpm"
           copy_updater_asset "linux-x64" "linux-x86_64" "HOP-linux-x64.deb" "*.deb"
+          copy_updater_asset "linux-arm64" "linux-aarch64-deb" "HOP-linux-arm64.deb" "*.deb"
+          copy_updater_asset "linux-arm64" "linux-aarch64" "HOP-linux-arm64.deb" "*.deb"
 
           if [[ ! -f "release-assets/HOP-macos-arm64.dmg" || ! -f "release-assets/HOP-macos-x64.dmg" ]]; then
             echo "::error::macOS releases must include both HOP-macos-arm64.dmg and HOP-macos-x64.dmg."

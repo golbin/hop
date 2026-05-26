@@ -192,6 +192,10 @@ h1 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.download-options.four-columns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .download-link {
     display: flex;
     min-height: 64px;
@@ -413,7 +417,8 @@ h1 {
 
     .download-options,
     .download-options.two-columns,
-    .download-options.three-columns {
+    .download-options.three-columns,
+    .download-options.four-columns {
         grid-template-columns: 1fr;
     }
 

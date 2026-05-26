@@ -7,18 +7,21 @@ use std::{
 
 const APPIMAGE_GTK_IM_MODULE_CACHE_CANDIDATES: &[&str] = &[
     "usr/lib/x86_64-linux-gnu/gtk-3.0/3.0.0/immodules.cache",
+    "usr/lib/aarch64-linux-gnu/gtk-3.0/3.0.0/immodules.cache",
     "usr/lib64/gtk-3.0/3.0.0/immodules.cache",
     "usr/lib/gtk-3.0/3.0.0/immodules.cache",
 ];
 
 const HOST_GTK_IM_MODULE_CACHE_CANDIDATES: &[&str] = &[
     "/usr/lib/x86_64-linux-gnu/gtk-3.0/3.0.0/immodules.cache",
+    "/usr/lib/aarch64-linux-gnu/gtk-3.0/3.0.0/immodules.cache",
     "/usr/lib64/gtk-3.0/3.0.0/immodules.cache",
     "/usr/lib/gtk-3.0/3.0.0/immodules.cache",
 ];
 
 const HOST_GTK_DIR_CANDIDATES: &[&str] = &[
     "/usr/lib/x86_64-linux-gnu/gtk-3.0",
+    "/usr/lib/aarch64-linux-gnu/gtk-3.0",
     "/usr/lib64/gtk-3.0",
     "/usr/lib/gtk-3.0",
 ];

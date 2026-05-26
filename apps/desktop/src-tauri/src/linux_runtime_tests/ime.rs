@@ -191,7 +191,7 @@ fn appimage_owned_cache_is_replaced_with_matching_host_cache() {
     assert_eq!(
         env::var_os("GTK_PATH"),
         Some(OsString::from(format!(
-            "{}:/usr/lib/x86_64-linux-gnu/gtk-3.0:/usr/lib64/gtk-3.0:/usr/lib/gtk-3.0:/opt/hop/gtk-3.0",
+            "{}:/usr/lib/x86_64-linux-gnu/gtk-3.0:/usr/lib/aarch64-linux-gnu/gtk-3.0:/usr/lib64/gtk-3.0:/usr/lib/gtk-3.0:/opt/hop/gtk-3.0",
             host.path().join("gtk-3.0").display()
         )))
     );
