@@ -6,7 +6,6 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@rhwp/core": "0.7.11",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-fs": "2.5.0"
@@ -18,8 +17,9 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^6.0.2",
-    "vite": "^8.0.8",
+    "canvaskit-wasm": "^0.41.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
     "vitest": "^4.1.2"
   }
 }

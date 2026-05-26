@@ -8,7 +8,7 @@ import { EventBus } from '@/core/event-bus';
 import { createDesktopDocument, setupDesktopEvents } from '@/core/desktop-events';
 import { detectDesktopPlatform, hasPrimaryModifier, hydrateDesktopPlatform } from '@/core/platform';
 import { CanvasView } from '@/view/canvas-view';
-import { InputHandler } from '@/engine/input-handler';
+import { InputHandler } from '@upstream/engine/input-handler';
 import { Toolbar } from '@/ui/toolbar';
 import { MenuBar } from '@/ui/menu-bar';
 import { loadWebFonts } from '@/core/font-loader';
@@ -17,19 +17,21 @@ import { CommandRegistry } from '@/command/registry';
 import { CommandDispatcher } from '@/command/dispatcher';
 import type { EditorContext, CommandServices } from '@/command/types';
 import { fileCommands } from '@/command/commands/file';
+import { confirmSaveBeforeReplacingDocument } from '@upstream/command/commands/file';
 import { editCommands } from '@/command/commands/edit';
 import { viewCommands } from '@/command/commands/view';
 import { formatCommands } from '@/command/commands/format';
 import { insertCommands } from '@/command/commands/insert';
-import { tableCommands } from '@/command/commands/table';
+import { tableCommands } from '@upstream/command/commands/table';
 import { pageCommands } from '@/command/commands/page';
 import { toolCommands } from '@/command/commands/tool';
 import { ContextMenu } from '@/ui/context-menu';
 import { CommandPalette } from '@/ui/command-palette';
 import { showValidationModalIfNeeded } from '@/ui/validation-modal';
-import { CellSelectionRenderer } from '@/engine/cell-selection-renderer';
-import { TableObjectRenderer } from '@/engine/table-object-renderer';
-import { TableResizeRenderer } from '@/engine/table-resize-renderer';
+import { DocumentDirtyState } from '@/core/document-dirty-state';
+import { CellSelectionRenderer } from '@upstream/engine/cell-selection-renderer';
+import { TableObjectRenderer } from '@upstream/engine/table-object-renderer';
+import { TableResizeRenderer } from '@upstream/engine/table-resize-renderer';
 import { Ruler } from '@/view/ruler';
 import { enhanceCustomSelects } from '@/ui/custom-select';
 import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
@@ -38,6 +40,8 @@ import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 
 const wasm = createBridge();
 const eventBus = new EventBus();
+const documentState = new DocumentDirtyState(eventBus);
+documentState.installBeforeUnload(window);
 let desktopPlatform = detectDesktopPlatform();
 
 type DocumentSourceFormat = 'hwp' | 'hwpx';
@@ -51,6 +55,7 @@ type DirtyAwareBridge = {
 if (import.meta.env.DEV) {
   (window as any).__wasm = wasm;
   (window as any).__eventBus = eventBus;
+  (window as any).__documentState = documentState;
 }
 let canvasView: CanvasView | null = null;
 let inputHandler: InputHandler | null = null;
@@ -77,6 +82,7 @@ function getContext(): EditorContext {
     canRedo: inputHandler?.canRedo() ?? false,
     zoom: canvasView?.getViewportManager().getZoom() ?? 1.0,
     showControlCodes: wasm.getShowControlCodes(),
+    isDirty: documentState.isDirty(),
     sourceFormat: hasDocument ? (wasm.getSourceFormat() as 'hwp' | 'hwpx') : undefined,
   };
 }
@@ -84,6 +90,7 @@ function getContext(): EditorContext {
 const commandServices: CommandServices = {
   eventBus,
   wasm,
+  documentState,
   getContext,
   getInputHandler: () => inputHandler,
   getViewportManager: () => canvasView?.getViewportManager() ?? null,
@@ -321,13 +328,18 @@ function setupFileInput(): void {
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
 
   fileInput.addEventListener('change', async (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0];
+    const input = e.target as HTMLInputElement;
+    const skipUnsavedGuard = input.dataset.skipUnsavedGuard === 'true';
+    delete input.dataset.skipUnsavedGuard;
+    const file = input.files?.[0];
     if (!file) return;
     if (!isSupportedDocumentPath(file.name)) {
       alert('HWP/HWPX 파일만 지원합니다.');
+      fileInput.value = '';
       return;
     }
-    await loadFile(file);
+    await loadFile(file, { skipUnsavedGuard });
+    fileInput.value = '';
   });
 
   // 문서 전체에서 브라우저 기본 드롭 동작 방지 (파일 열기/다운로드 방지)
@@ -445,13 +457,29 @@ function setupZoomControls(): void {
 let totalSections = 1;
 
 function setupEventListeners(): void {
-  eventBus.on('document-changed', () => {
+  eventBus.on('document-changed', (reason) => {
+    documentState.markDirty(typeof reason === 'string' ? reason : 'document-changed');
+  });
+
+  eventBus.on('document-mutated', (reason) => {
+    documentState.markDirty(typeof reason === 'string' ? reason : 'document-mutated');
+  });
+
+  eventBus.on('document-dirty-changed', (payload) => {
+    const dirty = typeof payload === 'object' && payload !== null && 'dirty' in payload
+      ? Boolean((payload as { dirty: unknown }).dirty)
+      : documentState.isDirty();
+    if (!dirty) {
+      eventBus.emit('command-state-changed');
+      return;
+    }
     const bridge = wasm as DirtyAwareBridge;
     const wasDirty = bridge.hasUnsavedChanges?.() ?? false;
     bridge.markDocumentDirty?.();
     if (!wasDirty && bridge.hasUnsavedChanges?.()) {
       sbMessage().textContent = '수정됨';
     }
+    eventBus.emit('command-state-changed');
   });
 
   eventBus.on('current-page-changed', (page, _total) => {
@@ -537,6 +565,7 @@ async function initializeDocument(
   sourceFormat: DocumentSourceFormat = currentSourceFormat(),
 ): Promise<void> {
   const msg = sbMessage();
+  let normalizedDuringLoad = false;
   try {
     if (docInfo.fontsUsed?.length) {
       await loadWebFonts(docInfo.fontsUsed, (loaded, total) => {
@@ -563,11 +592,17 @@ async function initializeDocument(
             const reflowedCount = wasm.reflowLinesegs();
             canvasView?.loadDocument();
             msg.textContent = `${displayName} (비표준 lineseg ${reflowedCount}건 자동 보정됨)`;
+            normalizedDuringLoad = reflowedCount > 0;
           }
         }
       }
     } catch (error) {
       console.warn('[validation] 감지/보정 실패 (치명적이지 않음):', error);
+    }
+    if (normalizedDuringLoad) {
+      documentState.markDirty('validation-auto-fix');
+    } else {
+      documentState.markClean('document-initialized');
     }
   } catch (error) {
     console.error('[initDoc] 오류:', error);
@@ -575,9 +610,15 @@ async function initializeDocument(
   }
 }
 
-async function loadFile(file: File): Promise<void> {
+async function canReplaceCurrentDocument(skipUnsavedGuard?: boolean): Promise<boolean> {
+  return skipUnsavedGuard === true || await confirmSaveBeforeReplacingDocument(commandServices);
+}
+
+async function loadFile(file: File, options: { skipUnsavedGuard?: boolean } = {}): Promise<void> {
   const msg = sbMessage();
   try {
+    if (!await canReplaceCurrentDocument(options.skipUnsavedGuard)) return;
+
     msg.textContent = '파일 로딩 중...';
     const startTime = performance.now();
     const data = new Uint8Array(await file.arrayBuffer());
@@ -605,6 +646,8 @@ async function createNewDocument(): Promise<void> {
       await initializeDocument(payload.docInfo, payload.message);
       return;
     }
+    if (isTauriRuntime() || !await canReplaceCurrentDocument()) return;
+
     const docInfo = wasm.createNewDocument();
     await initializeDocument(docInfo, `새 문서.hwp — ${docInfo.pageCount}페이지`, 'hwp');
   } catch (error) {
@@ -620,7 +663,7 @@ eventBus.on('desktop-document-loaded', (payload) => {
   initializeDocument(p.docInfo, p.message);
 });
 eventBus.on('desktop-document-saved', () => {
-  // TauriBridge가 title/dirty 상태를 이미 갱신한다. 상태바만 현재 동작에 맞춘다.
+  documentState.markClean('save');
   sbMessage().textContent = '저장 완료';
 });
 eventBus.on('desktop-status', (message) => {

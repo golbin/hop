@@ -13,6 +13,7 @@ apps/studio-host/dist/
 .pnpm-store/
 
 *.wasm
+!apps/studio-host/vendor/rhwp-core/rhwp_bg.wasm
 
 # IDE
 .vscode/

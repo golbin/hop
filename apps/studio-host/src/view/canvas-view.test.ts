@@ -352,4 +352,41 @@ describe('CanvasView viewport resize behavior', () => {
 
     expect(scrollContent.querySelectorAll('[data-rhwp-overlay]')).toHaveLength(0);
   });
+
+  it('refreshes pages when upstream view state changes', () => {
+    const container = createMockNode();
+    const scrollContent = createMockNode('scroll-content');
+    container.clientWidth = 1041;
+    scrollContent.clientWidth = scrollContentState.width;
+    container.appendChild(scrollContent);
+
+    const wasm = {
+      pageCount: 1,
+      getPageInfo: () => ({
+        pageIndex: 0,
+        width: 1000,
+        height: 1400,
+        sectionIndex: 0,
+        marginLeft: 0,
+        marginRight: 0,
+        marginTop: 0,
+        marginBottom: 0,
+        marginHeader: 0,
+        marginFooter: 0,
+      }),
+    };
+
+    const eventBus = new EventBus();
+    const view = new CanvasView(container as unknown as HTMLElement, wasm as never, eventBus);
+
+    view.loadDocument();
+    expect(renderPageMock).toHaveBeenCalledTimes(1);
+
+    eventBus.emit('document-view-changed');
+
+    expect(renderPageMock).toHaveBeenCalledTimes(2);
+    expect(scrollContent.querySelectorAll('[data-rhwp-overlay]')).toHaveLength(1);
+
+    view.dispose();
+  });
 });

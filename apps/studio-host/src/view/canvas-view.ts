@@ -46,6 +46,7 @@ export class CanvasView {
       eventBus.on('viewport-resize', () => this.onViewportResize()),
       eventBus.on('zoom-changed', (zoom) => this.onZoomChanged(zoom as number)),
       eventBus.on('document-changed', () => this.refreshPages()),
+      eventBus.on('document-view-changed', () => this.refreshPages()),
     );
   }
 
@@ -156,7 +157,7 @@ export class CanvasView {
     this.scrollContent.appendChild(canvas);
 
     try {
-      this.pageRenderer.renderPage(pageIdx, canvas, renderScale);
+      this.pageRenderer.renderPage(pageIdx, canvas, renderScale, zoom, dpr);
     } catch (e) {
       console.error(`[CanvasView] 페이지 ${pageIdx} 렌더링 실패:`, e);
       this.releasePage(pageIdx);

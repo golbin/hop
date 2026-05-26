@@ -1,22 +1,24 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
-const expectedRhwpVersion = '0.7.11';
-const expectedRhwpCommit = 'a9dcdee32b17a7f9a20c609a5ed547e62fb8ebae';
+const expectedRhwpVersion = '0.7.13';
+const expectedRhwpCommit = 'b3e16ef212af81ef37d973ddb86d6816d3804642';
 
-test('HOP keeps the rhwp renderer baseline aligned across submodule, WASM package, and native lockfile', async () => {
-  const studioPackage = JSON.parse(
-    await readFile(join(repoRoot, 'apps/studio-host/package.json'), 'utf8'),
+test('HOP keeps the rhwp renderer baseline aligned across submodule, vendored WASM, and native lockfile', async () => {
+  const wasmPackage = JSON.parse(
+    await readFile(join(repoRoot, 'apps/studio-host/vendor/rhwp-core/package.json'), 'utf8'),
   );
-  assert.equal(studioPackage.dependencies['@rhwp/core'], expectedRhwpVersion);
+  assert.equal(wasmPackage.version, expectedRhwpVersion);
+  const wasmBytes = await readFile(join(repoRoot, 'apps/studio-host/vendor/rhwp-core/rhwp_bg.wasm'));
+  assert.ok(wasmBytes.length > 0, 'vendored rhwp WASM should be present');
 
   const pnpmLock = await readFile(join(repoRoot, 'pnpm-lock.yaml'), 'utf8');
-  assert.match(pnpmLock, new RegExp(`@rhwp/core@${escapeRegExp(expectedRhwpVersion)}`));
+  assert.doesNotMatch(pnpmLock, /@rhwp\/core@/);
 
   const cargoLock = await readFile(join(repoRoot, 'apps/desktop/src-tauri/Cargo.lock'), 'utf8');
   assert.match(
@@ -51,11 +53,38 @@ test('HOP preserves upstream lineseg validation and auto-reflow on document load
   assert.match(validationBlock, /const report = wasm\.getValidationWarnings\(\)/);
 });
 
+test('HOP keeps unsaved-document guards on local file and new-document replacement paths', async () => {
+  const mainSource = await readFile(join(repoRoot, 'apps/studio-host/src/main.ts'), 'utf8');
+
+  assert.match(mainSource, /import \{ confirmSaveBeforeReplacingDocument \} from ['"]@upstream\/command\/commands\/file['"]/);
+  assert.match(mainSource, /async function canReplaceCurrentDocument\([\s\S]*confirmSaveBeforeReplacingDocument\(commandServices\)/);
+  assert.match(mainSource, /const skipUnsavedGuard = input\.dataset\.skipUnsavedGuard === ['"]true['"]/);
+  assert.match(mainSource, /await loadFile\(file, \{ skipUnsavedGuard \}\)/);
+  assert.match(mainSource, /if \(!await canReplaceCurrentDocument\(options\.skipUnsavedGuard\)\) return/);
+  assert.match(mainSource, /if \(isTauriRuntime\(\) \|\| !await canReplaceCurrentDocument\(\)\) return/);
+});
+
+test('HOP defers editor engine and table command behavior to upstream rhwp', async () => {
+  const overrides = await readFile(join(repoRoot, 'apps/studio-host/hop-overrides.ts'), 'utf8');
+
+  assert.doesNotMatch(overrides, /['"]engine\//);
+  assert.doesNotMatch(overrides, /['"]command\/commands\/table['"]/);
+
+  for (const path of [
+    'apps/studio-host/src/engine/input-handler.ts',
+    'apps/studio-host/src/engine/table-object-renderer.ts',
+    'apps/studio-host/src/engine/table-resize-renderer.ts',
+    'apps/studio-host/src/command/commands/table.ts',
+  ]) {
+    await assert.rejects(access(join(repoRoot, path)), { code: 'ENOENT' });
+  }
+});
+
 test('HOP product info keeps the upstream rhwp version and adds HOP version separately', async () => {
   const viteConfig = await readFile(join(repoRoot, 'apps/studio-host/vite.config.ts'), 'utf8');
   const aboutDialog = await readFile(join(repoRoot, 'apps/studio-host/src/ui/about-dialog.ts'), 'utf8');
 
-  assert.match(viteConfig, /__APP_VERSION__:\s*JSON\.stringify\(rhwpCorePackage\.version\)/);
+  assert.match(viteConfig, /__APP_VERSION__:\s*JSON\.stringify\(rhwpWasmPackage\.version\)/);
   assert.match(viteConfig, /__HOP_VERSION__:\s*JSON\.stringify\(desktopConfig\.version\)/);
   assert.match(aboutDialog, /extends UpstreamAboutDialog/);
   assert.match(aboutDialog, /super\.createBody\(\)/);

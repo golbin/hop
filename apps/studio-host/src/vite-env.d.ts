@@ -2,8 +2,3 @@
 
 declare const __APP_VERSION__: string;
 declare const __HOP_VERSION__: string;
-
-declare module '@wasm/rhwp.js' {
-  export * from '@rhwp/core';
-  export { default } from '@rhwp/core';
-}

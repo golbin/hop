@@ -11,14 +11,20 @@ export class HopPageRenderer {
     this.upstream = new UpstreamPageRenderer(wasm);
   }
 
-  renderPage(pageIdx: number, canvas: HTMLCanvasElement, scale: number): void {
+  renderPage(
+    pageIdx: number,
+    canvas: HTMLCanvasElement,
+    renderScale: number,
+    displayScale: number,
+    dpr: number,
+  ): void {
     this.cancelReRender(pageIdx);
     try {
-      this.upstream.renderPage(pageIdx, canvas, scale);
+      this.upstream.renderPage(pageIdx, canvas, renderScale, displayScale, dpr);
     } finally {
       this.upstream.cancelReRender(pageIdx);
     }
-    this.scheduleFlowReRender(pageIdx, canvas, scale);
+    this.scheduleFlowReRender(pageIdx, canvas, renderScale);
   }
 
   cancelReRender(pageIdx: number): void {
