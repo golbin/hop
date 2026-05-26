@@ -552,13 +552,30 @@ function setupEventListeners(): void {
   });
 }
 
+async function repairValidationWarningsIfNeeded(displayName: string): Promise<boolean> {
+  try {
+    const report = wasm.getValidationWarnings();
+    if (report.count === 0) return false;
+
+    const choice = await showValidationModalIfNeeded(report);
+    if (choice !== 'auto-fix') return false;
+
+    const reflowedCount = wasm.reflowLinesegs();
+    canvasView?.loadDocument();
+    sbMessage().textContent = `${displayName} (비표준 lineseg ${reflowedCount}건 자동 보정됨)`;
+    return reflowedCount > 0;
+  } catch (error) {
+    console.warn('[validation] 감지/보정 실패 (치명적이지 않음):', error);
+    return false;
+  }
+}
+
 /** 문서 초기화 공통 시퀀스 (loadFile, createNewDocument 양쪽에서 사용) */
 async function initializeDocument(
   docInfo: DocumentInfo,
   displayName: string,
 ): Promise<void> {
   const msg = sbMessage();
-  let normalizedDuringLoad = false;
   try {
     if (docInfo.fontsUsed?.length) {
       await loadWebFonts(docInfo.fontsUsed, (loaded, total) => {
@@ -576,20 +593,7 @@ async function initializeDocument(
     toolbar?.initStyleDropdown();
     inputHandler?.activateWithCaretPosition();
 
-    try {
-      const report = wasm.getValidationWarnings();
-      if (report.count > 0) {
-        const choice = await showValidationModalIfNeeded(report);
-        if (choice === 'auto-fix') {
-          const reflowedCount = wasm.reflowLinesegs();
-          canvasView?.loadDocument();
-          msg.textContent = `${displayName} (비표준 lineseg ${reflowedCount}건 자동 보정됨)`;
-          normalizedDuringLoad = reflowedCount > 0;
-        }
-      }
-    } catch (error) {
-      console.warn('[validation] 감지/보정 실패 (치명적이지 않음):', error);
-    }
+    const normalizedDuringLoad = await repairValidationWarningsIfNeeded(displayName);
     if (normalizedDuringLoad) {
       documentState.markDirty('validation-auto-fix');
     } else {

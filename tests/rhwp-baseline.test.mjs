@@ -36,22 +36,30 @@ test('HOP keeps the rhwp renderer baseline aligned across submodule, vendored WA
 
 test('HOP preserves upstream lineseg validation and auto-reflow on document load', async () => {
   const mainSource = await readFile(join(repoRoot, 'apps/studio-host/src/main.ts'), 'utf8');
+  const overrides = await readFile(join(repoRoot, 'apps/studio-host/hop-overrides.ts'), 'utf8');
+  const validationModal = await readFile(join(repoRoot, 'apps/studio-host/src/ui/validation-modal.ts'), 'utf8');
 
   assert.match(mainSource, /showValidationModalIfNeeded/);
   assert.doesNotMatch(mainSource, /currentSourceFormat/);
   assert.match(mainSource, /wasm\.getValidationWarnings\(\)/);
   assert.match(mainSource, /wasm\.reflowLinesegs\(\)/);
   assert.match(mainSource, /canvasView\?\.loadDocument\(\)/);
+  assert.match(mainSource, /repairValidationWarningsIfNeeded/);
 
-  const validationStart = mainSource.indexOf('const report = wasm.getValidationWarnings()');
+  const validationStart = mainSource.indexOf('async function repairValidationWarningsIfNeeded');
   assert.notEqual(validationStart, -1, 'validation block should call getValidationWarnings');
-  const validationEnd = mainSource.indexOf('} catch (error)', validationStart);
-  assert.ok(validationEnd > validationStart, 'validation block should be wrapped in its own catch');
+  const validationEnd = mainSource.indexOf('/** 문서 초기화 공통 시퀀스', validationStart);
+  assert.ok(validationEnd > validationStart, 'validation helper should exist before document initialization');
 
   const validationBlock = mainSource.slice(validationStart, validationEnd);
   assert.doesNotMatch(validationBlock, /sourceFormat\s*===\s*['"]hwpx['"]/);
   assert.match(validationBlock, /const report = wasm\.getValidationWarnings\(\)/);
-  assert.match(validationBlock, /normalizedDuringLoad\s*=\s*reflowedCount\s*>\s*0/);
+  assert.match(validationBlock, /catch \(error\)/);
+  assert.match(validationBlock, /return reflowedCount\s*>\s*0/);
+  assert.match(mainSource, /const normalizedDuringLoad = await repairValidationWarningsIfNeeded\(displayName\)/);
+  assert.match(overrides, /['"]ui\/validation-modal['"]/);
+  assert.match(validationModal, /문서 보정 확인/);
+  assert.doesNotMatch(validationModal, /HWPX 비표준 감지/);
 });
 
 test('HOP keeps unsaved-document guards on local file and new-document replacement paths', async () => {

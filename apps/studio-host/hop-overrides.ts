@@ -25,6 +25,7 @@ const overrideIds = [
   'ui/style-edit-dialog',
   'ui/toolbar',
   'ui/update-notice',
+  'ui/validation-modal',
   'view/canvas-view',
   'view/ruler',
   'styles/about-dialog.css',
