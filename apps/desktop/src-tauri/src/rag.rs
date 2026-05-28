@@ -270,11 +270,17 @@ impl RagManager {
             .filter(|(score, _)| *score > 0.0)
             .collect();
 
-        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
+        // k개만 필요하므로 전체 정렬(O(n log n)) 대신 partial sort(O(n + k log k)) 사용
+        if scored.len() > k {
+            scored.select_nth_unstable_by(k, |a, b| {
+                b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal)
+            });
+            scored.truncate(k);
+        }
+        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
 
         Ok(scored
             .into_iter()
-            .take(k)
             .map(|(_, idx)| self.chunks[idx].clone())
             .collect())
     }

@@ -170,11 +170,18 @@ impl ServerHandler for HopMcpHandler {
 }
 
 pub fn spawn_mcp_server(app_handle: AppHandle) {
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(false);
+
+    // 셧다운 송신자를 AppState에 보관
+    if let Ok(mut guard) = app_handle.state::<crate::state::AppState>().mcp_shutdown.lock() {
+        *guard = Some(shutdown_tx);
+    }
+
     tauri::async_runtime::spawn(async move {
         use tokio::io::{stdin, stdout, AsyncBufReadExt, AsyncWriteExt, BufReader};
 
-        let (stdin_tx, stdin_rx) = tokio::sync::mpsc::channel::<String>(32);
-        let (stdout_tx, mut stdout_rx) = tokio::sync::mpsc::channel::<String>(32);
+        let (stdin_tx, stdin_rx) = tokio::sync::mpsc::channel::<String>(256);
+        let (stdout_tx, mut stdout_rx) = tokio::sync::mpsc::channel::<String>(256);
 
         let transport = Arc::new(StdioTransport::new(stdin_rx, stdout_tx));
         let handler = Arc::new(HopMcpHandler { app_handle });
@@ -202,8 +209,16 @@ pub fn spawn_mcp_server(app_handle: AppHandle) {
             }
         });
 
-        if let Err(e) = server.start().await {
-            eprintln!("MCP Server error: {}", e);
+        // shutdown_rx 변경 또는 server 완료 중 먼저 오는 쪽에서 종료
+        tokio::select! {
+            _ = shutdown_rx.changed() => {
+                eprintln!("[MCP] 셧다운 시그널 수신 — 서버 종료");
+            }
+            result = server.start() => {
+                if let Err(e) = result {
+                    eprintln!("[MCP] 서버 오류: {}", e);
+                }
+            }
         }
     });
 }

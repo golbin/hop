@@ -243,7 +243,12 @@ impl Agent {
         for _ in 0..5 {
             let prompt = format_qwen_prompt_from_history(&conversation_history);
             let response = if use_cloud {
-                Self::call_cloud_api(&prompt).await?
+                tokio::time::timeout(
+                    std::time::Duration::from_secs(30),
+                    Self::call_cloud_api(&prompt),
+                )
+                .await
+                .map_err(|_| anyhow!("클라우드 API 응답 타임아웃 (30초)"))??
             } else {
                 let mut ai_lock = state.ai.lock().map_err(|_| anyhow!("AI Lock 실패"))?;
                 let ai = ai_lock.as_mut().ok_or_else(|| anyhow!("AI 모델이 로드되지 않았습니다"))?;

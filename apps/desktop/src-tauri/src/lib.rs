@@ -159,6 +159,15 @@ pub fn run() {
         .expect("failed to build HOP desktop app");
 
     app.run(|_app, _event| {
+        // 앱 종료 시 MCP 서버에 셧다운 시그널 전송
+        if let tauri::RunEvent::Exit = &_event {
+            if let Ok(mut guard) = _app.state::<AppState>().mcp_shutdown.lock() {
+                if let Some(tx) = guard.take() {
+                    let _ = tx.send(true);
+                }
+            }
+        }
+
         #[cfg(target_os = "macos")]
         {
             let app = _app;

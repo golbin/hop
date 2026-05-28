@@ -112,6 +112,8 @@ pub struct AppState {
     pub updater: Mutex<crate::updates::UpdateManagerState>,
     pub ai: Mutex<Option<crate::ai::ModelManager>>,
     pub rag: Mutex<Option<std::sync::Arc<std::sync::Mutex<crate::rag::RagManager>>>>,
+    /// MCP 서버 셧다운 시그널 — 앱 종료 시 send(true)
+    pub mcp_shutdown: Mutex<Option<tokio::sync::watch::Sender<bool>>>,
 }
 
 impl AppState {

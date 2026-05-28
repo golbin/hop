@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { open, save } from '@tauri-apps/plugin-dialog';
+import { open } from '@tauri-apps/plugin-dialog';
 import { ContextChips } from './components/ContextChips';
 import { DiffViewer } from './components/DiffViewer';
 import { TypoCard, type TypoInfo } from './components/TypoCard';
+import { useLawSystem } from './hooks/useLawSystem';
 import '../styles/agent-sidebar.css';
 
 interface Message {
@@ -52,6 +53,8 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({ bridge, onDocumentCh
   const [typos, setTypos] = useState<TypoInfo[]>([]);
   const [formattingStyle, setFormattingStyle] = useState<'bulleted' | 'sentence'>('bulleted');
   const [targetAudience, setTargetAudience] = useState<'public' | 'internal' | 'plan' | 'result' | 'cooperation' | 'others'>('internal');
+  const { searchLaw, fetchArticle, verifyDocumentLaws, appendLawText } = useLawSystem(showToast);
+
   const [ragFolderPath, setRagFolderPath] = useState<string | null>(null);
   const [categorizedFiles, setCategorizedFiles] = useState<CategorizedFiles | null>(null);
   const [genDestination, setGenDestination] = useState<'new' | 'append'>('append');
@@ -74,38 +77,24 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({ bridge, onDocumentCh
   const handleLawSearch = async () => {
     if (!lawQuery.trim()) return;
     try {
-      const res = await invoke<string>('search_law', { query: lawQuery });
-      if (res.includes('찾을 수 없습니다')) {
-        showToast(res, 'error');
-        setLawSearchResults([]);
-      } else {
-        const paths = res.split('\n').filter(Boolean);
-        setLawSearchResults(paths);
-        if (paths.length > 0) {
-          setSelectedLawPath(paths[0]);
-        }
-      }
+      const paths = await searchLaw(lawQuery);
+      setLawSearchResults(paths);
+      if (paths.length > 0) setSelectedLawPath(paths[0]);
     } catch (e) {
       showToast(`검색 실패: ${e}`, 'error');
     }
   };
 
   const handleFetchArticle = async (path: string) => {
-    if (!articleQuery.trim()) {
-      showToast('조 번호를 입력해주세요 (예: 347)', 'info');
-      return;
-    }
-    let formattedQuery = articleQuery.trim();
-    if (!formattedQuery.startsWith('제')) {
-      formattedQuery = '제' + formattedQuery;
-    }
-    if (!formattedQuery.endsWith('조')) {
-      formattedQuery = formattedQuery + '조';
-    }
     try {
-      const text = await invoke<string>('get_law_article', { path, articleQuery: formattedQuery });
-      setSearchedArticleText(text);
-      setSearchedArticleQuery(formattedQuery);
+      const text = await fetchArticle(path, articleQuery);
+      if (text) {
+        setSearchedArticleText(text);
+        let q = articleQuery.trim();
+        if (!q.startsWith('제')) q = '제' + q;
+        if (!q.endsWith('조')) q = q + '조';
+        setSearchedArticleQuery(q);
+      }
     } catch (e) {
       showToast(String(e), 'error');
       setSearchedArticleText(null);
@@ -115,7 +104,7 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({ bridge, onDocumentCh
   const handleVerifyDocumentLaws = async () => {
     setVerifying(true);
     try {
-      const laws = await invoke<any[]>('verify_laws_in_document');
+      const laws = await verifyDocumentLaws();
       setVerifiedLaws(laws);
       showToast(`문서 내 ${laws.length}개의 법령 인용을 분석했습니다.`, 'success');
     } catch (e) {
@@ -127,9 +116,8 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({ bridge, onDocumentCh
 
   const handleAppendLawText = async (text: string) => {
     try {
-      await invoke('ai_edit_document', { mode: 'append', text });
+      await appendLawText(text);
       onDocumentChanged?.();
-      showToast('✓ 법령 조문이 문서 하단에 추가되었습니다.', 'success');
     } catch (e) {
       showToast(`추가 실패: ${e}`, 'error');
     }
