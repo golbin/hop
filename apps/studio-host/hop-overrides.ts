@@ -31,6 +31,10 @@ const overrideIds = [
   'ui/style-edit-dialog',
   'ui/toolbar',
   'ui/update-notice',
+  'ui/ai-sidebar',
+  'ui/components/ContextChips',
+  'ui/components/DiffViewer',
+  'ui/components/TypoCard',
   'view/canvas-view',
   'view/ruler',
   'styles/about-dialog.css',
@@ -39,6 +43,8 @@ const overrideIds = [
   'styles/home-screen.css',
   'styles/update-notice.css',
   'styles/recent-documents-dialog.css',
+  'styles/ai-sidebar.css',
+  'styles/agent-sidebar.css',
 ] as const;
 
 export function createHopOverrides(hopSrc: string) {

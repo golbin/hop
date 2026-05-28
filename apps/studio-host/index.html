@@ -6,6 +6,7 @@
   <link rel="icon" href="/favicon.ico" />
   <title>HOP</title>
   <link rel="stylesheet" href="/src/style.css" />
+  <link rel="stylesheet" href="/src/styles/ai-sidebar.css" />
 </head>
 <body>
   <div id="studio-root">
@@ -426,6 +427,12 @@
         <button class="tb-btn" data-cmd="insert:flip-vert" title="상하 대칭"><span class="tb-icon-text">&#x21C5;</span><span class="tb-label">상하<br/>대칭</span></button>
       </div>
       <span class="tb-sep"></span>
+      <!-- AI 에이전트 버튼 -->
+      <div class="tb-group" style="margin-left:auto">
+        <button class="tb-btn" id="btn-ai-agent" title="AI 행정 어시스턴트 (Ctrl+Shift+A)" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:8px;padding:4px 10px;font-weight:600;letter-spacing:0.03em;">
+          <span style="font-size:1.2em">🤖</span><span class="tb-label" style="color:#fff">AI 에이전트</span>
+        </button>
+      </div>
       <div class="tb-group">
         <button class="tb-btn" data-cmd="page:header-create" title="머리말"><span class="tb-sprite icon-header"></span><span class="tb-label">머리말</span></button>
         <button class="tb-btn" data-cmd="page:footer-create" title="꼬리말"><span class="tb-sprite icon-footer"></span><span class="tb-label">꼬리말</span></button>
@@ -555,14 +562,19 @@
       </span>
     </div>
 
-    <!-- 에디터 영역 (눈금자 포함) -->
-    <div id="editor-area">
-      <div id="ruler-corner"></div>
-      <canvas id="h-ruler"></canvas>
-      <canvas id="v-ruler"></canvas>
-      <div id="scroll-container">
-        <div id="scroll-content"></div>
+    <!-- 에디터 + AI 사이드바 래퍼 -->
+    <div id="editor-with-sidebar" style="display:flex;flex:1;overflow:hidden;">
+      <!-- 에디터 영역 (눈금자 포함) -->
+      <div id="editor-area" style="flex:1;min-width:0;">
+        <div id="ruler-corner"></div>
+        <canvas id="h-ruler"></canvas>
+        <canvas id="v-ruler"></canvas>
+        <div id="scroll-container">
+          <div id="scroll-content"></div>
+        </div>
       </div>
+      <!-- AI 에이전트 사이드바 -->
+      <div id="ai-sidebar" class="collapsed"></div>
     </div>
 
     <!-- 하단 상태 바 -->

@@ -34,6 +34,19 @@ open = "5"
 svg2pdf = "0.13"
 usvg = "0.45"
 pdf-writer = "0.12"
+mcp-sdk-rs = "0.3"
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
+llama-cpp-2 = "0.1.146"
+async-trait = "0.1"
+anyhow = "1"
+notify = "6.1"
+calamine = "0.24"
+lopdf = "0.33"
+window-vibrancy = "0.5"
+num_cpus = "1.16"
+reqwest = { version = "0.12", features = ["json"] }
+regex = "1"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSDocumentController"] }

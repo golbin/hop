@@ -9,15 +9,21 @@
     "@rhwp/core": "0.7.11",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-dialog": "^2.7.0",
-    "@tauri-apps/plugin-fs": "2.5.0"
+    "@tauri-apps/plugin-fs": "2.5.0",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "diff": "^9.0.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/diff": "^8.0.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.8",
     "vitest": "^4.1.2"

@@ -15,6 +15,13 @@ mod state;
 #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
 mod updates;
 mod windows;
+mod agent;
+mod ai;
+mod rag;
+// mod embedding;
+mod mcp;
+// mod ocr;
+mod law;
 
 use std::path::{Path, PathBuf};
 use std::{env, ffi::OsStr};
@@ -31,6 +38,9 @@ use commands::{
     prepare_staged_hwp_save, print_webview, query_document, read_local_font,
     record_recent_document, render_document_preview, render_page_svg, reveal_in_folder,
     take_pending_open_paths,
+    chat_with_agent, check_spelling, get_rag_status, unload_ai_model, set_rag_folder,
+    append_to_active_document, reclassify_file, ai_edit_document,
+    search_law, get_law_structure, get_law_article, verify_laws_in_document,
 };
 use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
@@ -76,6 +86,29 @@ pub fn run() {
             }
             #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
             updates::install_startup_update_check(app.handle());
+
+            mcp::spawn_mcp_server(app.handle().clone());
+
+            // --- [ADD] Persisted Knowledge Base Initialization ---
+            if let Ok(app_data) = app.path().app_data_dir() {
+                let config_path = app_data.join("last_rag_path.txt");
+                let initial_path = if config_path.exists() {
+                    std::fs::read_to_string(config_path).unwrap_or_default()
+                } else {
+                    let ref_path = app_data.join("reference");
+                    if !ref_path.exists() { let _ = std::fs::create_dir_all(&ref_path); }
+                    ref_path.to_string_lossy().to_string()
+                };
+
+                if !initial_path.is_empty() {
+                    let app_handle_clone = app.handle().clone();
+                    tauri::async_runtime::spawn(async move {
+                        let state = app_handle_clone.state::<AppState>();
+                        let _ = crate::commands::set_rag_folder(app_handle_clone.clone(), state, initial_path).await;
+                    });
+                }
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -109,6 +142,18 @@ pub fn run() {
             get_update_state,
             start_update_install,
             restart_to_apply_update,
+            chat_with_agent,
+            check_spelling,
+            get_rag_status,
+            unload_ai_model,
+            set_rag_folder,
+            append_to_active_document,
+            reclassify_file,
+            ai_edit_document,
+            search_law,
+            get_law_structure,
+            get_law_article,
+            verify_laws_in_document,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build HOP desktop app");

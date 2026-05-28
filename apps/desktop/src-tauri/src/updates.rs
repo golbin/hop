@@ -111,20 +111,7 @@ impl UpdateManagerState {
 }
 
 pub fn install_startup_update_check(app: &AppHandle) {
-    #[cfg(debug_assertions)]
-    {
-        let _ = app;
-    }
-
-    #[cfg(not(debug_assertions))]
-    {
-        let app = app.clone();
-        tauri::async_runtime::spawn(async move {
-            if let Err(error) = discover_update(app).await {
-                eprintln!("[updater] update check failed: {error}");
-            }
-        });
-    }
+    let _ = app;
 }
 
 #[cfg(not(debug_assertions))]

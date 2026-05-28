@@ -110,7 +110,18 @@ pub struct AppState {
     pub(crate) pending_open_paths: PendingOpenPaths,
     pub quit_requests: Mutex<crate::app_quit::AppQuitState>,
     pub updater: Mutex<crate::updates::UpdateManagerState>,
+    pub ai: Mutex<Option<crate::ai::ModelManager>>,
+    pub rag: Mutex<Option<std::sync::Arc<std::sync::Mutex<crate::rag::RagManager>>>>,
 }
+
+impl AppState {
+    pub fn unload_ai(&self) {
+        if let Ok(mut lock) = self.ai.lock() {
+            *lock = None;
+        }
+    }
+}
+
 
 impl DocumentSessionManager {
     pub fn create_document(&mut self) -> Result<DocumentOpenResult, String> {
@@ -414,15 +425,64 @@ impl DocumentSessionManager {
     }
 
     pub fn session(&self, doc_id: &str) -> Result<&DocumentSession, String> {
+        let resolved_id = if doc_id == "active" {
+            self.active_doc_id.as_deref().ok_or_else(|| "활성 문서가 없습니다".to_string())?
+        } else {
+            doc_id
+        };
         self.sessions
-            .get(doc_id)
-            .ok_or_else(|| format!("문서 세션을 찾을 수 없습니다: {}", doc_id))
+            .get(resolved_id)
+            .ok_or_else(|| format!("문서 세션을 찾을 수 없습니다: {}", resolved_id))
     }
 
     pub(crate) fn session_mut(&mut self, doc_id: &str) -> Result<&mut DocumentSession, String> {
+        let resolved_id = if doc_id == "active" {
+            self.active_doc_id.as_deref().ok_or_else(|| "활성 문서가 없습니다".to_string())?
+        } else {
+            doc_id
+        };
         self.sessions
-            .get_mut(doc_id)
-            .ok_or_else(|| format!("문서 세션을 찾을 수 없습니다: {}", doc_id))
+            .get_mut(resolved_id)
+            .ok_or_else(|| format!("문서 세션을 찾을 수 없습니다: {}", resolved_id))
+    }
+
+    pub fn active_document_id(&self) -> Option<String> {
+        self.active_doc_id.clone()
+    }
+
+    pub fn get_active_document_text(&mut self) -> Result<String, String> {
+        let active_id = self.active_doc_id.clone().ok_or_else(|| "활성 문서가 없습니다".to_string())?;
+        self.get_document_text(&active_id)
+    }
+
+    pub fn get_document_text(&mut self, doc_id: &str) -> Result<String, String> {
+        let session = self.session_mut(doc_id)?;
+        let core = session.ensure_core_loaded()?;
+        let info_json = core.get_document_info();
+        let info: serde_json::Value = serde_json::from_str(&info_json).map_err(|e| format!("문서 정보 파싱 실패: {}", e))?;
+        
+        let mut full_text = String::new();
+        if let Some(sections) = info.get("sections").and_then(|v| v.as_array()) {
+            for section in sections {
+                if let Some(paragraphs) = section.get("paragraphs").and_then(|v| v.as_array()) {
+                    for para in paragraphs {
+                        if let Some(text) = para.get("text").and_then(|v| v.as_str()) {
+                            full_text.push_str(text);
+                            full_text.push('\n');
+                        }
+                    }
+                }
+            }
+        }
+        Ok(full_text)
+    }
+
+    pub fn apply_administrative_preset(&mut self, doc_id: &str) -> Result<(), String> {
+        let session = self.session_mut(doc_id)?;
+        session.dirty = true;
+        session.revision += 1;
+        session.page_svg_cache.clear();
+        Ok(())
     }
 }
 

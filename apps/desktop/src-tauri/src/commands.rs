@@ -6,9 +6,9 @@ use crate::state::{
 };
 use rhwp::DocumentCore;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
-use tauri::{AppHandle, Emitter, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tauri_plugin_fs::FsExt;
 use uuid::Uuid;
 
@@ -194,6 +194,25 @@ pub fn query_document(
     args: Value,
     state: State<'_, AppState>,
 ) -> Result<Value, String> {
+    if doc_id == "config" {
+        match query.as_str() {
+            "get_last_rag_path" => {
+                let mut path = String::new();
+                if let Ok(rag_box) = state.rag.lock() {
+                    if let Some(rag_arc) = rag_box.as_ref() {
+                        if let Ok(rag) = rag_arc.lock() {
+                            if let Some(wf) = &rag.watch_folder {
+                                path = wf.to_string_lossy().to_string();
+                            }
+                        }
+                    }
+                }
+                return Ok(json!(path));
+            }
+            _ => return Err(format!("지원하지 않는 config query: {}", query)),
+        }
+    }
+
     let mut sessions = state
         .sessions
         .lock()
@@ -466,6 +485,346 @@ fn emit_progress(app: &AppHandle, job_id: &str, phase: &str, done: u32, total: u
             message: message.to_string(),
         },
     );
+}
+
+#[tauri::command]
+pub async fn chat_with_agent(
+    app: AppHandle,
+    user_input: String,
+    style_preference: String,
+    target_audience: String,
+) -> Result<String, String> {
+    let agent = crate::agent::Agent::new(app);
+    agent.chat(&user_input, &style_preference, &target_audience).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn check_spelling(
+    app: AppHandle,
+    text: String,
+) -> Result<Value, String> {
+    let agent = crate::agent::Agent::new(app);
+    agent.audit_spelling(&text).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_rag_status(state: State<'_, AppState>) -> Result<Value, String> {
+    let rag_lock = state.rag.lock().map_err(|e| e.to_string())?;
+    if let Some(rag_arc) = &*rag_lock {
+        let rag = rag_arc.lock().map_err(|e| e.to_string())?;
+        Ok(json!({
+            "folder": rag.watch_folder
+                .as_ref()
+                .map(|p| p.to_string_lossy().to_string()),
+            "projects": rag.get_all_projects(),
+            "categorized": rag.get_categorized_files(),
+        }))
+    } else {
+        Ok(json!({ "folder": null, "projects": [], "categorized": null }))
+    }
+}
+
+#[tauri::command]
+pub fn unload_ai_model(state: State<'_, AppState>) {
+    state.unload_ai();
+}
+
+#[tauri::command]
+pub async fn set_rag_folder(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    folder_path: String,
+) -> Result<(), String> {
+    let path = std::path::PathBuf::from(&folder_path);
+    
+    // Initialize RAG Manager (pure-Rust keyword index, no ML model needed)
+    let mut rag = crate::rag::RagManager::new();
+    let (success, fail) = rag.index_folder(&path).map_err(|e| format!("폴더 인덱싱 실패: {}", e))?;
+    
+    println!("[RAG] 초기 인덱싱 완료: 성공 {}, 실패 {}", success, fail);
+
+    let rag_arc = std::sync::Arc::new(std::sync::Mutex::new(rag));
+    
+    // 3. Spawn Watcher
+    crate::rag::spawn_watcher(rag_arc.clone(), path).map_err(|e| format!("Watcher 실행 실패: {}", e))?;
+
+    // 4. Update AppState
+    if let Ok(mut rag_state) = state.rag.lock() {
+        *rag_state = Some(rag_arc);
+    }
+
+    // 5. Persist path for next startup
+    if let Ok(data_dir) = app.path().app_data_dir() {
+        let _ = std::fs::create_dir_all(&data_dir);
+        let config_path = data_dir.join("last_rag_path.txt");
+        let _ = std::fs::write(config_path, &folder_path);
+    }
+    
+    Ok(())
+}
+
+#[tauri::command]
+pub fn append_to_active_document(
+    text: String,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let mut sessions = state
+        .sessions
+        .lock()
+        .map_err(|_| "문서 세션 잠금 실패".to_string())?;
+    
+    let session = sessions.session_mut("active")?;
+    let core = session.ensure_core_loaded()?;
+    
+    // 1. Get info to find the end
+    let info_json = core.get_document_info();
+    let info: serde_json::Value = serde_json::from_str(&info_json).map_err(|e| e.to_string())?;
+    
+    // Default to end of document (last section, last paragraph)
+    let sections = info.get("sections").and_then(|v| v.as_array());
+    let mut last_sec = 0;
+    let mut last_para = 0;
+
+    if let Some(secs) = sections {
+        if !secs.is_empty() {
+            last_sec = secs.len() as u32 - 1;
+            if let Some(paras) = secs.last().and_then(|s| s.get("paragraphs")).and_then(|v| v.as_array()) {
+                if !paras.is_empty() {
+                    last_para = paras.len() as u32 - 1;
+                }
+            }
+        }
+    }
+
+    // 2. Append text (inserting at the end of last paragraph)
+    // To make it look like a new line, we prepend a newline if text doesn't start with one
+    let formatted_text = if text.starts_with('\n') { text } else { format!("\n\n{}", text) };
+    
+    core.insert_text_native(last_sec as usize, last_para as usize, usize::MAX, &formatted_text).map_err(|e| e.to_string())?;
+    
+    session.revision += 1;
+    session.dirty = true;
+    session.page_svg_cache.clear();
+    
+    Ok(())
+}
+
+/// AI 에이전트가 현재 활성 문서를 직접 편집하는 커맨드
+/// mode: "append" | "insert" | "replace"
+#[tauri::command]
+pub fn ai_edit_document(
+    app: AppHandle,
+    mode: String,
+    text: String,
+    find_text: Option<String>,
+    sec: Option<usize>,
+    para: Option<usize>,
+    char_offset: Option<usize>,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let mut sessions = state
+        .sessions
+        .lock()
+        .map_err(|_| "문서 세션 잠금 실패".to_string())?;
+
+    let session = sessions.session_mut("active")?;
+
+    let revision = match mode.as_str() {
+        "replace" => {
+            // find_text 를 text 로 전체 대체 (단순 append 이탈)
+            let find = find_text.unwrap_or_default();
+            let formatted = if find.is_empty() {
+                // 찾을 텍스트 없음: 그냥 하단 추가
+                if text.starts_with('\n') { text.clone() } else { format!("\n\n{}", text) }
+            } else {
+                format!("\n\n[교체 적용 된 원본: {}]\n{}", find, text)
+            };
+            let core = session.ensure_core_loaded()?;
+            let info_json = core.get_document_info();
+            let info: serde_json::Value = serde_json::from_str(&info_json).map_err(|e| e.to_string())?;
+            let (last_sec, last_para) = last_paragraph_pos(&info);
+            core.insert_text_native(last_sec, last_para, usize::MAX, &formatted)
+                .map_err(|e| e.to_string())?;
+            session.revision += 1;
+            session.dirty = true;
+            session.page_svg_cache.clear();
+            session.revision
+        }
+        "insert" => {
+            // 지정 위치 삽입, 없으면 append
+            let target_sec = sec.unwrap_or(0);
+            let target_para = para.unwrap_or(0);
+            let target_char = char_offset.unwrap_or(0);
+            let formatted = text.clone();
+
+            let insert_ok = {
+                let core = session.ensure_core_loaded()?;
+                core.insert_text_native(target_sec, target_para, target_char, &formatted).is_ok()
+            };
+
+            if !insert_ok {
+                // insert 실패 시 문서 끝에 append로 대체
+                let core = session.ensure_core_loaded()?;
+                let info_json = core.get_document_info();
+                let info: serde_json::Value = serde_json::from_str(&info_json).map_err(|e| e.to_string())?;
+                let (ls, lp) = last_paragraph_pos(&info);
+                let fb = if formatted.starts_with('\n') { formatted } else { format!("\n\n{}", formatted) };
+                core.insert_text_native(ls, lp, usize::MAX, &fb).map_err(|e| e.to_string())?;
+            }
+
+            session.revision += 1;
+            session.dirty = true;
+            session.page_svg_cache.clear();
+            session.revision
+        }
+        _ => {
+            // "append" 기본
+            let core = session.ensure_core_loaded()?;
+            let info_json = core.get_document_info();
+            let info: serde_json::Value = serde_json::from_str(&info_json).map_err(|e| e.to_string())?;
+            let (last_sec, last_para) = last_paragraph_pos(&info);
+            let formatted = if text.starts_with('\n') { text.clone() } else { format!("\n\n{}", text) };
+            core.insert_text_native(last_sec, last_para, usize::MAX, &formatted)
+                .map_err(|e| e.to_string())?;
+            session.revision += 1;
+            session.dirty = true;
+            session.page_svg_cache.clear();
+            session.revision
+        }
+    };
+
+    // 편집 완료 이벤트: 캔버스 강제 갱신 트리거
+    let _ = app.emit("hop-ai-edit-applied", serde_json::json!({ "revision": revision }));
+
+    Ok(serde_json::json!({ "ok": true, "revision": revision }))
+}
+
+fn last_paragraph_pos(info: &serde_json::Value) -> (usize, usize) {
+    let sections = info.get("sections").and_then(|v| v.as_array());
+    if let Some(secs) = sections {
+        if !secs.is_empty() {
+            let last_sec = secs.len() - 1;
+            if let Some(paras) = secs.last().and_then(|s| s.get("paragraphs")).and_then(|v| v.as_array()) {
+                if !paras.is_empty() {
+                    return (last_sec, paras.len() - 1);
+                }
+            }
+            return (last_sec, 0);
+        }
+    }
+    (0, 0)
+}
+
+#[tauri::command]
+pub fn reclassify_file(
+    file_path: String,
+    target_category: String,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    if let Some(rag_arc) = state.rag.lock().map_err(|e| format!("RAG 잠금 실패: {}", e))?.clone() {
+        let mut rag = rag_arc.lock().map_err(|_| "RAG 잠금 실패")?;
+        rag.reclassify_file(file_path, target_category).map_err(|e| e.to_string())?;
+        Ok(())
+    } else {
+        Err("RAG가 활성화되지 않았습니다.".to_string())
+    }
+}
+
+#[tauri::command]
+pub async fn search_law(query: String) -> Result<String, String> {
+    crate::law::search_law(&query).await
+}
+
+#[tauri::command]
+pub async fn get_law_structure(path: String) -> Result<String, String> {
+    crate::law::get_law_structure(&path).await
+}
+
+#[tauri::command]
+pub async fn get_law_article(path: String, article_query: String) -> Result<String, String> {
+    crate::law::get_law_article(&path, &article_query).await
+}
+
+#[tauri::command]
+pub async fn verify_laws_in_document(
+    _app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Value, String> {
+    let text = {
+        let mut sessions = state.sessions.lock().map_err(|_| "문서 세션 잠금 실패".to_string())?;
+        sessions.get_active_document_text()?
+    };
+
+    let re = regex::Regex::new(r"([가-힣]{2,10}(?:\s+[가-힣]{1,10})*법)\s*제?\s*(\d+)조").map_err(|e| e.to_string())?;
+    
+    let mut results = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+
+    for cap in re.captures_iter(&text) {
+        let full_citation = cap.get(0).unwrap().as_str().to_string();
+        if seen.contains(&full_citation) {
+            continue;
+        }
+        seen.insert(full_citation.clone());
+
+        let law_name = cap.get(1).unwrap().as_str().trim().to_string();
+        let article_num = cap.get(2).unwrap().as_str().to_string();
+        let article_query = format!("제{}조", article_num);
+
+        let search_res = crate::law::search_law(&law_name).await;
+        match search_res {
+            Ok(paths_str) if !paths_str.contains("찾을 수 없습니다") => {
+                let paths: Vec<&str> = paths_str.lines().collect();
+                if let Some(path) = paths.first() {
+                    let article_res = crate::law::get_law_article(path, &article_query).await;
+                    match article_res {
+                        Ok(official_text) => {
+                            let mut cited_paragraph = String::new();
+                            for line in text.lines() {
+                                if line.contains(&full_citation) {
+                                    cited_paragraph = line.trim().to_string();
+                                    break;
+                                }
+                            }
+                            results.push(json!({
+                                "citation": full_citation,
+                                "lawName": law_name,
+                                "articleQuery": article_query,
+                                "path": path,
+                                "status": "mismatch",
+                                "officialText": official_text,
+                                "context": cited_paragraph,
+                            }));
+                        }
+                        Err(_) => {
+                            results.push(json!({
+                                "citation": full_citation,
+                                "lawName": law_name,
+                                "articleQuery": article_query,
+                                "path": path,
+                                "status": "article_not_found",
+                                "officialText": null,
+                                "context": null,
+                            }));
+                        }
+                    }
+                }
+            }
+            _ => {
+                results.push(json!({
+                    "citation": full_citation,
+                    "lawName": law_name,
+                    "articleQuery": article_query,
+                    "path": null,
+                    "status": "not_found",
+                    "officialText": null,
+                    "context": null,
+                }));
+            }
+        }
+    }
+
+    Ok(json!(results))
 }
 
 #[cfg(test)]

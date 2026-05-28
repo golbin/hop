@@ -35,6 +35,7 @@ import { enhanceCustomSelects } from '@/ui/custom-select';
 import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
 import { HomeScreen } from '@/ui/home-screen';
 import type { DesktopBridgeApi } from '@/core/tauri-bridge';
+import { AISidebar } from '@/ui/ai-sidebar';
 
 const wasm = createBridge();
 const eventBus = new EventBus();
@@ -57,6 +58,7 @@ let inputHandler: InputHandler | null = null;
 let toolbar: Toolbar | null = null;
 let ruler: Ruler | null = null;
 let homeScreen: HomeScreen | null = null;
+let aiSidebar: AISidebar | null = null;
 
 
 // ─── 커맨드 시스템 ─────────────────────────────
@@ -224,6 +226,21 @@ async function initialize(): Promise<void> {
     setupZoomControls();
     setupEventListeners();
     setupGlobalShortcuts();
+
+    // AI 에이전트 사이드바 초기화
+    const aiSidebarEl = document.getElementById('ai-sidebar');
+    if (aiSidebarEl) {
+      aiSidebar = new AISidebar(
+        aiSidebarEl,
+        wasm as unknown as DesktopBridgeApi,
+        () => { window.dispatchEvent(new CustomEvent('hop:document-changed')); }
+      );
+      // 툴바 버튼 연결
+      document.getElementById('btn-ai-agent')?.addEventListener('click', () => {
+        aiSidebar?.toggle();
+      });
+    }
+
     const updateNotice = tauriRuntime
       ? new UpdateNotice(updateNoticeActions(wasm))
       : null;
@@ -300,6 +317,12 @@ function setupGlobalShortcuts(): void {
     }
 
     if (primaryModifier) {
+      // Ctrl+Shift+A → AI 에이전트 사이드바 토글
+      if (e.shiftKey && (e.key === 'a' || e.key === 'A' || e.key === 'ㅁ')) {
+        e.preventDefault();
+        aiSidebar?.toggle();
+        return;
+      }
       let commandId: string | null = null;
       const key = e.key.toLowerCase();
       if (e.shiftKey && !e.altKey && key === 'n') commandId = 'file:new-window';
