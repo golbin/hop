@@ -37,12 +37,8 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let redo = MenuItemBuilder::with_id("edit:redo", "Redo")
         .accelerator("CmdOrCtrl+Shift+Z")
         .build(app)?;
-    let cut = MenuItemBuilder::with_id("edit:cut", "Cut")
-        .accelerator("CmdOrCtrl+X")
-        .build(app)?;
-    let copy = MenuItemBuilder::with_id("edit:copy", "Copy")
-        .accelerator("CmdOrCtrl+C")
-        .build(app)?;
+    let cut = PredefinedMenuItem::cut(app, Some("Cut"))?;
+    let copy = PredefinedMenuItem::copy(app, Some("Copy"))?;
     let paste = PredefinedMenuItem::paste(app, Some("Paste"))?;
     let find = MenuItemBuilder::with_id("edit:find", "Find")
         .accelerator("CmdOrCtrl+F")

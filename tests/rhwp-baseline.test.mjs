@@ -110,6 +110,16 @@ test('HOP keeps PDF export menu-only without a stale Ctrl+E label', async () => 
   assert.doesNotMatch(pdfMenuItem[0], /md-shortcut|Ctrl\+E|Cmd\+E/);
 });
 
+test('HOP lets native clipboard shortcuts reach the WebView first responder', async () => {
+  const menuSource = await readFile(join(repoRoot, 'apps/desktop/src-tauri/src/menu.rs'), 'utf8');
+
+  assert.match(menuSource, /PredefinedMenuItem::cut\(app,\s*Some\("Cut"\)\)/);
+  assert.match(menuSource, /PredefinedMenuItem::copy\(app,\s*Some\("Copy"\)\)/);
+  assert.match(menuSource, /PredefinedMenuItem::paste\(app,\s*Some\("Paste"\)\)/);
+  assert.doesNotMatch(menuSource, /with_id\("edit:cut"/);
+  assert.doesNotMatch(menuSource, /with_id\("edit:copy"/);
+});
+
 function git(args) {
   const result = spawnSync('git', args, {
     cwd: repoRoot,
