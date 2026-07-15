@@ -181,6 +181,33 @@ describe('openPrintDialog', () => {
     expect(doc.renderPageSvg).toHaveBeenCalledWith(2);
   });
 
+  it('isolates print layout from editor viewport constraints', async () => {
+    const doc = {
+      fileName: 'a4-one-page.hwp',
+      pageCount: 1,
+      getPageInfo: vi.fn(() => pageInfo({ width: 793.7, height: 1122.5 })),
+      renderPageSvg: vi.fn(() => '<svg></svg>'),
+    };
+
+    await openPrintDialog(doc, { print: printMock });
+
+    const printStyle = fakeDocument.head.children.find((child) => child.id === 'hop-print-style');
+    expect(printStyle).toBeDefined();
+
+    const css = printStyle!.textContent ?? '';
+    expect(css).toContain('width: auto !important;');
+    expect(css).toContain('height: auto !important;');
+    expect(css).toContain('min-width: 0 !important;');
+    expect(css).toContain('min-height: 0 !important;');
+    expect(css).toContain('overflow: visible !important;');
+    expect(css).toContain('@page { size: 210mm 297mm; margin: 0; }');
+    expect(css).toContain(`
+    #hop-print-root .hop-print-page:last-child {
+      break-after: auto;
+      page-break-after: auto;
+    }`);
+  });
+
   it('rejects malformed SVG gracefully', async () => {
     (globalThis as Record<string, unknown>).DOMParser = makeFakeDOMParser(true);
 
