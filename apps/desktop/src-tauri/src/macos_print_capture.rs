@@ -1,21 +1,14 @@
-use objc2::runtime::ProtocolObject;
-use objc2_app_kit::{
-    NSPaperOrientation, NSPrintInfo, NSPrintJobSavingURL, NSPrintSaveJob, NSPrintingPaginationMode,
-};
-use objc2_core_graphics::{
-    CGBitmapContextCreate, CGColorSpace, CGContext, CGDataProvider, CGImageAlphaInfo,
-    CGImageByteOrderInfo, CGPDFBox, CGPDFDocument, CGPDFPage,
-};
-use objc2_foundation::{NSCopying, NSPoint, NSRect, NSSize, NSString, NSURL};
+use objc2_app_kit::{NSPaperOrientation, NSPrintInfo, NSPrintingPaginationMode};
+use objc2_foundation::{NSCopying, NSRange, NSRect, NSThread};
 use objc2_web_kit::WKWebView;
 use serde::Serialize;
-use std::ffi::{c_void, CString, OsString};
+use std::ffi::{c_void, OsString};
+use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
+use std::sync::{Arc, OnceLock};
 use tauri::WebviewWindow;
 
-const CAPTURE_ENV: &str = "HOP_PRINT_CAPTURE_PATH";
-const RASTER_SIZE: usize = 256;
+const OBSERVATION_ENV: &str = "HOP_PRINT_OBSERVATION_PATH";
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -57,147 +50,179 @@ pub(crate) struct PrintInfoSnapshot {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct PdfPageInspection {
-    pub media_box: RectSnapshot,
-    pub is_visually_blank: bool,
-    pub non_white_pixel_count: usize,
+struct FinitePageRange {
+    location: usize,
+    length: usize,
+    page_count: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct PdfInspection {
-    pub page_count: usize,
-    pub pages: Vec<PdfPageInspection>,
+struct PrintObservation {
+    schema_version: u32,
+    mode: &'static str,
+    run_operation_succeeded: bool,
+    operation_outcome: &'static str,
+    protocol_requires: &'static str,
+    range_location: usize,
+    range_length: usize,
+    page_count: usize,
+    print_info: PrintInfoSnapshot,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct PrintCaptureResult {
-    pub operation_succeeded: bool,
-    pub pdf_path: String,
-    pub metadata_path: String,
-    pub print_info: PrintInfoSnapshot,
-    pub pdf: PdfInspection,
+pub(crate) fn configured_observation_path() -> Result<Option<PathBuf>, String> {
+    observation_path_from_value(std::env::var_os(OBSERVATION_ENV))
 }
 
-pub(crate) fn configured_capture_path() -> Result<Option<PathBuf>, String> {
-    capture_path_from_value(std::env::var_os(CAPTURE_ENV))
-}
-
-fn capture_path_from_value(value: Option<OsString>) -> Result<Option<PathBuf>, String> {
+fn observation_path_from_value(value: Option<OsString>) -> Result<Option<PathBuf>, String> {
     let Some(value) = value else {
         return Ok(None);
     };
     let path = PathBuf::from(value);
     if !path.is_absolute() {
-        return Err(format!("{CAPTURE_ENV} must be an absolute path"));
+        return Err(format!("{OBSERVATION_ENV} must be an absolute path"));
     }
     if path
         .extension()
         .and_then(|extension| extension.to_str())
-        .is_none_or(|extension| !extension.eq_ignore_ascii_case("pdf"))
+        .is_none_or(|extension| !extension.eq_ignore_ascii_case("json"))
     {
-        return Err(format!("{CAPTURE_ENV} must use a .pdf extension"));
-    }
-    if path.to_str().is_none() {
-        return Err(format!("{CAPTURE_ENV} must be valid UTF-8"));
+        return Err(format!("{OBSERVATION_ENV} must use a .json extension"));
     }
     let parent = path
         .parent()
-        .ok_or_else(|| format!("{CAPTURE_ENV} must have a parent directory"))?;
+        .ok_or_else(|| format!("{OBSERVATION_ENV} must have a parent directory"))?;
     if !parent.is_dir() {
-        return Err(format!("{CAPTURE_ENV} parent directory does not exist"));
+        return Err(format!("{OBSERVATION_ENV} parent directory does not exist"));
     }
     if path.exists() {
-        return Err(format!("{CAPTURE_ENV} destination already exists"));
-    }
-    let metadata_path = metadata_path_for(&path);
-    if metadata_path.exists() {
-        return Err(format!("{CAPTURE_ENV} metadata destination already exists"));
+        return Err(format!("{OBSERVATION_ENV} destination already exists"));
     }
     Ok(Some(path))
 }
 
-fn metadata_path_for(pdf_path: &Path) -> PathBuf {
-    pdf_path.with_extension("pdf.json")
+fn finite_page_range(range: NSRange) -> Result<FinitePageRange, String> {
+    let ns_integer_max = isize::MAX as usize;
+    if range.location == 0 {
+        return Err("print observation page range location must be one-based".to_string());
+    }
+    if range.location >= ns_integer_max {
+        return Err(
+            "print observation page range location must be below NSNotFound/NSIntegerMax"
+                .to_string(),
+        );
+    }
+    if range.length == 0 {
+        return Err("print observation page range has zero pages".to_string());
+    }
+    if range.length == ns_integer_max {
+        return Err("print observation page range is unknown (NSIntegerMax)".to_string());
+    }
+    let last_page = range
+        .location
+        .checked_add(range.length - 1)
+        .ok_or_else(|| "print observation page range overflow".to_string())?;
+    if last_page > ns_integer_max {
+        return Err("print observation last page exceeds NSIntegerMax".to_string());
+    }
+    Ok(FinitePageRange {
+        location: range.location,
+        length: range.length,
+        page_count: range.length,
+    })
 }
 
-pub(crate) async fn capture_attached_webview(
+fn operation_observation(
+    operation_succeeded: bool,
+    range: NSRange,
+    print_info: PrintInfoSnapshot,
+) -> Result<PrintObservation, String> {
+    if operation_succeeded {
+        return Err("Cancel-only print observation was approved instead of cancelled".to_string());
+    }
+    let range = finite_page_range(range)?;
+    Ok(PrintObservation {
+        schema_version: 1,
+        mode: "attached-wkwebview-modal-cancel",
+        run_operation_succeeded: false,
+        operation_outcome: "cancel-or-error",
+        protocol_requires: "human-cancel-attestation",
+        range_location: range.location,
+        range_length: range.length,
+        page_count: range.page_count,
+        print_info,
+    })
+}
+
+pub(crate) fn observe_attached_webview(
     window: &WebviewWindow,
-    pdf_path: PathBuf,
-) -> Result<PrintCaptureResult, String> {
-    let (sender, receiver) = mpsc::sync_channel(1);
+    observation_path: PathBuf,
+) -> Result<(), String> {
+    if !NSThread::isMainThread_class() {
+        return Err("print observation must start on the macOS main thread".to_string());
+    }
+
+    // Tauri 2.10.3 handles WithWebview inline when called from its macOS main
+    // thread. OnceLock propagates the synchronous modal result without sending
+    // the main-thread-only NSPrintOperation to another thread.
+    let outcome = Arc::new(OnceLock::new());
+    let callback_outcome = Arc::clone(&outcome);
     window
         .with_webview(move |platform_webview| {
-            let result = unsafe { capture_webview(platform_webview.inner(), &pdf_path) };
-            let _ = sender.send(result);
+            let result =
+                unsafe { observe_webview(platform_webview.inner(), observation_path.as_path()) };
+            let _ = callback_outcome.set(result);
         })
         .map_err(|error| format!("could not access attached webview: {error}"))?;
 
-    tauri::async_runtime::spawn_blocking(move || {
-        receiver
-            .recv()
-            .map_err(|_| "attached webview print capture ended without a result".to_string())?
-    })
-    .await
-    .map_err(|error| format!("print capture worker failed: {error}"))?
+    Arc::try_unwrap(outcome)
+        .map_err(|_| "attached webview observation did not execute synchronously".to_string())?
+        .into_inner()
+        .ok_or_else(|| "attached webview observation returned no result".to_string())?
 }
 
-unsafe fn capture_webview(
-    webview_pointer: *mut c_void,
-    pdf_path: &Path,
-) -> Result<PrintCaptureResult, String> {
+unsafe fn observe_webview(webview_pointer: *mut c_void, path: &Path) -> Result<(), String> {
     let webview = webview_pointer
         .cast::<WKWebView>()
         .as_ref()
         .ok_or_else(|| "attached WKWebView pointer was null".to_string())?;
 
-    // Copy shared state so the diagnostic preserves printer/paper/scaling without
-    // mutating the process-global print settings. The four margin writes mirror
-    // wry 0.54.4 PrintOptions::default() exactly.
+    // Preserve the live printer/paper/scaling state without mutating the shared
+    // object. The four zero margins and separate-thread permission mirror wry
+    // 0.54.4's normal macOS print inputs.
     let print_info = NSPrintInfo::sharedPrintInfo().copy();
     print_info.setTopMargin(0.0);
     print_info.setRightMargin(0.0);
     print_info.setBottomMargin(0.0);
     print_info.setLeftMargin(0.0);
-    print_info.setJobDisposition(NSPrintSaveJob);
 
-    let path_string = NSString::from_str(
-        pdf_path
-            .to_str()
-            .ok_or_else(|| "capture path must be valid UTF-8".to_string())?,
-    );
-    let output_url = NSURL::fileURLWithPath(&path_string);
-    let print_dictionary = print_info.dictionary();
-    print_dictionary.setObject_forKey(&output_url, ProtocolObject::from_ref(NSPrintJobSavingURL));
-
-    let snapshot = snapshot_print_info(&print_info);
     let operation = webview.printOperationWithPrintInfo(&print_info);
     operation.setCanSpawnSeparateThread(true);
-    operation.setShowsPrintPanel(false);
+    operation.setShowsPrintPanel(true);
     operation.setShowsProgressPanel(false);
-    let operation_succeeded = operation.runOperation();
-    if !operation_succeeded {
-        return Err("attached WKWebView print operation failed".to_string());
-    }
-    if !pdf_path.is_file() {
-        return Err("print operation completed without creating a PDF".to_string());
-    }
 
-    let pdf = inspect_pdf(pdf_path)?;
-    let metadata_path = metadata_path_for(pdf_path);
-    let result = PrintCaptureResult {
+    let operation_succeeded = operation.runOperation();
+    if operation_succeeded {
+        return Err("Cancel-only print observation was approved instead of cancelled".to_string());
+    }
+    let page_range = operation.pageRange();
+    let effective_print_info = operation.printInfo();
+    let observation = operation_observation(
         operation_succeeded,
-        pdf_path: pdf_path.display().to_string(),
-        metadata_path: metadata_path.display().to_string(),
-        print_info: snapshot,
-        pdf,
-    };
-    let metadata = serde_json::to_vec_pretty(&result)
-        .map_err(|error| format!("could not serialize print capture metadata: {error}"))?;
-    std::fs::write(&metadata_path, metadata)
-        .map_err(|error| format!("could not write print capture metadata: {error}"))?;
-    Ok(result)
+        page_range,
+        snapshot_print_info(&effective_print_info),
+    )?;
+    write_observation(path, &observation)
+}
+
+fn write_observation(path: &Path, observation: &PrintObservation) -> Result<(), String> {
+    let file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(|error| format!("could not create print observation JSON: {error}"))?;
+    serde_json::to_writer_pretty(file, observation)
+        .map_err(|error| format!("could not write print observation JSON: {error}"))
 }
 
 fn snapshot_print_info(print_info: &NSPrintInfo) -> PrintInfoSnapshot {
@@ -231,68 +256,6 @@ fn pagination_value(value: NSPrintingPaginationMode) -> i64 {
     value.0 as i64
 }
 
-fn inspect_pdf(path: &Path) -> Result<PdfInspection, String> {
-    use std::os::unix::ffi::OsStrExt;
-
-    let filename = CString::new(path.as_os_str().as_bytes())
-        .map_err(|_| "could not open PDF: path contains a NUL byte".to_string())?;
-    let provider = unsafe { CGDataProvider::with_filename(filename.as_ptr()) }
-        .ok_or_else(|| "could not open PDF data provider".to_string())?;
-    let document = CGPDFDocument::with_provider(Some(&provider))
-        .ok_or_else(|| "could not open PDF document".to_string())?;
-    let page_count = CGPDFDocument::number_of_pages(Some(&document));
-    if page_count == 0 {
-        return Err("could not open PDF document with at least one page".to_string());
-    }
-
-    let mut pages = Vec::with_capacity(page_count);
-    for page_number in 1..=page_count {
-        let page = CGPDFDocument::page(Some(&document), page_number)
-            .ok_or_else(|| format!("could not open PDF page {page_number}"))?;
-        let media_box = CGPDFPage::box_rect(Some(&page), CGPDFBox::MediaBox);
-        let non_white_pixel_count = count_non_white_pixels(&page)?;
-        pages.push(PdfPageInspection {
-            media_box: rect_snapshot(media_box),
-            is_visually_blank: non_white_pixel_count == 0,
-            non_white_pixel_count,
-        });
-    }
-    Ok(PdfInspection { page_count, pages })
-}
-
-fn count_non_white_pixels(page: &CGPDFPage) -> Result<usize, String> {
-    let mut pixels = vec![255_u8; RASTER_SIZE * RASTER_SIZE * 4];
-    let color_space = CGColorSpace::new_device_rgb()
-        .ok_or_else(|| "could not create PDF inspection color space".to_string())?;
-    let bitmap_info = CGImageAlphaInfo::PremultipliedLast.0 | CGImageByteOrderInfo::Order32Big.0;
-    let context = unsafe {
-        CGBitmapContextCreate(
-            pixels.as_mut_ptr().cast(),
-            RASTER_SIZE,
-            RASTER_SIZE,
-            8,
-            RASTER_SIZE * 4,
-            Some(&color_space),
-            bitmap_info,
-        )
-    }
-    .ok_or_else(|| "could not create PDF inspection bitmap".to_string())?;
-    let target = NSRect::new(
-        NSPoint::new(0.0, 0.0),
-        NSSize::new(RASTER_SIZE as f64, RASTER_SIZE as f64),
-    );
-    let transform = CGPDFPage::drawing_transform(Some(page), CGPDFBox::MediaBox, target, 0, true);
-    CGContext::concat_ctm(Some(&context), transform);
-    CGContext::draw_pdf_page(Some(&context), Some(page));
-    CGContext::flush(Some(&context));
-    drop(context);
-
-    Ok(pixels
-        .chunks_exact(4)
-        .filter(|pixel| pixel[0] < 250 || pixel[1] < 250 || pixel[2] < 250)
-        .count())
-}
-
 fn rect_snapshot(rect: NSRect) -> RectSnapshot {
     RectSnapshot {
         x: rect.origin.x,
@@ -305,95 +268,153 @@ fn rect_snapshot(rect: NSRect) -> RectSnapshot {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pdf_writer::{Content, Finish, Pdf, Rect, Ref};
+    use objc2_foundation::NSRange;
     use std::ffi::OsString;
 
-    fn two_page_fixture() -> Vec<u8> {
-        let mut pdf = Pdf::new();
-        let catalog = Ref::new(1);
-        let pages = Ref::new(2);
-        let first_page = Ref::new(3);
-        let first_content = Ref::new(4);
-        let second_page = Ref::new(5);
-
-        pdf.catalog(catalog).pages(pages);
-        pdf.pages(pages).kids([first_page, second_page]).count(2);
-
-        let mut page = pdf.page(first_page);
-        page.media_box(Rect::new(0.0, 0.0, 595.0, 842.0));
-        page.parent(pages);
-        page.contents(first_content);
-        page.finish();
-
-        let mut content = Content::new();
-        content.rect(100.0, 100.0, 200.0, 200.0);
-        content.fill_nonzero();
-        pdf.stream(first_content, &content.finish());
-
-        let mut page = pdf.page(second_page);
-        page.media_box(Rect::new(0.0, 0.0, 595.0, 842.0));
-        page.parent(pages);
-        page.finish();
-
-        pdf.finish()
+    fn print_info_fixture() -> PrintInfoSnapshot {
+        PrintInfoSnapshot {
+            paper_size: SizeSnapshot {
+                width: 595.0,
+                height: 842.0,
+            },
+            imageable_page_bounds: RectSnapshot {
+                x: 18.0,
+                y: 41.0,
+                width: 559.0,
+                height: 783.0,
+            },
+            margins: MarginsSnapshot {
+                top: 0.0,
+                right: 0.0,
+                bottom: 0.0,
+                left: 0.0,
+            },
+            scaling_factor: 1.0,
+            paper_name: Some("iso-a4".to_string()),
+            orientation: 0,
+            horizontal_pagination: 0,
+            vertical_pagination: 0,
+        }
     }
 
     #[test]
-    fn capture_path_is_disabled_when_environment_value_is_absent() {
-        assert_eq!(capture_path_from_value(None).unwrap(), None);
+    fn observation_path_is_disabled_when_environment_value_is_absent() {
+        assert_eq!(observation_path_from_value(None).unwrap(), None);
     }
 
     #[test]
-    fn capture_path_accepts_a_new_absolute_pdf_in_an_existing_directory() {
+    fn observation_path_accepts_a_new_absolute_json_in_an_existing_directory() {
         let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("capture.pdf");
+        let path = directory.path().join("observation.json");
 
         assert_eq!(
-            capture_path_from_value(Some(path.as_os_str().to_owned())).unwrap(),
+            observation_path_from_value(Some(path.as_os_str().to_owned())).unwrap(),
             Some(path)
         );
     }
 
     #[test]
-    fn capture_path_rejects_relative_non_pdf_and_existing_destinations() {
-        assert!(capture_path_from_value(Some(OsString::from("capture.pdf")))
-            .unwrap_err()
-            .contains("absolute"));
+    fn observation_path_rejects_relative_non_json_and_existing_destinations() {
+        assert!(
+            observation_path_from_value(Some(OsString::from("observation.json")))
+                .unwrap_err()
+                .contains("absolute")
+        );
 
         let directory = tempfile::tempdir().unwrap();
-        let non_pdf = directory.path().join("capture.json");
-        assert!(capture_path_from_value(Some(non_pdf.into_os_string()))
+        let non_json = directory.path().join("observation.pdf");
+        assert!(observation_path_from_value(Some(non_json.into_os_string()))
             .unwrap_err()
-            .contains(".pdf"));
+            .contains(".json"));
 
-        let existing = directory.path().join("capture.pdf");
+        let existing = directory.path().join("observation.json");
         std::fs::write(&existing, b"do not overwrite").unwrap();
-        assert!(capture_path_from_value(Some(existing.into_os_string()))
+        assert!(observation_path_from_value(Some(existing.into_os_string()))
             .unwrap_err()
             .contains("already exists"));
     }
 
     #[test]
-    fn inspect_pdf_reports_page_geometry_and_visual_blankness() {
+    fn observation_path_rejects_a_missing_parent_directory() {
         let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("fixture.pdf");
-        std::fs::write(&path, two_page_fixture()).unwrap();
+        let path = directory.path().join("missing/observation.json");
 
-        let inspection = inspect_pdf(&path).unwrap();
-
-        assert_eq!(inspection.page_count, 2);
-        assert_eq!(inspection.pages.len(), 2);
-        assert_eq!(inspection.pages[0].media_box.width, 595.0);
-        assert_eq!(inspection.pages[0].media_box.height, 842.0);
-        assert!(!inspection.pages[0].is_visually_blank);
-        assert!(inspection.pages[1].is_visually_blank);
+        assert!(observation_path_from_value(Some(path.into_os_string()))
+            .unwrap_err()
+            .contains("parent directory"));
     }
 
     #[test]
-    fn inspect_pdf_rejects_invalid_input() {
-        let directory = tempfile::tempdir().unwrap();
-        let path = directory.path().join("missing.pdf");
+    fn finite_page_range_preserves_location_and_uses_length_as_page_count() {
+        let range = finite_page_range(NSRange::new(3, 2)).unwrap();
 
-        assert!(inspect_pdf(&path).unwrap_err().contains("open PDF"));
+        assert_eq!(range.location, 3);
+        assert_eq!(range.length, 2);
+        assert_eq!(range.page_count, 2);
+    }
+
+    #[test]
+    fn finite_page_range_accepts_a_last_page_at_ns_integer_max() {
+        let ns_integer_max = isize::MAX as usize;
+        let range = finite_page_range(NSRange::new(ns_integer_max - 1, 2)).unwrap();
+
+        assert_eq!(range.location, ns_integer_max - 1);
+        assert_eq!(range.length, 2);
+        assert_eq!(range.page_count, 2);
+    }
+
+    #[test]
+    fn finite_page_range_rejects_zero_unknown_not_found_and_overflowing_ranges() {
+        let ns_integer_max = isize::MAX as usize;
+
+        assert!(finite_page_range(NSRange::new(1, 0))
+            .unwrap_err()
+            .contains("zero"));
+        assert!(finite_page_range(NSRange::new(1, ns_integer_max))
+            .unwrap_err()
+            .contains("unknown"));
+        assert!(finite_page_range(NSRange::new(ns_integer_max, 1))
+            .unwrap_err()
+            .contains("location"));
+        assert!(finite_page_range(NSRange::new(ns_integer_max + 1, 1))
+            .unwrap_err()
+            .contains("location"));
+        assert!(finite_page_range(NSRange::new(ns_integer_max - 1, 3))
+            .unwrap_err()
+            .contains("NSIntegerMax"));
+        assert!(
+            finite_page_range(NSRange::new(ns_integer_max - 1, usize::MAX))
+                .unwrap_err()
+                .contains("overflow")
+        );
+    }
+
+    #[test]
+    fn operation_observation_rejects_successful_operations() {
+        assert!(
+            operation_observation(true, NSRange::new(1, 2), print_info_fixture(),)
+                .unwrap_err()
+                .contains("Cancel")
+        );
+    }
+
+    #[test]
+    fn operation_observation_serializes_ambiguous_outcome_without_claiming_cancel() {
+        let observation =
+            operation_observation(false, NSRange::new(1, 2), print_info_fixture()).unwrap();
+        let json = serde_json::to_value(observation).unwrap();
+
+        assert_eq!(json["schemaVersion"], 1);
+        assert_eq!(json["mode"], "attached-wkwebview-modal-cancel");
+        assert_eq!(json["runOperationSucceeded"], false);
+        assert_eq!(json["operationOutcome"], "cancel-or-error");
+        assert_eq!(json["protocolRequires"], "human-cancel-attestation");
+        assert!(json.get("operatorAction").is_none());
+        assert_eq!(json["rangeLocation"], 1);
+        assert_eq!(json["rangeLength"], 2);
+        assert_eq!(json["pageCount"], 2);
+        assert_eq!(json["printInfo"]["paperSize"]["width"], 595.0);
+        assert!(json.get("pdfPath").is_none());
+        assert!(json.get("documentPath").is_none());
     }
 }

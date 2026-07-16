@@ -306,9 +306,9 @@ pub fn reveal_in_folder(path: String) -> Result<(), String> {
 
 #[cfg(all(target_os = "macos", debug_assertions))]
 #[tauri::command]
-pub async fn print_webview(window: WebviewWindow) -> Result<(), String> {
-    if let Some(capture_path) = crate::macos_print_capture::configured_capture_path()? {
-        crate::macos_print_capture::capture_attached_webview(&window, capture_path).await?;
+pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
+    if let Some(observation_path) = crate::macos_print_capture::configured_observation_path()? {
+        crate::macos_print_capture::observe_attached_webview(&window, observation_path)?;
         return Ok(());
     }
 
