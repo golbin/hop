@@ -83,13 +83,8 @@ function renderPrintDocumentShell(payload: {
   @media print {
     html,
     body {
-      width: auto !important;
-      height: auto !important;
-      min-width: 0 !important;
-      min-height: 0 !important;
       margin: 0 !important;
       padding: 0 !important;
-      overflow: visible !important;
       background: #fff !important;
     }
     body > :not(#${PRINT_ROOT_ID}) {
