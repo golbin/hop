@@ -64,6 +64,25 @@ describe('TauriBridge', () => {
     removeMock.mockResolvedValue(undefined);
   });
 
+  it('forwards sanitized print probe inputs and queries probe configuration', async () => {
+    const bridge = new TauriBridge();
+    const probeInput = {
+      enginePageCount: 1,
+      domPageCount: 1,
+      pageWidthMm: 210,
+      pageHeightMm: 297,
+      finalBreakIsAuto: true,
+    };
+    invokeMock.mockResolvedValueOnce(undefined).mockResolvedValueOnce(true);
+
+    await bridge.printCurrentWebview(probeInput);
+    const configured = await bridge.printGeometryProbeConfigured();
+
+    expect(invokeMock).toHaveBeenNthCalledWith(1, 'print_webview', { probeInput });
+    expect(invokeMock).toHaveBeenNthCalledWith(2, 'print_geometry_probe_configured', {});
+    expect(configured).toBe(true);
+  });
+
   it('opens a native document by path, mirrors bytes into wasm, and updates title state', async () => {
     const bridge = new TauriBridge();
     fsOpenMock.mockResolvedValue(readHandle([10, 20, 30]));

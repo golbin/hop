@@ -5,6 +5,8 @@ mod font_catalog;
 mod linux_runtime;
 #[cfg(all(target_os = "macos", debug_assertions))]
 mod macos_print_capture;
+#[cfg(all(target_os = "macos", debug_assertions))]
+mod macos_print_geometry_probe;
 #[cfg(target_os = "macos")]
 mod macos_recent_documents;
 #[cfg(target_os = "macos")]
@@ -12,6 +14,7 @@ mod menu;
 mod pdf_export;
 mod pdf_font_fallbacks;
 mod pending_open;
+mod print_probe;
 mod recent_documents;
 mod state;
 #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
@@ -30,9 +33,9 @@ use commands::{
     destroy_current_window, export_pdf, export_pdf_from_hwp_path, list_local_fonts,
     list_recent_documents, mark_document_dirty, mutate_document, note_finder_recent_document,
     open_document_tracking, prepare_document_open, prepare_staged_hwp_pdf_export,
-    prepare_staged_hwp_save, print_webview, query_document, read_local_font,
-    record_recent_document, render_document_preview, render_page_svg, reveal_in_folder,
-    take_pending_open_paths,
+    prepare_staged_hwp_save, print_geometry_probe_configured, print_webview, query_document,
+    read_local_font, record_recent_document, render_document_preview, render_page_svg,
+    reveal_in_folder, take_pending_open_paths,
 };
 use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
@@ -91,6 +94,7 @@ pub fn run() {
             export_pdf,
             export_pdf_from_hwp_path,
             print_webview,
+            print_geometry_probe_configured,
             destroy_current_window,
             cancel_app_quit,
             desktop_platform,

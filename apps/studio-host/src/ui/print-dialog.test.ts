@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PageInfo } from '@/core/types';
-import { isSafePrintSvgReference, openPrintDialog } from './print-dialog';
+import {
+  isSafePrintSvgReference,
+  openPrintDialog,
+  type PrintProbeInput,
+} from './print-dialog';
 
 class FakeElement {
   id = '';
@@ -179,6 +183,70 @@ describe('openPrintDialog', () => {
     expect(doc.renderPageSvg).toHaveBeenCalledWith(0);
     expect(doc.renderPageSvg).toHaveBeenCalledWith(1);
     expect(doc.renderPageSvg).toHaveBeenCalledWith(2);
+  });
+
+  it('passes only sanitized print layout inputs to desktop printing', async () => {
+    const print = vi.fn<(input: PrintProbeInput) => void>();
+    const doc = {
+      fileName: 'private-name-must-not-be-forwarded.hwp',
+      pageCount: 1,
+      getPageInfo: vi.fn(() => pageInfo({ width: 793.7, height: 1122.5 })),
+      renderPageSvg: vi.fn(() => '<svg><text>must-not-be-forwarded</text></svg>'),
+    };
+
+    await openPrintDialog(doc, { print });
+
+    expect(print).toHaveBeenCalledWith({
+      enginePageCount: 1,
+      domPageCount: 1,
+      pageWidthMm: 210,
+      pageHeightMm: 297,
+      finalBreakIsAuto: true,
+    });
+    expect(JSON.stringify(print.mock.calls)).not.toContain('private-name');
+    expect(JSON.stringify(print.mock.calls)).not.toContain('must-not-be-forwarded');
+  });
+
+  it('continues printing when requestAnimationFrame is suspended for an occluded window', async () => {
+    let fallback: (() => void) | undefined;
+    const win = (globalThis as Record<string, unknown>).window as {
+      setTimeout: ReturnType<typeof vi.fn>;
+    };
+    win.setTimeout = vi.fn((callback: () => void) => {
+      fallback = callback;
+      return 17;
+    });
+    (globalThis as Record<string, unknown>).requestAnimationFrame = vi.fn(() => 23);
+    const doc = {
+      fileName: 'test.hwp',
+      pageCount: 1,
+      getPageInfo: vi.fn(() => pageInfo()),
+      renderPageSvg: vi.fn(() => '<svg></svg>'),
+    };
+
+    const pending = openPrintDialog(doc, { print: printMock });
+    await Promise.resolve();
+
+    expect(printMock).not.toHaveBeenCalled();
+    expect(fallback).toEqual(expect.any(Function));
+    fallback?.();
+    await pending;
+    expect(printMock).toHaveBeenCalledOnce();
+  });
+
+  it('leaves a sub-millimeter vertical guard inside the physical print page', async () => {
+    const doc = {
+      fileName: 'test.hwp',
+      pageCount: 1,
+      getPageInfo: vi.fn(() => pageInfo({ width: 793.7, height: 1122.5 })),
+      renderPageSvg: vi.fn(() => '<svg></svg>'),
+    };
+
+    await openPrintDialog(doc, { print: printMock });
+
+    const printStyle = fakeDocument.head.children.find((child) => child.id === 'hop-print-style');
+    expect(printStyle?.textContent).toContain('@page { size: 210mm 297mm; margin: 0; }');
+    expect(printStyle?.textContent).toContain('height: calc(297mm - 0.1mm);');
   });
 
   it('rejects malformed SVG gracefully', async () => {

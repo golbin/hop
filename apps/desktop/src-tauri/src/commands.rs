@@ -1,4 +1,5 @@
 use crate::font_catalog::LocalFontEntry;
+use crate::print_probe::PrintProbeInput;
 use crate::recent_documents::{self, RecentDocument};
 use crate::state::{
     editable_core_from_bytes, AppState, DocumentFormat, DocumentOpenResult,
@@ -306,7 +307,24 @@ pub fn reveal_in_folder(path: String) -> Result<(), String> {
 
 #[cfg(all(target_os = "macos", debug_assertions))]
 #[tauri::command]
-pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
+pub fn print_webview(
+    window: WebviewWindow,
+    probe_input: Option<PrintProbeInput>,
+) -> Result<(), String> {
+    if let Some(observation_path) = crate::print_probe::configured_geometry_probe_path()? {
+        let input = probe_input
+            .ok_or_else(|| "print geometry probe requires sanitized frontend input".to_string())?;
+        crate::print_probe::write_probe_stage(
+            &observation_path,
+            crate::print_probe::ProbeStage::NativePrintEntered,
+        )?;
+        crate::macos_print_geometry_probe::observe_attached_webview_geometry(
+            &window,
+            observation_path,
+            input,
+        )?;
+        return Ok(());
+    }
     if let Some(observation_path) = crate::macos_print_capture::configured_observation_path()? {
         crate::macos_print_capture::observe_attached_webview(&window, observation_path)?;
         return Ok(());
@@ -319,10 +337,18 @@ pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
 
 #[cfg(not(all(target_os = "macos", debug_assertions)))]
 #[tauri::command]
-pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
+pub fn print_webview(
+    window: WebviewWindow,
+    _probe_input: Option<PrintProbeInput>,
+) -> Result<(), String> {
     window
         .print()
         .map_err(|e| format!("인쇄 대화상자를 열 수 없습니다: {}", e))
+}
+
+#[tauri::command]
+pub fn print_geometry_probe_configured() -> Result<bool, String> {
+    crate::print_probe::geometry_probe_configured()
 }
 
 #[tauri::command]

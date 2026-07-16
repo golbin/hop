@@ -37,6 +37,7 @@ import { enhanceCustomSelects } from '@/ui/custom-select';
 import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
 import { HomeScreen } from '@/ui/home-screen';
 import type { DesktopBridgeApi } from '@/core/tauri-bridge';
+import { createPrintProbeTrigger } from '@/core/print-probe-trigger';
 
 const wasm = createBridge();
 const eventBus = new EventBus();
@@ -95,6 +96,7 @@ const commandServices: CommandServices = {
 };
 
 const dispatcher = new CommandDispatcher(registry, commandServices, eventBus);
+const triggerPrintProbe = createPrintProbeTrigger();
 
 // 모든 내장 커맨드 등록
 registry.registerAll(fileCommands);
@@ -599,6 +601,7 @@ async function initializeDocument(
     } else {
       documentState.markClean('document-initialized');
     }
+    await triggerPrintProbe(wasm, (commandId) => dispatcher.dispatch(commandId));
   } catch (error) {
     console.error('[initDoc] 오류:', error);
     if (window.innerWidth < 768) alert(`초기화 오류: ${error}`);

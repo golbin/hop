@@ -80,10 +80,20 @@ describe('file command desktop overrides', () => {
   });
 
   it('uses desktop print integration when available', async () => {
+    const probeInput = {
+      enginePageCount: 1,
+      domPageCount: 1,
+      pageWidthMm: 210,
+      pageHeightMm: 297,
+      finalBreakIsAuto: true,
+    };
+    const printCurrentWebview = vi.fn().mockResolvedValue(undefined);
     const wasm = desktopBridge({
-      printCurrentWebview: vi.fn().mockResolvedValue(undefined),
+      printCurrentWebview,
     });
-    openPrintDialog.mockResolvedValue(undefined);
+    openPrintDialog.mockImplementation(async (_document, options) => {
+      await options.print(probeInput);
+    });
 
     await command('file:print').execute(services({ wasm }) as never);
 
@@ -91,6 +101,7 @@ describe('file command desktop overrides', () => {
       wasm,
       expect.objectContaining({ print: expect.any(Function) }),
     );
+    expect(printCurrentWebview).toHaveBeenCalledWith(probeInput);
   });
 
   it('keeps PDF export desktop-only', async () => {

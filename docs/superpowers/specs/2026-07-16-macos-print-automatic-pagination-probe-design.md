@@ -24,7 +24,7 @@ The session's trusted Computer Use runtime lacks its required `node_repl`, so na
 
 ## Goal
 
-Create a debug-only, opt-in, fully automatic pagination probe that opens the private document, prepares the normal HOP print DOM, opens the authentic modal preview, automatically cancels it as soon as pagination becomes finite, records sanitized print inputs and native print-view geometry, writes one JSON artifact, and exits or becomes safe to terminate.
+Create a debug-only, opt-in, fully automatic pagination probe that opens the private document, prepares the normal HOP print DOM, opens the authentic modal preview, cancels it after a bounded pagination-settle delay, then records the post-return finite range and sanitized print-view geometry without user input.
 
 Success means the artifact identifies the first boundary where the expected one page becomes two pages, with enough geometry to form one precise root-cause hypothesis.
 
@@ -42,16 +42,16 @@ Success means the artifact identifies the first boundary where the expected one 
 - The probe is compiled only for macOS debug builds and activated only by a new absolute `.json` destination environment variable.
 - The existing modal observer and normal `window.print()` path remain unchanged when the new variable is absent.
 - The probe must use the attached HOP `WKWebView` and the same copied shared `NSPrintInfo`, four zero margins, and `printOperationWithPrintInfo` factory as wry/HOP.
-- The native probe must call the same modal `runOperation()` seam that produced the authentic finite range, then cancel it through AppKit as soon as the range is finite. It must never approve the operation.
+- The native probe must call the same modal `runOperation()` seam that produced the authentic finite range, cancel it through AppKit after a bounded settle delay, and read the finite range only after `runOperation()` returns. It must never approve the operation.
 - JSON files use create-new semantics and contain only numeric/boolean/enumerated diagnostic data.
 
 ## Considered approaches
 
 ### 1. Automatic authentic modal geometry probe — selected
 
-After the normal print DOM is built, the frontend sends sanitized numeric layout inputs together with the existing print command. In probe mode, Rust creates and runs the attached-WebView modal print operation. A bounded background coordinator polls `NSPrintOperation.currentOperation` only through main-thread closures. When `pageRange` becomes finite, the main-thread closure calls `NSApplication.abortModal`. Rust then records the operation view's `frame`, `bounds`, `visibleRect`, and `rectForPage` for the finite range.
+After the normal print DOM is built, the frontend sends sanitized numeric layout inputs together with the existing print command. In probe mode, Rust creates and runs the attached-WebView modal print operation. An `NSTimer` registered in both the modal and common run-loop modes waits two seconds, then calls `NSApplication.abortModal`. Rust validates the finite `pageRange` after `runOperation()` returns and records the operation view's `frame`, `bounds`, `visibleRect`, and `rectForPage` values.
 
-This preserves the exact empirical seam that matched the visible two-page preview while removing all human Cmd+P/Cancel actions. The coordinator has a strict timeout that also aborts the modal and reports failure without falling through to printing.
+This preserves the exact empirical seam that matched the visible two-page preview while removing all human Cmd+P/Cancel actions. A sanitized status sidecar distinguishes frontend configuration, native entry, timer execution, modal abort, and final range capture. No failure falls through to normal printing.
 
 ### 2. Dedicated print window comparison — deferred
 
@@ -70,8 +70,8 @@ The earlier standalone/save-job probes did not reproduce the attached applicatio
    - whether the final page uses authored `auto` break rules.
 3. The desktop bridge passes this snapshot to `print_webview` only as an optional argument. Web and normal desktop behavior remain compatible.
 4. When `HOP_PRINT_GEOMETRY_PROBE_PATH` is configured, Rust creates the normal attached-WebView print operation and starts the bounded auto-cancel coordinator before running it.
-5. The coordinator polls on the main thread until the current operation exposes a finite range, snapshots that range, and calls `NSApplication.abortModal`; timeout follows the same abort-only path and is an error.
-6. After `runOperation()` returns `false`, Rust obtains `operation.view()`, snapshots native view class-independent geometry, validates the finite range, and records `rectForPage` for each page with a strict small upper bound.
+5. A main-run-loop timer fires inside the modal loop, waits for the bounded settle delay, and calls `NSApplication.abortModal` without approving or submitting the operation.
+6. After `runOperation()` returns `false`, Rust validates the now-finite range, obtains `operation.view()`, snapshots native view class-independent geometry, and records `rectForPage` for each page with a strict small upper bound.
 7. Rust combines the frontend inputs and native snapshots with the existing `NSPrintInfo` snapshot and writes a new JSON file with create-new semantics.
 8. The automatic debug trigger dispatches `file:print` once after the document initialization is complete. The trigger is enabled only when the native probe reports it is configured.
 9. The harness waits for the JSON file, terminates the debug app, and compares expected engine/DOM page count with native range and page rectangles.
@@ -79,7 +79,7 @@ The earlier standalone/save-job probes did not reproduce the attached applicatio
 ## Error handling and privacy
 
 - Reject relative paths, non-JSON extensions, missing parents, and existing destinations before probing.
-- Reject missing print view, unknown/zero/overflow page ranges, ranges above a small diagnostic limit, timeout, an unexpectedly successful print operation, and non-finite frontend geometry.
+- Reject missing print view, unknown/zero/overflow post-return page ranges, ranges above a small diagnostic limit, a timer that did not fire, an operation that ended before automatic abort, an unexpectedly successful print operation, and non-finite frontend geometry.
 - Do not include filenames, source paths, document strings, SVG, URLs, printer identifiers, or arbitrary computed-style text.
 - Serialize style properties as booleans or allow-listed enum/numeric strings only.
 - A failed probe returns an explicit error and does not fall back to normal printing, preventing accidental modal or printer activity.
@@ -87,7 +87,7 @@ The earlier standalone/save-job probes did not reproduce the attached applicatio
 ## Verification plan
 
 - TypeScript RED/GREEN tests for sanitized print-input construction and opt-in one-shot automatic dispatch.
-- Rust RED/GREEN tests for environment validation, finite range/page-rect conversion, strict field schema, bounded coordinator outcomes, and abort-only operation assembly boundaries.
+- Rust RED/GREEN tests for environment validation, sanitized status writes, post-abort finite range/page-rect conversion, strict field schema, bounded coordinator timing, and abort-only operation assembly boundaries.
 - Focused studio tests, full studio tests, desktop tests, clippy with warnings denied, release check, formatting, and debug app build.
 - Automated integration run against the private one-page document, with JSON existence and schema checks and private file hash/mtime verification.
 - Source review proving the probe treats `runOperation() == true` as failure and contains no save/preview job disposition, PDF URL, printer name, document path, or content serialization.

@@ -7,13 +7,23 @@ interface PrintableDocument {
   renderPageSvg(pageNum: number): string;
 }
 
+export interface PrintProbeInput {
+  enginePageCount: number;
+  domPageCount: number;
+  pageWidthMm: number;
+  pageHeightMm: number;
+  finalBreakIsAuto: boolean;
+}
+
 interface PrintDialogOptions {
   onStatus?(message: string): void;
-  print?(): void | Promise<void>;
+  print?(probeInput: PrintProbeInput): void | Promise<void>;
 }
 
 const PRINT_ROOT_ID = 'hop-print-root';
 const PRINT_STYLE_ID = 'hop-print-style';
+const PRINT_FRAME_FALLBACK_MS = 250;
+const PRINT_PAGE_HEIGHT_GUARD_MM = 0.1;
 
 export async function openPrintDialog(
   document: PrintableDocument,
@@ -54,7 +64,15 @@ export async function openPrintDialog(
   window.addEventListener('afterprint', cleanup, { once: true });
 
   try {
-    await (options.print?.() ?? window.print());
+    const probeInput: PrintProbeInput = {
+      enginePageCount: pageCount,
+      domPageCount: root.children.length,
+      pageWidthMm: widthMm,
+      pageHeightMm: heightMm,
+      finalBreakIsAuto: true,
+    };
+    if (options.print) await options.print(probeInput);
+    else window.print();
     if (!cleaned) cleanupTimer = window.setTimeout(cleanup, 5 * 60 * 1000);
   } catch (error) {
     window.removeEventListener('afterprint', cleanup);
@@ -99,7 +117,7 @@ function renderPrintDocumentShell(payload: {
     }
     #${PRINT_ROOT_ID} .hop-print-page {
       width: ${payload.widthMm}mm;
-      height: ${payload.heightMm}mm;
+      height: calc(${payload.heightMm}mm - ${PRINT_PAGE_HEIGHT_GUARD_MM}mm);
       margin: 0 !important;
       padding: 0 !important;
       overflow: hidden;
@@ -187,7 +205,17 @@ function removePrintDocument(): void {
 }
 
 function nextFrame(): Promise<void> {
-  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(fallbackTimer);
+      resolve();
+    };
+    const fallbackTimer = window.setTimeout(finish, PRINT_FRAME_FALLBACK_MS);
+    requestAnimationFrame(finish);
+  });
 }
 
 function nextTask(): Promise<void> {

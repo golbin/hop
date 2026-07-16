@@ -10,6 +10,7 @@ const overrideIds = [
   'core/desktop-chrome',
   'core/desktop-events',
   'core/platform',
+  'core/print-probe-trigger',
   'core/tauri-bridge',
   'command/shortcut-map',
   'command/commands/edit',

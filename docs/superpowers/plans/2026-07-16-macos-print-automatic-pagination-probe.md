@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a macOS-debug-only probe that automatically prepares the real HOP print DOM, opens the authentic modal preview, aborts it after pagination becomes finite, and records sanitized frontend/native geometry without user input or print output.
+**Goal:** Build a macOS-debug-only probe that automatically prepares the real HOP print DOM, opens the authentic modal preview, aborts it after a bounded settle delay, and records the post-return finite range plus sanitized frontend/native geometry without user input or print output.
 
 **Architecture:** The studio host passes a small numeric `PrintProbeInput` through the existing print callback and automatically dispatches print once when a native configuration command reports probe mode. Rust owns environment validation, modal coordination, AppKit access, page-range validation, native view/page-rect snapshots, and create-new JSON output. Normal release, non-macOS, web, and debug-without-probe printing remain unchanged.
 
@@ -84,7 +84,7 @@ pub(crate) fn observe_attached_webview_geometry(
 ) -> Result<(), String>;
 ```
 
-- [ ] **Step 1: Write frontend RED tests for the exact probe input and forwarding contract**
+- [x] **Step 1: Write frontend RED tests for the exact probe input and forwarding contract**
 
 Add a print-dialog test that executes the supplied callback and requires exactly one engine page, one `.hop-print-page`, `210 × 297` mm, and final break auto:
 
@@ -121,7 +121,7 @@ expect(invokeMock).toHaveBeenCalledWith('print_geometry_probe_configured', undef
 
 Create `print-probe-trigger.test.ts` with three cases: absent capability does nothing, configured false does nothing, configured true dispatches `file:print` exactly once across repeated document initializations.
 
-- [ ] **Step 2: Run the frontend RED tests and verify contract failures**
+- [x] **Step 2: Run the frontend RED tests and verify contract failures**
 
 Run:
 
@@ -136,7 +136,7 @@ pnpm --filter @golbin/hop-studio-host exec vitest run \
 
 Expected: exit `1`; failures are only missing `PrintProbeInput` callback forwarding, missing bridge method/arguments, and missing one-shot trigger module/behavior. Fix syntax or fixture errors until the failures are behavioral.
 
-- [ ] **Step 3: Implement the minimal frontend contract and one-shot trigger**
+- [x] **Step 3: Implement the minimal frontend contract and one-shot trigger**
 
 In `print-dialog.ts`, export `PrintProbeInput`, change `PrintDialogOptions.print` to accept it, and replace the existing fallback expression with an explicit branch:
 
@@ -201,11 +201,11 @@ const triggerPrintProbe = createPrintProbeTrigger();
 await triggerPrintProbe(wasm, (commandId) => dispatcher.dispatch(commandId));
 ```
 
-- [ ] **Step 4: Run the frontend focused tests and verify GREEN**
+- [x] **Step 4: Run the frontend focused tests and verify GREEN**
 
 Run the Step 2 command again. Expected: all selected test files pass with no new warnings.
 
-- [ ] **Step 5: Write Rust RED tests for path/input/range/view schema and coordinator outcomes**
+- [x] **Step 5: Write Rust RED tests for path/input/range/view schema and coordinator outcomes**
 
 Create `print_probe.rs` tests that require:
 
@@ -248,23 +248,21 @@ Create `macos_print_geometry_probe.rs` tests around pure functions that require:
 
 ```rust
 #[test]
-fn finite_range_becomes_abort_and_capture() {
-    assert_eq!(coordinator_decision(Some(NSRange::new(1, 2)), false), Decision::AbortAndCapture);
+fn modal_is_aborted_only_after_the_pagination_settle_delay() {
+    assert_eq!(coordinator_decision(AUTO_ABORT_DELAY - Duration::from_millis(1)), Decision::Poll);
+    assert_eq!(coordinator_decision(AUTO_ABORT_DELAY), Decision::AbortModal);
 }
 
 #[test]
-fn unknown_range_keeps_polling_until_timeout_then_aborts_with_error() {
-    assert_eq!(
-        coordinator_decision(Some(NSRange::new(1, isize::MAX as usize)), false),
-        Decision::Poll,
-    );
-    assert_eq!(coordinator_decision(None, true), Decision::AbortTimeout);
+fn unknown_or_zero_page_ranges_are_rejected_after_modal_abort() {
+    assert!(finite_page_range(NSRange::new(1, isize::MAX as usize)).is_err());
+    assert!(finite_page_range(NSRange::new(0, 2)).is_err());
 }
 ```
 
 The observation serialization test must construct two distinct `RectSnapshot` values, serialize the typed observation with `serde_json::to_value`, assert the two exact rectangles and strict top-level keys, then recursively assert that the resulting JSON contains none of `documentPath`, `fileName`, `svg`, `printer`, `pdfPath`, or an arbitrary sentinel document string.
 
-- [ ] **Step 6: Run Rust RED and verify only missing probe APIs fail**
+- [x] **Step 6: Run Rust RED and verify only missing probe APIs fail**
 
 Run:
 
@@ -274,7 +272,7 @@ cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml --lib print_probe -
 
 Expected: exit `101`; failures are unresolved probe modules/functions/types or unmet assertions, not Cargo feature, syntax, or fixture errors.
 
-- [ ] **Step 7: Implement the Rust contracts and native auto-abort coordinator**
+- [x] **Step 7: Implement the Rust contracts and native auto-abort coordinator**
 
 Add macOS dependencies/features without changing versions:
 
@@ -289,8 +287,8 @@ In `macos_print_geometry_probe.rs`:
 
 1. Require the main thread and use `window.with_webview` plus `Arc<OnceLock<Result<(), String>>>`, matching the reviewed modal observer.
 2. Copy shared `NSPrintInfo`, set only the four margins to zero, create `printOperationWithPrintInfo`, enable the print panel, disable progress, and retain the view.
-3. Start a background coordinator before `runOperation()`. Every 50 ms for at most 15 seconds it calls `AppHandle::run_on_main_thread`. The main-thread closure reads `NSPrintOperation::currentOperation`, converts `pageRange` through the tested finite-range helper, and calls `NSApplication::sharedApplication(marker).abortModal()` only for a finite range. Timeout schedules the same abort call and records a timeout error.
-4. Join the coordinator after `runOperation()` returns. Reject `true`, timeout, missing finite range, missing view, or more than 32 pages.
+3. Register a repeating `NSTimer` in `NSModalPanelRunLoopMode` and `NSRunLoopCommonModes` before `runOperation()`. After a two-second settle delay, invalidate it and call `NSApplication::sharedApplication(marker).abortModal()`.
+4. After `runOperation()` returns, reject `true`, a timer that never fired, an operation that ended before automatic abort, a missing/unknown post-return range, a missing view, or more than 32 pages.
 5. Snapshot `view.frame()`, `view.bounds()`, `view.visibleRect()`, `view.isFlipped()`, the finite operation range, every `view.rectForPage(page)`, and the effective print info.
 6. Write only the strict serde structure with create-new semantics.
 
@@ -315,7 +313,7 @@ window
 
 Register `print_geometry_probe_configured` in `lib.rs`; release/non-macOS `print_webview` accepts and ignores `_probe_input` before calling the unchanged `window.print()` expression.
 
-- [ ] **Step 8: Run Rust focused and full verification**
+- [x] **Step 8: Run Rust focused and full verification**
 
 Run:
 
@@ -330,7 +328,7 @@ git diff --check
 
 Expected: all commands exit `0`; the repository's `clippy:desktop` script already runs `cargo clippy -- -D warnings`.
 
-- [ ] **Step 9: Run full frontend verification and build the debug app**
+- [x] **Step 9: Run full frontend verification and build the debug app**
 
 Run:
 
@@ -343,14 +341,15 @@ pnpm --filter hop-desktop tauri build --debug --bundles app
 
 Expected: tests and builds exit `0`; existing Vite chunk/dynamic-import warnings may remain but no new warning is accepted.
 
-- [ ] **Step 10: Run the automated native probe and preserve only sanitized evidence**
+- [x] **Step 10: Run the automated native probe and preserve only sanitized evidence**
 
 Record the private file's size, mtime, and SHA-256 without printing its content. Create a fresh temp directory, then launch:
 
 ```bash
-env HOP_PRINT_GEOMETRY_PROBE_PATH="$probe_dir/observation.json" \
-  apps/desktop/src-tauri/target/debug/bundle/macos/HOP.app/Contents/MacOS/hop-desktop \
-  '/Users/gameduo/Downloads/승선신고서.hwp'
+open -n -W \
+  --env HOP_PRINT_GEOMETRY_PROBE_PATH="$probe_dir/observation.json" \
+  -a apps/desktop/src-tauri/target/debug/bundle/macos/HOP.app \
+  '<private-hwp-path>'
 ```
 
 Wait conditionally for the JSON file with a 30-second upper bound. The app must automatically dispatch print, briefly show and abort the panel, and write JSON without clicks. Terminate only this launched debug process after the file appears.
@@ -359,14 +358,14 @@ Expected evidence:
 
 - frontend engine and DOM page counts are `1`;
 - native modal range is finite and matches the authentic `1 + 2` baseline;
-- two page rectangles plus view frame/bounds/visibleRect are present;
+- two page entries plus view frame/bounds/visibleRect are present; post-abort `rectForPage` sentinels are not used for causal inference;
 - operation outcome is auto-aborted, never successful;
 - no PDF or printer job exists;
 - private file size, mtime, and SHA-256 are unchanged.
 
 Delete the temporary JSON after transcribing numeric geometry into `.superpowers/sdd/automatic-geometry-probe-evidence.md`.
 
-- [ ] **Step 11: Review the evidence before any fix**
+- [x] **Step 11: Review the evidence before any fix**
 
 Classify the first divergence:
 
@@ -385,3 +384,9 @@ git status --short
 ```
 
 Expected: no forbidden native/output/content API usage. Do not commit implementation yet; request independent review of code and sanitized evidence first.
+
+- [x] **Step 12: Prove and fix the vertical rounding overflow with TDD**
+
+Record the baseline native range and print-view frame, then run one controlled experiment that leaves `@page` unchanged and reduces only the printable page content height by `0.1mm`. If the native range changes from two pages to one and the print-view frame changes from approximately two A4 sheets to one, classify the cause as WebKit physical-unit/integer-frame rounding overflow.
+
+Add a failing studio test that requires the physical `@page` to remain `210mm × 297mm` while `.hop-print-page` uses `calc(297mm - 0.1mm)`. Implement the named `0.1mm` guard, rerun the studio test, rebuild the app, and rerun the automatic native probe. Preserve only sanitized before/after numbers in `.superpowers/sdd/automatic-geometry-probe-evidence.md`.

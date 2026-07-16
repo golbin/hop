@@ -2,6 +2,7 @@ import { WasmBridge } from '@/core/wasm-bridge';
 import type { DocumentInfo } from '@/core/types';
 import { remove, stat } from '@tauri-apps/plugin-fs';
 import { finiteFileSize, readFileInChunks, writeFileInChunks } from './chunked-fs';
+import type { PrintProbeInput } from '@/ui/print-dialog';
 
 type DocumentFormat = 'hwp' | 'hwpx';
 
@@ -78,7 +79,8 @@ export interface DesktopBridgeApi {
   saveDocumentFromCommand(): Promise<DesktopSaveResult | null>;
   saveDocumentAsFromCommand(): Promise<DesktopSaveResult | null>;
   exportPdfFromCommand(): Promise<string | null>;
-  printCurrentWebview(): Promise<void>;
+  printGeometryProbeConfigured(): Promise<boolean>;
+  printCurrentWebview(probeInput: PrintProbeInput): Promise<void>;
   destroyCurrentWindow(): Promise<void>;
   cancelAppQuit(): Promise<void>;
   revealInFolder(): Promise<void>;
@@ -206,8 +208,12 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     }
   }
 
-  async printCurrentWebview(): Promise<void> {
-    await this.invoke<void>('print_webview');
+  async printGeometryProbeConfigured(): Promise<boolean> {
+    return this.invoke<boolean>('print_geometry_probe_configured');
+  }
+
+  async printCurrentWebview(probeInput: PrintProbeInput): Promise<void> {
+    await this.invoke<void>('print_webview', { probeInput });
   }
 
   async destroyCurrentWindow(): Promise<void> {

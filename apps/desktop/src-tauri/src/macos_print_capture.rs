@@ -225,7 +225,7 @@ fn write_observation(path: &Path, observation: &PrintObservation) -> Result<(), 
         .map_err(|error| format!("could not write print observation JSON: {error}"))
 }
 
-fn snapshot_print_info(print_info: &NSPrintInfo) -> PrintInfoSnapshot {
+pub(crate) fn snapshot_print_info(print_info: &NSPrintInfo) -> PrintInfoSnapshot {
     let paper_size = print_info.paperSize();
     let imageable = print_info.imageablePageBounds();
     PrintInfoSnapshot {
@@ -256,7 +256,7 @@ fn pagination_value(value: NSPrintingPaginationMode) -> i64 {
     value.0 as i64
 }
 
-fn rect_snapshot(rect: NSRect) -> RectSnapshot {
+pub(crate) fn rect_snapshot(rect: NSRect) -> RectSnapshot {
     RectSnapshot {
         x: rect.origin.x,
         y: rect.origin.y,

@@ -103,7 +103,7 @@ const desktopCommands = new Map<string, CommandDef>([
           if (statusEl) statusEl.textContent = message;
           emitStatus(services, message);
         },
-        print: desktop ? () => desktop.printCurrentWebview() : undefined,
+        print: desktop ? (probeInput) => desktop.printCurrentWebview(probeInput) : undefined,
       });
       if (statusEl) statusEl.textContent = previousStatus;
     } catch (error) {
