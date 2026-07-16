@@ -3,6 +3,8 @@ mod commands;
 mod font_catalog;
 #[cfg(target_os = "linux")]
 mod linux_runtime;
+#[cfg(all(target_os = "macos", debug_assertions))]
+mod macos_print_capture;
 #[cfg(target_os = "macos")]
 mod macos_recent_documents;
 #[cfg(target_os = "macos")]

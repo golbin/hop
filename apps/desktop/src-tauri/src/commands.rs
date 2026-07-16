@@ -304,6 +304,20 @@ pub fn reveal_in_folder(path: String) -> Result<(), String> {
     open::that(reveal_path).map_err(|e| format!("파일 위치를 열 수 없습니다: {}", e))
 }
 
+#[cfg(all(target_os = "macos", debug_assertions))]
+#[tauri::command]
+pub async fn print_webview(window: WebviewWindow) -> Result<(), String> {
+    if let Some(capture_path) = crate::macos_print_capture::configured_capture_path()? {
+        crate::macos_print_capture::capture_attached_webview(&window, capture_path).await?;
+        return Ok(());
+    }
+
+    window
+        .print()
+        .map_err(|e| format!("인쇄 대화상자를 열 수 없습니다: {}", e))
+}
+
+#[cfg(not(all(target_os = "macos", debug_assertions)))]
 #[tauri::command]
 pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
     window
