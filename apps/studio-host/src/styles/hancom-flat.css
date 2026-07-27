@@ -125,21 +125,6 @@
   height: 18px;
 }
 
-.atb-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-left: 2px;
-  border-radius: 50%;
-  background: #6c5ce7;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  user-select: none;
-}
-
 /* ── 메뉴바 (2행): 화이트 + 우측 액션 버튼 ─────────────── */
 #menu-bar {
   background: #ffffff;
