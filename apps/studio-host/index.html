@@ -9,6 +9,21 @@
 </head>
 <body>
   <div id="studio-root">
+    <!-- 앱 타이틀바 (한컴독스 스타일) -->
+    <div id="app-title-bar">
+      <div class="atb-left">
+        <span class="atb-doc-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+        </span>
+        <span id="atb-doc-title">HOP</span>
+      </div>
+      <div class="atb-right">
+        <a class="atb-icon-btn" href="https://github.com/golbin/hop" target="_blank" rel="noopener noreferrer" title="HOP 도움말 (GitHub)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        </a>
+        <span class="atb-avatar" aria-hidden="true">H</span>
+      </div>
+    </div>
     <!-- 메뉴바 -->
     <div id="menu-bar">
       <!-- ── 파일 ── -->
@@ -380,10 +395,24 @@
           <div class="md-item" data-cmd="tool:options"><span class="md-icon"></span><span class="md-label">환경 설정</span></div>
         </div>
       </div>
+      <div class="menu-right">
+        <button id="menu-share" class="mr-btn" type="button" title="문서 링크 복사">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+          공유
+        </button>
+        <a id="menu-desktop-link" class="mr-btn mr-btn-primary" href="https://github.com/golbin/hop/releases/latest" target="_blank" rel="noopener noreferrer" title="HOP 데스크톱 앱 다운로드">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13V7"/><path d="m15 10-3 3-3-3"/><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+          데스크톱 앱
+        </a>
+      </div>
     </div>
 
     <!-- 아이콘 툴바 -->
     <div id="icon-toolbar">
+      <div class="tb-group">
+        <button class="tb-btn" data-cmd="file:save" title="저장하기 (Ctrl+S)"><span class="tb-lucide"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg></span><span class="tb-label">저장<br/>하기</span></button>
+      </div>
+      <span class="tb-sep"></span>
       <div class="tb-group">
         <button class="tb-btn" data-cmd="edit:cut" title="오려두기 (Ctrl+X)"><span class="tb-sprite icon-cut"></span><span class="tb-label">오려<br/>두기</span></button>
         <button class="tb-btn" data-cmd="edit:copy" title="복사하기 (Ctrl+C)"><span class="tb-sprite icon-copy"></span><span class="tb-label">복사<br/>하기</span></button>
@@ -467,6 +496,8 @@
 
     <!-- 서식 도구 모음 (style bar) -->
     <div id="style-bar">
+      <button class="tb-btn sb-flat-icon" data-cmd="edit:undo" title="되돌리기 (Ctrl+Z)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
+      <button class="tb-btn sb-flat-icon" data-cmd="edit:redo" title="다시 실행 (Ctrl+Shift+Z)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
       <!-- 스타일 -->
       <select id="style-name" class="sb-combo" title="스타일">
       </select>

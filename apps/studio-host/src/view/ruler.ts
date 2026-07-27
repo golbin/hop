@@ -9,16 +9,17 @@ const PX_PER_MM = 96 / 25.4;
 /** 눈금자 높이/너비 (CSS px) */
 const RULER_SIZE = 20;
 
+/* 한컴독스 플랫 스킨 팔레트 (styles/hancom-flat.css 의 눈금자 변수와 동일 톤) */
 /** 눈금자 배경색 (여백 영역) */
-const BG_MARGIN = '#d0d0d0';
+const BG_MARGIN = '#eef0f4';
 /** 본문 영역 배경색 */
 const BG_BODY = '#ffffff';
 /** 눈금선 색상 */
-const TICK_COLOR = '#555555';
+const TICK_COLOR = '#8a93a0';
 /** 숫자 색상 */
-const TEXT_COLOR = '#333333';
+const TEXT_COLOR = '#6b7480';
 /** 문단 마커 색상 */
-const MARKER_COLOR = '#4080c0';
+const MARKER_COLOR = '#2b7de9';
 /** 문단 마커 크기 (CSS px) */
 const MARKER_SIZE = 6;
 

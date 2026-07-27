@@ -27,6 +27,7 @@ import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
 import { HomeScreen } from '@/ui/home-screen';
 import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 import { createCommandRuntime } from './host/command-runtime';
+import { initTitleBar } from './ui/title-bar';
 
 const wasm = createBridge();
 const eventBus = new EventBus();
@@ -140,6 +141,15 @@ async function initialize(): Promise<void> {
 
     new MenuBar(document.getElementById('menu-bar')!, eventBus, dispatcher, registry);
     installNonEditorContextMenuGuards(document);
+
+    initTitleBar({
+      eventBus,
+      document: wasm,
+      isDesktopRuntime: isTauriRuntime(),
+      setStatusMessage: (message) => {
+        sbMessage().textContent = message;
+      },
+    });
 
     // 툴바 내 data-cmd 버튼 클릭 → 커맨드 디스패치
     document.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {

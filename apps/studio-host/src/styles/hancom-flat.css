@@ -1,0 +1,272 @@
+/* HOP 웹 — 한컴독스 스타일 플랫 스킨
+ *
+ * upstream(base.css)이 UI 전체를 CSS 변수로 구동하므로, 이 파일은
+ * 1) :root 변수 팔레트를 플랫/화이트 톤으로 재정의하고
+ * 2) 새 앱 타이틀바(#app-title-bar)·메뉴 우측 버튼(.menu-right)·
+ *    Lucide 아이콘 버튼 등 추가 구조만 정의한다.
+ * style.css 의 마지막 import 로 로드되어 upstream 규칙을 덮는다.
+ */
+
+:root {
+  /* 표면: 회색 크롬 → 화이트 */
+  --ui-bg: #ffffff;
+  --ui-bg-light: #ffffff;
+  --ui-surface-raised: #ffffff;
+  --ui-surface-muted: #f1f3f6;
+  --ui-toolbar-bg-start: #ffffff;
+  --ui-toolbar-bg-end: #ffffff;
+
+  /* 경계선: 옅은 쿨그레이 */
+  --ui-border: #dde2e8;
+  --ui-border-light: #e3e7ec;
+  --ui-border-subtle: #e9ecf1;
+  --ui-border-strong: #ccd3db;
+
+  /* 상호작용: 옅은 블루 틴트 */
+  --ui-hover: #f1f4f8;
+  --ui-hover-strong: #e9f0fb;
+  --ui-active: #e0ebfa;
+  --ui-selected: #e8f1fe;
+  --ui-menu-open: #1b72e8;
+  --ui-menu-open-border: #1b72e8;
+
+  /* 액센트: 한컴 블루 */
+  --accent-primary: #2b7de9;
+  --accent-strong: #1b66cf;
+  --accent-light: #4a94f0;
+  --accent-hover: #a8c8f5;
+  --accent-subtle: #5b90e0;
+  --focus-ring: #2b7de9;
+  --ui-link: #1b66cf;
+
+  /* 문서 작업 영역 */
+  --doc-workspace: #eef0f4;
+  --doc-shadow: rgba(20, 35, 60, 0.1);
+
+  /* 눈금자: 밝게 */
+  --ruler-bg: #f7f8fa;
+  --ruler-body: #ffffff;
+  --ruler-tick: #8a93a0;
+  --ruler-text: #6b7480;
+  --ruler-marker: #2b7de9;
+
+  /* 라운드/그림자: 플랫하고 부드럽게 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --shadow-dropdown: 0 4px 16px rgba(15, 30, 60, 0.12);
+  --shadow-dialog: 0 8px 28px rgba(15, 30, 60, 0.16);
+  --shadow-light: 0 2px 8px rgba(15, 30, 60, 0.1);
+}
+
+/* ── 앱 타이틀바 (한컴독스 1행) ─────────────────────────── */
+#app-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 42px;
+  padding: 0 10px 0 14px;
+  background: #ffffff;
+  flex: none;
+}
+
+.atb-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.atb-doc-icon {
+  display: inline-flex;
+  color: var(--accent-primary);
+}
+
+.atb-doc-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+#atb-doc-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2329;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.atb-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atb-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #5f6672;
+  cursor: pointer;
+}
+
+.atb-icon-btn:hover {
+  background: var(--ui-hover);
+  color: #1f2329;
+}
+
+.atb-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.atb-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: #6c5ce7;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  user-select: none;
+}
+
+/* ── 메뉴바 (2행): 화이트 + 우측 액션 버튼 ─────────────── */
+#menu-bar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--ui-border-subtle);
+}
+
+.menu-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding-right: 6px;
+}
+
+.mr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #333a44;
+  font-size: 12px;
+  font-family: var(--font-family-ui);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mr-btn:hover {
+  background: var(--ui-hover);
+}
+
+.mr-btn-primary {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.mr-btn-primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.mr-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── 아이콘 툴바 (3행): 플랫 리본 ──────────────────────── */
+#icon-toolbar {
+  background: #ffffff;
+  border-top: none;
+  border-bottom: 1px solid var(--ui-border-subtle);
+}
+
+#icon-toolbar .tb-btn {
+  border-radius: 6px;
+}
+
+#icon-toolbar .tb-btn:hover {
+  background: var(--ui-hover-strong);
+}
+
+#icon-toolbar .tb-sep {
+  background: var(--ui-border-subtle);
+}
+
+/* Lucide 아이콘 버튼 (스프라이트가 없는 새 버튼용) */
+.tb-lucide {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+}
+
+.tb-lucide svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* 서식바(4행) 안의 되돌리기/다시실행 등 아이콘 단추 */
+.sb-flat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #4a515c;
+  cursor: pointer;
+}
+
+.sb-flat-icon:hover {
+  background: var(--ui-hover);
+  color: #1f2329;
+}
+
+.sb-flat-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── 서식바/상태바 표면 ────────────────────────────────── */
+#style-bar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--ui-border-subtle);
+}
+
+#status-bar {
+  background: #ffffff;
+  border-top: 1px solid var(--ui-border-subtle);
+}
+
+/* ── 메뉴 드롭다운: 라운드 카드 ────────────────────────── */
+#menu-bar .menu-dropdown {
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 10px;
+  padding: 4px;
+  overflow: hidden;
+}
+
+#menu-bar .md-item {
+  border-radius: 6px;
+}
