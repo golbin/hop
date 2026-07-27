@@ -229,6 +229,23 @@
 #style-bar {
   background: #ffffff;
   border-bottom: 1px solid var(--ui-border-subtle);
+  /* 좁은 폭: 컨트롤이 찌그러지는 대신 가로 스크롤로 넘치게 한다 */
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+#style-bar > * {
+  flex-shrink: 0;
+}
+
+#icon-toolbar {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+#icon-toolbar .tb-group,
+#icon-toolbar .tb-sep {
+  flex-shrink: 0;
 }
 
 #status-bar {
