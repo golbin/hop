@@ -131,14 +131,6 @@
   border-bottom: 1px solid var(--ui-border-subtle);
 }
 
-.menu-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  padding-right: 6px;
-}
-
 .mr-btn {
   display: inline-flex;
   align-items: center;
