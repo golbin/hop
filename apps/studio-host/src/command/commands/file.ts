@@ -4,6 +4,12 @@ import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 import { openPrintDialog } from '@/ui/print-dialog';
 import { openRecentDocumentsDialog } from '@/ui/recent-documents-dialog';
 import { replaceUpstreamCommands } from '../replace-upstream-commands';
+import {
+  exportDocument,
+  exportFormatLabel,
+  type DocumentExportEngine,
+  type ExportFormat,
+} from '../export-formats';
 
 type DesktopFileBridge = Pick<
   DesktopBridgeApi,
@@ -165,6 +171,18 @@ const desktopCommands = new Map<string, CommandDef>([
   })],
 ]);
 
+function runFormatExport(services: CommandServices, format: ExportFormat): void {
+  const engine = services.wasm as unknown as DocumentExportEngine;
+  const label = exportFormatLabel(format);
+  try {
+    emitStatus(services, `${label} 내보내기 중...`);
+    exportDocument(engine, format);
+    emitStatus(services, `${label} 내보내기 완료`);
+  } catch (error) {
+    reportCommandError(services, `${label} 내보내기`, error);
+  }
+}
+
 const hopOnlyCommands: CommandDef[] = [
   {
     id: 'file:new-window',
@@ -186,7 +204,16 @@ const hopOnlyCommands: CommandDef[] = [
     async execute(services) {
       const desktop = desktopBridge(services.wasm);
       if (!desktop) {
-        alert('PDF 내보내기는 HOP 데스크톱 앱에서 지원합니다.');
+        // 웹: rhwp 엔진에는 PDF 출력이 없다. 브라우저 인쇄 파이프라인으로 내보내며,
+        // 인쇄 대화상자에서 "PDF로 저장"을 선택하면 폰트가 임베드된 벡터 PDF가 만들어진다.
+        try {
+          emitStatus(services, 'PDF 내보내기 준비 중... (대화상자에서 "PDF로 저장"을 선택하세요)');
+          await openPrintDialog(services.wasm, {
+            onStatus: (message) => emitStatus(services, message),
+          });
+        } catch (error) {
+          reportCommandError(services, 'PDF 내보내기', error);
+        }
         return;
       }
 
@@ -195,6 +222,38 @@ const hopOnlyCommands: CommandDef[] = [
         const jobId = await desktop.exportPdfFromCommand();
         if (jobId) emitStatus(services, 'PDF 내보내기 완료');
       });
+    },
+  },
+  {
+    id: 'file:export-hwpx',
+    label: 'HWPX로 내보내기',
+    canExecute: (ctx) => ctx.hasDocument,
+    async execute(services) {
+      runFormatExport(services, 'hwpx');
+    },
+  },
+  {
+    id: 'file:export-hml',
+    label: 'HML로 내보내기',
+    canExecute: (ctx) => ctx.hasDocument,
+    async execute(services) {
+      runFormatExport(services, 'hml');
+    },
+  },
+  {
+    id: 'file:export-html',
+    label: 'HTML로 내보내기',
+    canExecute: (ctx) => ctx.hasDocument,
+    async execute(services) {
+      runFormatExport(services, 'html');
+    },
+  },
+  {
+    id: 'file:export-doc',
+    label: 'Word 문서(.doc)로 내보내기',
+    canExecute: (ctx) => ctx.hasDocument,
+    async execute(services) {
+      runFormatExport(services, 'doc');
     },
   },
 ];

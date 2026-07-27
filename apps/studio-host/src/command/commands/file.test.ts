@@ -156,10 +156,18 @@ describe('file command desktop overrides', () => {
     );
   });
 
-  it('keeps PDF export desktop-only', async () => {
-    await command('file:export-pdf').execute(services({ wasm: {} }) as never);
+  it('exports PDF via the browser print pipeline in web (no desktop bridge)', async () => {
+    openPrintDialog.mockResolvedValue(undefined);
+    const eventBus = { emit: vi.fn() };
+    const wasm = {};
 
-    expect(globalThis.alert).toHaveBeenCalledWith('PDF 내보내기는 HOP 데스크톱 앱에서 지원합니다.');
+    await command('file:export-pdf').execute(services({ wasm, eventBus }) as never);
+
+    expect(openPrintDialog).toHaveBeenCalledWith(
+      wasm,
+      expect.objectContaining({ onStatus: expect.any(Function) }),
+    );
+    expect(globalThis.alert).not.toHaveBeenCalled();
   });
 
   it('reports desktop PDF export failures', async () => {
