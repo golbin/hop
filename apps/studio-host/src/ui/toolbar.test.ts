@@ -25,6 +25,27 @@ vi.mock('./custom-select', () => ({
 
 import { Toolbar } from './toolbar';
 
+describe('Toolbar upstream keyboard behavior', () => {
+  it('activates format buttons by keyboard without double dispatching a mouse click', () => {
+    const listeners = new Map<string, (event: { detail?: number; preventDefault: () => void }) => void>();
+    const button = { addEventListener: (type: string, listener: never) => listeners.set(type, listener) };
+    const otherButton = { addEventListener: vi.fn() };
+    const dispatch = vi.fn();
+    const toolbar = {
+      btnBold: button, btnItalic: otherButton, btnUnderline: otherButton, btnStrike: otherButton,
+      dispatcher: { dispatch },
+    };
+    const setup = (Toolbar.prototype as unknown as Record<string, (this: object) => void>).setupFormatButtons;
+    setup.call(toolbar);
+    listeners.get('mousedown')!({ preventDefault: vi.fn() });
+    listeners.get('click')!({ detail: 1, preventDefault: vi.fn() });
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    listeners.get('click')!({ detail: 0, preventDefault: vi.fn() });
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenLastCalledWith('format:bold');
+  });
+});
+
 type Deferred = {
   promise: Promise<void>;
   resolve: () => void;

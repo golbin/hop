@@ -15,7 +15,8 @@ import {
   TableResizeRenderer,
 } from '@/upstream/editor';
 import { Toolbar } from '@/ui/toolbar';
-import { CommandPalette, ContextMenu, MenuBar } from '@/upstream/ui';
+import { MODAL_DIALOG_CLOSED_EVENT } from '@/ui/dialog';
+import { CommandPalette, ContextMenu, MenuBar, initStyleToolbarOverflow } from '@/upstream/ui';
 import { loadWebFonts } from '@/core/font-loader';
 import { loadStoredLocalFonts } from '@/core/local-fonts';
 import { isSupportedDocumentPath } from '@/core/document-files';
@@ -72,6 +73,10 @@ const commandRuntime = createCommandRuntime({
 });
 const { dispatcher, registry, services: commandServices } = commandRuntime;
 
+document.addEventListener(MODAL_DIALOG_CLOSED_EVENT, () => {
+  if (inputHandler?.isActive()) inputHandler.focus();
+});
+
 async function initialize(): Promise<void> {
   const msg = sbMessage();
   try {
@@ -121,6 +126,7 @@ async function initialize(): Promise<void> {
     inputHandler.setEditMode(commandRuntime.getEditMode());
 
     toolbar = new Toolbar(document.getElementById('style-bar')!, wasm, eventBus, dispatcher);
+    initStyleToolbarOverflow(document.getElementById('style-bar'));
     toolbar.setEnabled(false);
 
     // InputHandler에 커맨드 디스패처 및 컨텍스트 메뉴 주입

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,18 +8,20 @@ import test from 'node:test';
 import {
   artifactMetadata,
   assertStableTag,
-  cargoPatchTomlPattern,
-  cargoLockHasPatchSource,
   cargoLockPackageVersion,
   normalizeGitSource,
   parsePackageVersion,
   parseRustToolchain,
   parseUpdateTag,
   repoRelativePath,
-  synchronizeCargoPatchToml,
   tomlSection,
   vendoredArtifactNames,
 } from '../scripts/lib/rhwp-upstream.mjs';
+
+import {
+  cargoLockHasPatchSource, cargoPatchPath, cargoPatchTomlPattern,
+  readPathCargoPatch, synchronizeCargoPatchToml,
+} from '../scripts/lib/rhwp-cargo-patches.mjs';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -50,6 +52,7 @@ test('normalizes supported Git remote spellings to one provenance source', () =>
 
 test('reads upstream Cargo and toolchain metadata without depending on formatting order', () => {
   assert.equal(parsePackageVersion('[package]\nname = "rhwp"\nversion = "1.2.3"\n'), '1.2.3');
+  assert.equal(parsePackageVersion('[workspace.package]\nversion = "0.13.0"\n[package]\nname = "svg2pdf"\nversion = { workspace = true }\n'), '0.13.0');
   assert.equal(parseRustToolchain('[toolchain]\nprofile = "minimal"\nchannel = "1.93.1"\n'), '1.93.1');
   assert.equal(
     cargoLockPackageVersion('[[package]]\nname = "rhwp"\nversion = "0.7.19"\n', 'rhwp'),
@@ -142,6 +145,63 @@ test('synchronizes Cargo patch sources as one upstream contract transition', () 
     tomlSection(synchronized, 'patch.crates-io'),
     /https:\/\/github\.com\/new\/svg2pdf/,
   );
+});
+
+test('transitions both native graphs from Git to vendor path and back', () => {
+  const previous = { svg2pdf: { git: 'https://github.com/old/svg2pdf', rev: '1'.repeat(40) } };
+  const next = { svg2pdf: { path: 'vendor/svg2pdf', version: '0.13.0' } };
+  const initial = `[patch.crates-io]\nsvg2pdf = { git = "https://github.com/old/svg2pdf", rev = "${'1'.repeat(40)}" }\n`;
+  for (const root of ['apps/desktop/src-tauri', 'apps/desktop/quicklook/rust']) {
+    const cargoRoot = join(repoRoot, root);
+    const updated = synchronizeCargoPatchToml(initial, previous, next, cargoRoot);
+    assert.match(updated, cargoPatchTomlPattern('svg2pdf', next.svg2pdf, cargoRoot));
+    assert.equal(synchronizeCargoPatchToml(updated, next, previous, cargoRoot), initial);
+    assert.equal(cargoPatchPath(next.svg2pdf, cargoRoot),
+      (root.endsWith('src-tauri') ? '../../../' : '../../../../') + 'third_party/rhwp/vendor/svg2pdf');
+  }
+  const local = '[[package]]\nname = "svg2pdf"\nversion = "0.13.0"\n';
+  assert.equal(cargoLockHasPatchSource(local, 'svg2pdf', next.svg2pdf), true);
+  assert.equal(cargoLockHasPatchSource(local + 'source = "registry+https://example.com"\n', 'svg2pdf', next.svg2pdf), false);
+  assert.equal(cargoLockHasPatchSource(local + local, 'svg2pdf', next.svg2pdf), false);
+  assert.equal(cargoLockHasPatchSource(local.replace('0.13.0', '0.14.0'), 'svg2pdf', next.svg2pdf), false);
+  for (const path of ['../escape', '/vendor/svg2pdf', 'vendor/../escape', 'C:/vendor/svg2pdf']) {
+    assert.throws(() => cargoPatchPath({ path }, repoRoot));
+  }
+});
+
+test('vendor contract requires tracked, clean source and refuses escaping directories', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'hop-vendor-patch-'));
+  const outside = await mkdtemp(join(tmpdir(), 'hop-vendor-outside-'));
+  try {
+    const directory = join(root, 'vendor/svg2pdf');
+    await mkdir(directory, { recursive: true });
+    await writeFile(join(directory, 'Cargo.toml'), '[package]\nname = "svg2pdf"\nversion = "0.13.0"\n');
+    await writeFile(join(directory, 'lib.rs'), 'original');
+    for (const args of [
+      ['init', '-q'], ['add', 'vendor'],
+      ['-c', 'user.name=HOP test', '-c', 'user.email=hop-test@example.invalid',
+        '-c', 'commit.gpgsign=false', 'commit', '-qm', 'fixture'],
+    ]) {
+      const result = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr);
+    }
+    const before = await readPathCargoPatch('svg2pdf', 'vendor/svg2pdf', root);
+    assert.deepEqual(before, { path: 'vendor/svg2pdf', version: '0.13.0' });
+    await writeFile(join(directory, 'lib.rs'), 'changed');
+    await assert.rejects(readPathCargoPatch('svg2pdf', 'vendor/svg2pdf', root), /must be a clean part/);
+    await writeFile(join(directory, 'lib.rs'), 'original');
+    await writeFile(join(directory, 'added.rs'), 'untracked source');
+    await assert.rejects(readPathCargoPatch('svg2pdf', 'vendor/svg2pdf', root), /must be a clean part/);
+    await rm(join(directory, 'added.rs'));
+    await assert.rejects(readPathCargoPatch('different', 'vendor/svg2pdf', root));
+    if (process.platform === 'win32') return; // Windows symlink creation needs privileges.
+    await rm(directory, { recursive: true });
+    await symlink(outside, directory);
+    await assert.rejects(readPathCargoPatch('svg2pdf', 'vendor/svg2pdf', root), /inside its source directory/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(outside, { recursive: true, force: true });
+  }
 });
 
 test('provenance covers every shipped vendored file', () => {

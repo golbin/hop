@@ -17,8 +17,8 @@ svg2pdf = "0.13"
 usvg = "0.45"
 
 [patch.crates-io]
-# Keep Quick Look PDF output on the same deterministic svg2pdf revision as the desktop app.
-svg2pdf = { git = "https://github.com/edwardkim/svg2pdf", rev = "2caeb0a038f9128b79833d803b94c2667565c4da" }
+# Keep Quick Look PDF output on the same upstream svg2pdf source as the desktop app.
+svg2pdf = { path = "../../../../third_party/rhwp/vendor/svg2pdf" }
 
 [features]
 default = []

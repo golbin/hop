@@ -120,6 +120,8 @@ export function getDesktopFontState(): LocalFontState {
     storage: 'none',
     count: cachedFontEntries?.length ?? 0,
     checkedFamilies: [],
+    probedFamilies: [],
+    unresolvedFamilies: [],
     detectedAt,
     lastError,
   };

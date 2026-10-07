@@ -93,7 +93,7 @@ pnpm upstream:update -- vX.Y.Z
 `config/rhwp-upstream.json`, WASM provenance를 함께 정렬한다. candidate 생성 후에는 다음을 실행한다.
 실행 전 submodule `origin`이 기준선의 공식 source와 일치하고 보호 산출물이 clean인지 확인하며,
 WASM 재생성은 생략할 수 없다. Cargo patch는 HOP 제품 정책으로 유지하고, upstream이 같은 patch를 선언할
-때에만 그 고정 source/revision으로 두 native graph를 함께 전환한다.
+때에만 그 고정 Git source/revision 또는 vendor path로 두 native graph를 함께 전환한다.
 
 ```sh
 pnpm upstream:verify

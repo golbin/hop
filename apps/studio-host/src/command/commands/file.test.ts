@@ -26,6 +26,8 @@ vi.mock('@/upstream/commands', () => ({
     { id: 'file:save-as-hwp', label: 'Save as HWP', execute: vi.fn() },
     { id: 'file:save-as-hwpx', label: 'Save as HWPX', execute: vi.fn() },
     { id: 'file:print-to-pdf', label: 'Print to PDF', execute: vi.fn() },
+    { id: 'file:export-html', label: 'Export HTML', execute: vi.fn() },
+    { id: 'file:export-doc', label: 'Export Word', execute: vi.fn() },
   ],
 }));
 
@@ -183,11 +185,13 @@ describe('file command desktop overrides', () => {
   });
 
   it('does not auto-adopt browser-only save and PDF commands', () => {
-    expect(fileCommands.map(({ id }) => id)).not.toEqual(expect.arrayContaining([
+    for (const id of [
       'file:save-as-hwp',
       'file:save-as-hwpx',
       'file:print-to-pdf',
-    ]));
+      'file:export-html',
+      'file:export-doc',
+    ]) expect(fileCommands.map((command) => command.id)).not.toContain(id);
   });
 
   it('opens a selected recent document through the desktop bridge', async () => {

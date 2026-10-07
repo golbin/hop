@@ -5,6 +5,8 @@
  */
 import { enhanceCustomSelects } from './custom-select';
 
+export const MODAL_DIALOG_CLOSED_EVENT = 'rhwp-modal-dialog-closed';
+
 export abstract class ModalDialog {
   protected overlay!: HTMLDivElement;
   protected dialog!: HTMLDivElement;
@@ -120,6 +122,9 @@ export abstract class ModalDialog {
       this.captureHandler = null;
     }
     this.overlay?.remove();
+    if (!document.querySelector('.modal-overlay')) {
+      document.dispatchEvent(new Event(MODAL_DIALOG_CLOSED_EVENT));
+    }
   }
 
   /** 서브클래스에서 본문 DOM을 생성 */

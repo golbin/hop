@@ -15,6 +15,23 @@ describe('local fonts', () => {
     delete (globalThis as { FontFace?: unknown }).FontFace;
   });
 
+  it('keeps native document face lookup and bytes available to the upstream renderer', async () => {
+    (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
+    invokeMock.mockImplementation(async (command: string) => command === 'list_local_fonts' ? [{
+      family: 'HY헤드라인M', postScriptName: 'HYHeadLineM', style: 'normal',
+      sourceKind: 'file-backed', path: '/fonts/document.ttf',
+    }] : [1, 2, 3, 4]);
+    const fonts = await import('./local-fonts');
+    await fonts.detectLocalFonts();
+    const record = fonts.resolveRendererLocalFont('HYHeadLineM');
+    expect(record?.family).toBe('HY헤드라인M');
+    expect(fonts.getLocalFonts()).not.toContain('HY헤드라인M');
+    const data = await fonts.loadRendererLocalFont(record!);
+    expect([...new Uint8Array(data!.bytes)]).toEqual([1, 2, 3, 4]);
+    expect(invokeMock).toHaveBeenCalledWith('read_local_font', { path: '/fonts/document.ttf' });
+    expect(fonts.getLocalFontState()).toMatchObject({ probedFamilies: [], unresolvedFamilies: [] });
+  });
+
   it('hydrates desktop font families from the native catalog while filtering blocked authoring names', async () => {
     (globalThis as { window?: unknown }).window = { __TAURI_INTERNALS__: {} };
     invokeMock.mockResolvedValue([

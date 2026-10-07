@@ -9,7 +9,6 @@ export type { ShortcutDef };
 const hopShortcuts: [ShortcutDef, string][] = [
   [{ key: 'n', ctrl: true, shift: true }, 'file:new-window'],
   [{ key: 'o', ctrl: true, alt: true }, 'file:open-recent'],
-  [{ key: 's', ctrl: true, shift: true }, 'file:save-as'],
 ];
 
 const hopShortcutKeys = new Set(hopShortcuts.map(([shortcut]) => shortcutKey(shortcut)));

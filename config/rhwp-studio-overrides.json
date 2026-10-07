@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "upstream": {
-    "version": "0.8.4",
-    "commit": "496333b27d21ddb9114ba9ae340bcb895870c9a7",
+    "version": "0.8.7",
+    "commit": "1a76570e833917d15817415a53c09ad61ab3203f",
     "counterparts": {
-      "core/font-loader": "fab2b7cd67fff96303fae386760eaebe0620955dea0c967c6ef711f056090c05",
-      "core/local-fonts": "2b56048dc4f567de53a22626bc3343debf0004ed410aad9d24161bf01d993195",
-      "command/shortcut-map": "9970f3fd9203aa9a044100776e8c650491bbc3f485972984587170d3124ca63d",
-      "command/commands/edit": "72ffb0cd4b11870f069b7c00198665f380861aab69f8f47329f66ae418cc7f35",
-      "command/commands/file": "f2a0a67b6d424fa4c9cf0cd16a64a57b673451bf139ef2103106b1ce82330503",
-      "ui/about-dialog": "9cbb79eef1e407706899c2989147f3da3f82678a39fe5b67923a456d5157c84b",
-      "ui/dialog": "ec55feb51d76ab90094bbc04ba7d2c5eacb25dee4ba7e8dd5c1c88e746944afd",
-      "ui/toolbar": "29227846354d9fa97d81fd8bdcb7f8d0b5ce9817c8a11b4525b8f02251891427"
+      "core/font-loader": "64a7f5fa58f0aa4638ac0665875a02eb841e6225bf53b54a7e5d3aaca827cef1",
+      "core/local-fonts": "78228d2db58ea6467271bfe3bd5018ae7fb16b17480cc23f453cd0dc186fe1c8",
+      "command/shortcut-map": "a5c28535469c3d076dfe45f7ccf783a5227b48f1600c67b993823f2e1caf5ad8",
+      "command/commands/edit": "30a4708bd9b688c0d91104c3a3fdb41409c3adf07be82f1066e48c991deb5ec6",
+      "command/commands/file": "9fb77378cdf84564579b13348b0d99f59874560666a983b2e0d7fa782baf91d9",
+      "ui/about-dialog": "fb42625816fe8bbaac2de2c7e8b8044fa592374a89c3e312ce2cb76b58cf8d63",
+      "ui/dialog": "f45b9c7b5980e70bc6cd97ecf7c7c671441a16ad7d67638b1987e7bb8c7a2175",
+      "ui/toolbar": "f80b61e04ddd36d64d08a4f06c364fbef174400e2ecec7186c4ae145bb3d4bb9"
     },
     "assets": {
       "public/images/icon_small_ko_dark.svg": "9d02ea0b8c1d399a89290d97613759826f19f3e3f392b6d79dcf6109e7e15fa6"

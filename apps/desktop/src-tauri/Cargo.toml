@@ -34,8 +34,8 @@ open = "5"
 usvg = "0.45"
 
 [patch.crates-io]
-# rhwp #2269: keep PDF object/resource ordering deterministic until svg2pdf is replaced upstream.
-svg2pdf = { git = "https://github.com/edwardkim/svg2pdf", rev = "2caeb0a038f9128b79833d803b94c2667565c4da" }
+# Use upstream's vendored svg2pdf fixes for deterministic ordering and PDF rendering.
+svg2pdf = { path = "../../../third_party/rhwp/vendor/svg2pdf" }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSDocumentController"] }

@@ -4,7 +4,7 @@ vi.mock('./custom-select', () => ({
   enhanceCustomSelects: vi.fn(),
 }));
 
-import { ModalDialog } from './dialog';
+import { ModalDialog, MODAL_DIALOG_CLOSED_EVENT } from './dialog';
 
 class FakeElement {
   className = '';
@@ -104,6 +104,15 @@ class FakeDocument {
 
   createElement(_tag: string): FakeElement {
     return new FakeElement();
+  }
+
+  querySelector(selector: string): FakeElement | null {
+    return this.body.querySelector(selector);
+  }
+
+  dispatchEvent(event: Event): boolean {
+    this.listeners.get(event.type)?.forEach((fn) => fn(event));
+    return true;
   }
 
   addEventListener(type: string, listener: (event: unknown) => void, capture?: boolean) {
@@ -223,6 +232,19 @@ describe('ModalDialog', () => {
 
     dialog.hide();
     expect(overlay.isConnected).toBe(false);
+  });
+
+  it('requests editor focus only after the last nested dialog closes', () => {
+    const closed = vi.fn();
+    fakeDocument.addEventListener(MODAL_DIALOG_CLOSED_EVENT, closed);
+    const parent = new TestDialog();
+    const child = new TestDialog();
+    parent.show();
+    child.show();
+    child.hide();
+    expect(closed).not.toHaveBeenCalled();
+    parent.hide();
+    expect(closed).toHaveBeenCalledOnce();
   });
 
   it('Escape key triggers hide', () => {

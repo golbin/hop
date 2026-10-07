@@ -69,6 +69,15 @@ describe('createCommandRuntime', () => {
       isEditable: false,
     });
   });
+
+  it('refreshes status from the current document name after Save As', () => {
+    installDocument();
+    const deps = dependencies(inputHandlerStub());
+    const runtime = createCommandRuntime(deps as never);
+    deps.wasm.fileName = '다른 이름.hwpx';
+    runtime.services.refreshDocumentStatus();
+    expect(deps.setStatusMessage).toHaveBeenCalledWith('다른 이름.hwpx — 2페이지');
+  });
 });
 
 function installDocument(elements: unknown[] = []) {
@@ -101,6 +110,7 @@ function inputHandlerStub(overrides: Record<string, unknown> = {}) {
 function dependencies(inputHandler: ReturnType<typeof inputHandlerStub>) {
   return {
     wasm: {
+      fileName: '문서.hwp',
       pageCount: 2,
       hasTableTransposeClipboard: vi.fn(() => true),
       getShowControlCodes: vi.fn(() => false),

@@ -54,8 +54,11 @@ export function run(command, args, options = {}) {
 }
 
 export function parsePackageVersion(toml) {
-  const packageBlock = toml.match(/\[package\]([\s\S]*?)(?:\n\[|$)/)?.[1] ?? '';
-  const version = packageBlock.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+  const packageBlock = tomlSection(toml, 'package');
+  let version = packageBlock.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+  if (/^version\s*=\s*\{\s*workspace\s*=\s*true\s*\}/m.test(packageBlock)) {
+    version = tomlSection(toml, 'workspace.package').match(/^version\s*=\s*"([^"]+)"/m)?.[1];
+  }
   if (!version) throw new Error('Unable to read rhwp package version from Cargo.toml');
   return version;
 }
@@ -82,7 +85,7 @@ function tomlSectionRange(toml, name) {
   return { start, end: nextSection === -1 ? toml.length : start + nextSection };
 }
 
-function replaceTomlSection(toml, name, contents) {
+export function replaceTomlSection(toml, name, contents) {
   const range = tomlSectionRange(toml, name);
   if (!range) {
     if (!contents) return toml;
@@ -180,48 +183,4 @@ export function normalizeGitSource(source) {
 
 export function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-export function cargoPatchTomlPattern(crateName, patch) {
-  const crate = escapeRegExp(crateName);
-  const git = escapeRegExp(patch.git);
-  const rev = escapeRegExp(patch.rev);
-  return new RegExp(
-    `^${crate}\\s*=\\s*\\{(?=[^}]*git\\s*=\\s*"${git}")(?=[^}]*rev\\s*=\\s*"${rev}")[^}]*\\}[^\\S\\r\\n]*$`,
-    'm',
-  );
-}
-
-export function synchronizeCargoPatchToml(toml, previousPatches, nextPatches) {
-  let patchSection = tomlSection(toml, 'patch.crates-io');
-  for (const [crateName, patch] of Object.entries(previousPatches)) {
-    if (!cargoPatchTomlPattern(crateName, patch).test(patchSection)) {
-      throw new Error(`Cargo.toml patch ${crateName} does not match the current upstream contract`);
-    }
-  }
-
-  const crateNames = new Set([...Object.keys(previousPatches), ...Object.keys(nextPatches)]);
-  for (const crateName of crateNames) {
-    const linePattern = new RegExp(`^${escapeRegExp(crateName)}\\s*=\\s*\\{[^}]*\\}[^\\S\\r\\n]*$`, 'm');
-    const next = nextPatches[crateName];
-    if (!next) {
-      patchSection = patchSection.replace(new RegExp(`${linePattern.source}\\r?\\n?`, 'm'), '');
-      continue;
-    }
-
-    const declaration = `${crateName} = { git = ${JSON.stringify(next.git)}, rev = ${JSON.stringify(next.rev)} }`;
-    if (linePattern.test(patchSection)) {
-      patchSection = patchSection.replace(linePattern, declaration);
-      continue;
-    }
-    patchSection = `${patchSection.trimEnd()}${patchSection ? '\n' : ''}${declaration}\n`;
-  }
-  return replaceTomlSection(toml, 'patch.crates-io', patchSection);
-}
-
-export function cargoLockHasPatchSource(lock, crateName, patch) {
-  return cargoLockPackageEntries(lock, crateName).some(({ source }) => {
-    const parsed = source?.match(/^git\+([^?#]+)(?:\?[^#]*)?#([0-9a-f]{40})$/);
-    return parsed?.[1] === patch.git && parsed[2] === patch.rev;
-  });
 }

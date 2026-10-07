@@ -29,6 +29,8 @@ const browserOnlyFileCommands = new Set([
   'file:save-as-hwp',
   'file:save-as-hwpx',
   'file:print-to-pdf',
+  'file:export-html',
+  'file:export-doc',
 ]);
 const adoptedUpstreamCommands = upstreamFileCommands.filter(
   (command) => !browserOnlyFileCommands.has(command.id),

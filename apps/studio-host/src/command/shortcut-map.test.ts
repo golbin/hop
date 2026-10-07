@@ -40,6 +40,14 @@ describe('shortcut-map', () => {
     )).toBe('edit:goto');
   });
 
+  it('preserves select-all and Save As while Korean IME reports Process', () => {
+    installNavigator({ platform: 'MacIntel', userAgent: 'Mac OS X' });
+    expect(matchShortcut(keyEvent({ key: 'Process', code: 'KeyA', metaKey: true }), defaultShortcuts))
+      .toBe('edit:select-all');
+    expect(matchShortcut(keyEvent({ key: 'Process', code: 'KeyS', metaKey: true, shiftKey: true }), defaultShortcuts))
+      .toBe('file:save-as');
+  });
+
   it('does not run unmodified shortcuts while a non-primary system modifier is held', () => {
     installNavigator({ platform: 'Win32', userAgent: 'Windows NT 10.0' });
 

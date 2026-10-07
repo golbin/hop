@@ -1,10 +1,10 @@
+import { cargoPatchTomlPattern, readPathCargoPatch, synchronizeCargoPatchToml } from './lib/rhwp-cargo-patches.mjs';
 import { access, cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import {
   assertStableTag,
   buildStudioOverrideBaseline,
-  cargoPatchTomlPattern,
   cargoLockPackageVersion,
   cargoLockPackageEntries,
   cargoRoots,
@@ -21,7 +21,6 @@ import {
   studioOverrideManifestPath,
   studioHostDir,
   studioMirroredAssetPaths,
-  synchronizeCargoPatchToml,
   tomlSection,
   vendoredArtifactNames,
   vendorDir,
@@ -155,6 +154,8 @@ async function resolveHopCargoPatches(existing) {
   // Cargo patches are HOP-owned product policy. If upstream carries the same
   // patch, follow its pinned source; otherwise retain HOP's reviewed pin.
   if (!/^svg2pdf\s*=/m.test(tomlSection(cargoToml, 'patch.crates-io'))) return existing;
+  const path = tomlSection(cargoToml, 'patch.crates-io').match(/^svg2pdf\s*=\s*\{\s*path\s*=\s*"([^"]+)"\s*\}/m)?.[1];
+  if (path) return { ...existing, svg2pdf: await readPathCargoPatch('svg2pdf', path) };
   const source = cargoLockPackageEntries(upstreamCargoLock, 'svg2pdf')
     .map((entry) => entry.source?.match(/^git\+([^?#]+)(?:\?[^#]*)?#([0-9a-f]{40})$/))
     .find(Boolean);
@@ -167,9 +168,9 @@ async function assertHopCargoPatches(patches) {
     const cargoToml = await readFile(join(root, 'Cargo.toml'), 'utf8');
     const patchSection = tomlSection(cargoToml, 'patch.crates-io');
     for (const [name, patch] of Object.entries(patches)) {
-      const expected = cargoPatchTomlPattern(name, patch);
+      const expected = cargoPatchTomlPattern(name, patch, root);
       if (!expected.test(patchSection)) {
-        throw new Error(`${basename(root)}/Cargo.toml must pin ${name} to ${patch.git}#${patch.rev}`);
+        throw new Error(`${basename(root)}/Cargo.toml ${name} must match the upstream patch contract`);
       }
     }
   }
@@ -179,7 +180,7 @@ async function syncHopCargoPatches(previousPatches, nextPatches) {
   for (const root of cargoRoots) {
     const path = join(root, 'Cargo.toml');
     const cargoToml = await readFile(path, 'utf8');
-    await writeFile(path, synchronizeCargoPatchToml(cargoToml, previousPatches, nextPatches));
+    await writeFile(path, synchronizeCargoPatchToml(cargoToml, previousPatches, nextPatches, root));
   }
 }
 

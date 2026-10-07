@@ -89,6 +89,8 @@ function pageInfo(overrides: Partial<PageInfo> = {}): PageInfo {
     marginBottom: 0,
     marginHeader: 0,
     marginFooter: 0,
+    bodyLeft: 0,
+    bodyRight: 595,
     ...overrides,
   };
 }

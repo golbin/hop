@@ -1,3 +1,4 @@
+import { cargoLockHasPatchSource, cargoPatchTomlPattern, readPathCargoPatch } from './lib/rhwp-cargo-patches.mjs';
 import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -5,8 +6,6 @@ import { pathToFileURL } from 'node:url';
 import {
   artifactMetadata,
   buildStudioOverrideBaseline,
-  cargoPatchTomlPattern,
-  cargoLockHasPatchSource,
   cargoLockPackageVersion,
   cargoRoots,
   currentUpstreamCommit,
@@ -41,6 +40,8 @@ export async function verifyRhwpUpstream() {
   assert.equal(lock.tag, `v${lock.version}`);
   assert.match(lock.commit, /^[0-9a-f]{40}$/);
   assert.equal(currentUpstreamCommit(), lock.commit, 'submodule checkout must match upstream lock');
+  assert.equal(run('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: upstreamDir }),
+    '', 'upstream checkout must be clean');
 
   const cargoToml = await readFile(join(upstreamDir, 'Cargo.toml'), 'utf8');
   const studioPackage = await readJson(join(upstreamDir, 'rhwp-studio/package.json'));
@@ -64,6 +65,9 @@ export async function verifyRhwpUpstream() {
     assert.deepEqual(await artifactMetadata(join(vendorDir, name)), expected, `${name} provenance mismatch`);
   }
 
+  for (const [crateName, patch] of Object.entries(lock.cargoPatches ?? {})) {
+    if (patch.path) assert.deepEqual(await readPathCargoPatch(crateName, patch.path), patch);
+  }
   for (const cargoRoot of cargoRoots) {
     const cargoLock = await readFile(join(cargoRoot, 'Cargo.lock'), 'utf8');
     assert.equal(cargoLockPackageVersion(cargoLock, 'rhwp'), lock.version);
@@ -90,10 +94,10 @@ async function verifyCargoPatches(lock, cargoRoot, cargoLock) {
   const cargoToml = await readFile(join(cargoRoot, 'Cargo.toml'), 'utf8');
   const patchSection = tomlSection(cargoToml, 'patch.crates-io');
   for (const [crateName, patch] of Object.entries(lock.cargoPatches ?? {})) {
-    assert.match(patchSection, cargoPatchTomlPattern(crateName, patch));
+    assert.match(patchSection, cargoPatchTomlPattern(crateName, patch, cargoRoot));
     assert.ok(
       cargoLockHasPatchSource(cargoLock, crateName, patch),
-      `${crateName} Cargo.lock source must match ${patch.git}#${patch.rev}`,
+      `${crateName} Cargo.lock must match the upstream patch contract`,
     );
   }
 }

@@ -5,6 +5,8 @@ import type {
   LocalFontRecord,
   LocalFontSnapshot,
   LocalFontState,
+  LocalFontStyleRequest,
+  HostFontData,
 } from '@/upstream/local-fonts';
 import {
   clearStoredDesktopFonts,
@@ -35,6 +37,23 @@ export type {
   LocalFontStorageKind,
 } from '@/upstream/local-fonts';
 export type { LocalFontEntry } from './desktop-local-fonts';
+
+export const hasHostFontProvider = upstreamLocalFonts.hasHostFontProvider;
+export const getHostFontState = upstreamLocalFonts.getHostFontState;
+
+export function resolveRendererLocalFont(name: string, style?: LocalFontStyleRequest): LocalFontRecord | null {
+  return isDesktopTauriRuntime() && !hasHostFontProvider()
+    ? resolveDesktopFont(name)
+    : upstreamLocalFonts.resolveRendererLocalFont(name, style);
+}
+
+export async function loadRendererLocalFont(record: LocalFontRecord): Promise<HostFontData | null> {
+  if (record.hostReference || !isDesktopTauriRuntime()) {
+    return upstreamLocalFonts.loadRendererLocalFont(record);
+  }
+  const bytes = await loadDesktopFontBytes(record.postscriptName || record.fullName);
+  return bytes ? { bytes, faceIndex: 0 } : null;
+}
 
 export function isLocalFontAccessSupported(): boolean {
   return isDesktopTauriRuntime() || upstreamLocalFonts.isLocalFontAccessSupported();

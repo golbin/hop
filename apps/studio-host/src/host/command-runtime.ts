@@ -104,6 +104,9 @@ export function createCommandRuntime(dependencies: CommandRuntimeDependencies): 
     getInputHandler,
     getViewportManager: () => getCanvasView()?.getViewportManager() ?? null,
     gotoPage: (globalPage) => getCanvasView()?.gotoPage(globalPage) ?? false,
+    refreshDocumentStatus: () => {
+      setStatusMessage(`${wasm.fileName} — ${wasm.pageCount}페이지`);
+    },
     setEditMode,
   };
   const dispatcher = new CommandDispatcher(registry, services, eventBus);
