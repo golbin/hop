@@ -51,4 +51,20 @@ and HWP conversion, password retry/cancel/open and original-save protection,
 zoom retention, toolbar labels, separate windows, and print-dialog cancellation.
 Product info confirmed HOP 0.4.5 and rhwp 0.8.7; the encrypted fixture stayed unchanged.
 Physical printing, Korean IME composition, and Windows/Linux UI remain unverified.
-Release artifact verification remains pending.
+Release workflow [37732271918](https://github.com/golbin/hop/actions/runs/37732271918)
+passed tests and all five platform builds. Both macOS architectures passed Apple
+notarization and app/Quick Look code-sign verification; Linux ABI checks passed.
+All 20 release files match GitHub's uploaded asset digests, the 19 listed SHA-256
+checksums match, and all 13 updater entries match their assets/signatures.
+All eight updater signatures were cryptographically verified with the public key
+shipped in the app. The macOS ARM64 updater archive also passed local strict
+code-sign verification, Gatekeeper (Notarized Developer ID), and stapler validation.
+Additional GUI startup of that signed archive was blocked by the Mac lock screen;
+the committed debug-app visual smoke results above remain the actual UI evidence.
+
+[v0.4.5](https://github.com/golbin/hop/releases/tag/v0.4.5) was published as the
+latest stable release with 20 assets. The public latest updater feed matches the
+verified manifest. Issues #94, #95, #97, #98, #100 and superseded PR #101 received
+short release comments and were closed. #98's comment explicitly distinguishes
+the common desktop fix/macOS QA from unverified Ubuntu UI. Reproduced issue #96
+and other unresolved/environment-specific reports remain open.
