@@ -45,4 +45,10 @@ upstream contract verification, actionlint, and Studio TypeScript/production bui
 After version alignment, upstream/version/workflow contract tests passed again.
 Existing Vite chunk-size and mixed static/dynamic import warnings remain.
 Grouped workflow output redirects to resolve the three existing shellcheck style warnings.
-Committed-app smoke test and release verification remain pending.
+The committed macOS debug app (7cf699c) passed visual smoke checks for new/edit,
+p/P and Korean text paste, save/reopen/Save As, three-page HWPX open, PDF export
+and HWP conversion, password retry/cancel/open and original-save protection,
+zoom retention, toolbar labels, separate windows, and print-dialog cancellation.
+Product info confirmed HOP 0.4.5 and rhwp 0.8.7; the encrypted fixture stayed unchanged.
+Physical printing, Korean IME composition, and Windows/Linux UI remain unverified.
+Release artifact verification remains pending.
