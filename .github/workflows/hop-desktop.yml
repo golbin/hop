@@ -216,11 +216,13 @@ jobs:
             release_name=""
           fi
 
-          echo "create_release=$create_release" >> "$GITHUB_OUTPUT"
-          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          echo "release_name=$release_name" >> "$GITHUB_OUTPUT"
-          echo "release_draft=$release_draft" >> "$GITHUB_OUTPUT"
-          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          {
+            echo "create_release=$create_release"
+            echo "release_tag=$release_tag"
+            echo "release_name=$release_name"
+            echo "release_draft=$release_draft"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
 
   test:
     name: Unit tests
@@ -746,9 +748,11 @@ jobs:
             fi
           } | sed '/^[[:space:]]*$/d' | sort -u > "$artifact_list"
 
-          echo "paths<<EOF" >> "$GITHUB_OUTPUT"
-          cat "$artifact_list" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "paths<<EOF"
+            cat "$artifact_list"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload Tauri artifacts
         uses: actions/upload-artifact@v7
@@ -914,9 +918,11 @@ jobs:
             find . -type f ! -name 'SHA256SUMS.txt' -print0 | sort -z | xargs -0 shasum -a 256
           ) > release-assets/SHA256SUMS.txt
 
-          echo "files<<EOF" >> "$GITHUB_OUTPUT"
-          find release-assets -type f | sort >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "files<<EOF"
+            find release-assets -type f | sort
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create or update GitHub Release
         shell: bash
