@@ -9,6 +9,7 @@ import {
   toolCommands,
   viewCommands,
 } from '@/upstream/commands';
+import { toolbarLabelsCommand } from '../host/toolbar-labels';
 import { editCommands } from './commands/edit';
 import { fileCommands } from './commands/file';
 import { assertUniqueCommandIds, replaceUpstreamCommands } from './replace-upstream-commands';
@@ -18,7 +19,7 @@ const command = (id: string): CommandDef => ({ id, label: id, execute: vi.fn() }
 const productionCommandGroups = [
   fileCommands,
   editCommands,
-  viewCommands,
+  [...viewCommands, toolbarLabelsCommand],
   formatCommands,
   insertCommands,
   tableCommands,

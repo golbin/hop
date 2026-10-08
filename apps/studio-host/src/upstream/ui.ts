@@ -5,3 +5,4 @@ export { ContextMenu } from '@upstream/ui/context-menu';
 export { MenuBar } from '@upstream/ui/menu-bar';
 export { ParaShapeDialog } from '@upstream/ui/para-shape-dialog';
 export { initStyleToolbarOverflow } from '@upstream/ui/style-toolbar-overflow';
+export { showHwpPasswordDialog } from '@upstream/ui/hwp-password-dialog';

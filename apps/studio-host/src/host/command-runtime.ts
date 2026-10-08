@@ -15,6 +15,7 @@ import type { DocumentDirtyState, EventBus, WasmBridge } from '@/upstream/core';
 import { editCommands } from '@/command/commands/edit';
 import { fileCommands } from '@/command/commands/file';
 import { assertUniqueCommandIds } from '../command/replace-upstream-commands';
+import { toolbarLabelsCommand } from './toolbar-labels';
 
 interface CommandRuntimeDependencies {
   wasm: WasmBridge;
@@ -39,7 +40,7 @@ export interface CommandRuntime {
 const commandContributions: readonly CommandDef[][] = [
   fileCommands,
   editCommands,
-  viewCommands,
+  [...viewCommands, toolbarLabelsCommand],
   formatCommands,
   insertCommands,
   tableCommands,

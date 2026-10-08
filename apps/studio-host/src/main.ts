@@ -20,6 +20,8 @@ import { CommandPalette, ContextMenu, MenuBar, initStyleToolbarOverflow } from '
 import { loadWebFonts } from '@/core/font-loader';
 import { loadStoredLocalFonts } from '@/core/local-fonts';
 import { isSupportedDocumentPath } from '@/core/document-files';
+import { loadDocumentForOpen } from './core/document-open';
+import { initToolbarLabels } from './host/toolbar-labels';
 import { confirmSaveBeforeReplacingDocument } from '@/upstream/commands';
 import { enhanceCustomSelects } from '@/ui/custom-select';
 import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
@@ -32,6 +34,7 @@ const wasm = createBridge();
 const eventBus = new EventBus();
 const documentState = new DocumentDirtyState(eventBus);
 const rendererSession = createRendererSession();
+initToolbarLabels();
 documentState.installBeforeUnload(window);
 initThemeSync((effective, mode) => {
   eventBus.emit('theme-changed', { mode, effective });
@@ -537,7 +540,10 @@ async function initializeDocument(
     sbSection().textContent = `구역: 1 / ${totalSections}`;
     void homeScreen?.refresh(true);
     inputHandler?.deactivate();
+    const desktopZoom = isTauriRuntime() ? canvasView?.getViewportManager().getZoom() : undefined;
     await canvasView?.loadDocument();
+    // Upstream's narrow-window auto-fit is for mobile; desktop keeps the chosen zoom.
+    if (desktopZoom !== undefined) canvasView?.getViewportManager().setZoom(desktopZoom);
     toolbar?.setEnabled(true);
     toolbar?.initFontDropdown(docInfo.fontsUsed);
     toolbar?.initStyleDropdown();
@@ -554,15 +560,24 @@ async function canReplaceCurrentDocument(skipUnsavedGuard?: boolean): Promise<bo
   return skipUnsavedGuard === true || await confirmSaveBeforeReplacingDocument(commandServices);
 }
 
+let documentReplacementPending = false;
+
 async function loadFile(file: File, options: { skipUnsavedGuard?: boolean } = {}): Promise<void> {
+  if (documentReplacementPending) return;
+  documentReplacementPending = true;
   const msg = sbMessage();
+  const previousMessage = msg.textContent;
   try {
     if (!await canReplaceCurrentDocument(options.skipUnsavedGuard)) return;
 
     msg.textContent = '파일 로딩 중...';
     const startTime = performance.now();
     const data = new Uint8Array(await file.arrayBuffer());
-    const docInfo = wasm.loadDocument(data, file.name);
+    const docInfo = await loadDocumentForOpen(wasm, data, file.name);
+    if (!docInfo) {
+      msg.textContent = previousMessage;
+      return;
+    }
     const elapsed = performance.now() - startTime;
     await initializeDocument(
       docInfo,
@@ -574,10 +589,14 @@ async function loadFile(file: File, options: { skipUnsavedGuard?: boolean } = {}
     console.error('[main] 파일 로드 실패:', error);
     // 모바일에서 상태 메시지가 숨겨질 수 있으므로 alert으로도 표시
     if (window.innerWidth < 768) alert(errMsg);
+  } finally {
+    documentReplacementPending = false;
   }
 }
 
 async function createNewDocument(): Promise<void> {
+  if (documentReplacementPending) return;
+  documentReplacementPending = true;
   const msg = sbMessage();
   try {
     msg.textContent = '새 문서 생성 중...';
@@ -593,6 +612,8 @@ async function createNewDocument(): Promise<void> {
   } catch (error) {
     msg.textContent = `새 문서 생성 실패: ${error}`;
     console.error('[main] 새 문서 생성 실패:', error);
+  } finally {
+    documentReplacementPending = false;
   }
 }
 

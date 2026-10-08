@@ -1,0 +1,10 @@
+/* Keep upstream toolbar markup intact; HOP owns only this display preference. */
+:root[data-toolbar-labels="hidden"] #icon-toolbar .tb-label,
+:root[data-toolbar-labels="hidden"] #style-bar .sb-ribbon-label {
+  display: none;
+}
+
+:root[data-toolbar-labels="hidden"] #icon-toolbar {
+  height: 32px;
+  min-height: 32px;
+}
