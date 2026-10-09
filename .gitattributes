@@ -1,0 +1,3 @@
+# These are generated artifacts; provenance checks their exact bytes.
+# Prevent CRLF conversion when cloning on Windows.
+apps/studio-host/vendor/rhwp-core/** -text
