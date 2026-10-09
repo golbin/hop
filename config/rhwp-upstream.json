@@ -3,7 +3,7 @@
   "source": "https://github.com/edwardkim/rhwp",
   "version": "0.8.7",
   "tag": "v0.8.7",
-  "commit": "1a76570e833917d15817415a53c09ad61ab3203f",
+  "commit": "f97972b063823581a18b18c958efa6de2b029d10",
   "rustToolchain": "1.93.1",
   "wasmPackVersion": "0.14.0",
   "cargoPatches": {
@@ -11,5 +11,10 @@
       "path": "vendor/svg2pdf",
       "version": "0.13.0"
     }
+  },
+  "fork": {
+    "source": "https://github.com/mytrashcan/rhwp",
+    "baseCommit": "1a76570e833917d15817415a53c09ad61ab3203f",
+    "reason": "Reserve top-aligned body-wide Square tables across columns without rewriting document wrap settings"
   }
 }

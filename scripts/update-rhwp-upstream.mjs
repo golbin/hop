@@ -36,6 +36,9 @@ if (!tag) {
 }
 
 assertStableTag(tag);
+if ((await readJson(upstreamLockPath)).fork) {
+  throw new Error('Resolve the pinned downstream engine patch before updating the official release; see docs/architecture/UPSTREAM.md');
+}
 await assertSafeWorkingState();
 await verifyRhwpUpstream();
 

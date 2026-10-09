@@ -27,6 +27,7 @@ test('HOP keeps the rhwp renderer baseline aligned across submodule, vendored WA
   assert.equal(provenance.commit, expectedRhwpCommit);
   assert.equal(provenance.rustToolchain, upstreamLock.rustToolchain);
   assert.equal(provenance.wasmPackVersion, upstreamLock.wasmPackVersion);
+  assert.deepEqual(provenance.fork, upstreamLock.fork);
 
   for (const [fileName, expected] of Object.entries(provenance.artifacts)) {
     const bytes = await readFile(join(repoRoot, 'apps/studio-host/vendor/rhwp-core', fileName));
@@ -59,8 +60,11 @@ test('HOP keeps the rhwp renderer baseline aligned across submodule, vendored WA
   const upstreamDoc = await readFile(join(repoRoot, 'docs/architecture/UPSTREAM.md'), 'utf8');
   assert.match(upstreamDoc, /config\/rhwp-upstream\.json/);
 
-  const submoduleStatus = git(['submodule', 'status', 'third_party/rhwp']).stdout.trim();
-  assert.match(submoduleStatus, new RegExp(`^[ +-]?${expectedRhwpCommit} third_party/rhwp\\b`));
+  const submoduleEntry = git(['ls-files', '--stage', '--', 'third_party/rhwp']).stdout.trim();
+  assert.match(submoduleEntry, new RegExp(`^160000 ${expectedRhwpCommit} 0\\tthird_party/rhwp$`));
+  const checkoutCommit = git(['-C', 'third_party/rhwp', 'rev-parse', 'HEAD']).stdout.trim();
+  assert.equal(checkoutCommit, expectedRhwpCommit);
+
 });
 
 test('active HOP font catalog only references packaged font assets', async () => {

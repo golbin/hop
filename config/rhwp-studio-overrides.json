@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "upstream": {
     "version": "0.8.7",
-    "commit": "1a76570e833917d15817415a53c09ad61ab3203f",
+    "commit": "f97972b063823581a18b18c958efa6de2b029d10",
     "counterparts": {
       "core/font-loader": "64a7f5fa58f0aa4638ac0665875a02eb841e6225bf53b54a7e5d3aaca827cef1",
       "core/local-fonts": "78228d2db58ea6467271bfe3bd5018ae7fb16b17480cc23f453cd0dc186fe1c8",
