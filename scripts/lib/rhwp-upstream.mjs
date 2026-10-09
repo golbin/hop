@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -117,6 +118,13 @@ export async function artifactMetadata(path) {
   };
 }
 
+// Git may check out source text as CRLF on Windows. Source baselines describe
+// repository text; generated artifact provenance continues to hash exact bytes.
+export async function sourceTextHash(path) {
+  const text = (await readFile(path, 'utf8')).replaceAll('\r\n', '\n');
+  return createHash('sha256').update(text).digest('hex');
+}
+
 export function repoRelativePath(path) {
   return relative(repoRoot, path).replaceAll('\\', '/');
 }
@@ -134,6 +142,7 @@ export async function buildProvenance(lock) {
     commit: lock.commit,
     rustToolchain: lock.rustToolchain,
     wasmPackVersion: lock.wasmPackVersion,
+    ...(lock.fork ? { fork: lock.fork } : {}),
     artifacts,
   };
 }
@@ -143,11 +152,11 @@ export async function buildStudioOverrideBaseline(manifest, upstream) {
   for (const entry of manifest.overrides) {
     if (entry.strategy !== 'extension' && entry.strategy !== 'fork') continue;
     const relativePath = entry.id.endsWith('.css') ? entry.id : `${entry.id}.ts`;
-    counterparts[entry.id] = (await artifactMetadata(join(upstreamStudioDir, relativePath))).sha256;
+    counterparts[entry.id] = await sourceTextHash(join(upstreamStudioDir, relativePath));
   }
   const assets = {};
   for (const relativePath of studioMirroredAssetPaths) {
-    assets[relativePath] = (await artifactMetadata(join(upstreamDir, 'rhwp-studio', relativePath))).sha256;
+    assets[relativePath] = await sourceTextHash(join(upstreamDir, 'rhwp-studio', relativePath));
   }
   return {
     version: upstream.version,
@@ -179,6 +188,19 @@ export function normalizeGitSource(source) {
   if (scpStyle) normalized = `https://${scpStyle[1]}/${scpStyle[2]}`;
   normalized = normalized.replace(/^ssh:\/\/git@/, 'https://');
   return normalized.replace(/\.git\/?$/, '').replace(/\/$/, '');
+}
+
+// A downstream patch retains the official release identity and records its
+// actual source separately. Moving branches are never accepted as pins.
+export function pinnedEngineSource(lock) {
+  assert.equal(normalizeGitSource(lock.source), officialUpstreamSource);
+  if (!lock.fork) return officialUpstreamSource;
+  assert.match(lock.fork.source, /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/);
+  assert.notEqual(lock.fork.source, officialUpstreamSource);
+  assert.match(lock.fork.baseCommit, /^[0-9a-f]{40}$/);
+  assert.ok(typeof lock.fork.reason === 'string' && lock.fork.reason.trim().length > 0);
+  assert.match(lock.commit, /^[0-9a-f]{40}$/);
+  return lock.fork.source;
 }
 
 export function escapeRegExp(value) {

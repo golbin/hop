@@ -7,6 +7,27 @@ HOP는 `edwardkim/rhwp`를 읽기 전용 upstream 의존성으로 사용한다.
 * 기준 source, 버전과 커밋: `config/rhwp-upstream.json`이 단일 기준선(SSOT)
 * HOP 작업 브랜치: `main`
 
+## 명시적 downstream 엔진 패치
+
+학술대회 양식의 페이지 기준 `Square` 표가 2단 본문과 겹치는 문제는 엔진 fork에서
+수정한다. `config/rhwp-upstream.json`의 `source`, `version`, `tag`는 공식 기준 릴리스를
+유지하고, `fork.source`, `fork.baseCommit`, `fork.reason`으로 실제 패치 공급원과 이유를
+기록한다. `commit`과 submodule pointer는 패치의 불변 커밋을 가리킨다. WASM의
+`PROVENANCE.json`에도 같은 fork 정보와 산출물 해시를 기록한다.
+
+`pnpm upstream:verify`는 실제 origin, 공식 tag의 baseCommit, 패치의 ancestry와
+생성 WASM 해시를 확인한다. `pnpm upstream:update`는 fork가 남아 있는 동안 중단하여
+수정을 조용히 덮어쓰지 않는다. 공식 릴리스가 이 수정을 포함하면 origin과 `.gitmodules`를
+공식 공급원으로 되돌리고 fork 메타데이터를 제거한 뒤 기존 업데이트 절차로 전환한다.
+
+fork를 처음 clone하여 검증할 때 공식 기준 tag도 가져온다. submodule clone이 tag refs를
+생략하는 경우가 있으므로 CI도 같은 준비를 수행한다.
+
+```sh
+git -C third_party/rhwp fetch https://github.com/edwardkim/rhwp tag v0.8.7
+pnpm upstream:verify
+```
+
 ## 소유권 규칙
 
 `third_party/rhwp` submodule은 vendor source로 취급한다. HOP 제품 동작을 구현하기 위해 이 폴더 아래 파일을 직접 수정하지 않는다.

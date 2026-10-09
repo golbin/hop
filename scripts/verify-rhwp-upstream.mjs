@@ -11,6 +11,7 @@ import {
   currentUpstreamCommit,
   normalizeGitSource,
   officialUpstreamSource,
+  pinnedEngineSource,
   parsePackageVersion,
   parseRustToolchain,
   provenancePath,
@@ -31,15 +32,23 @@ export async function verifyRhwpUpstream() {
   const lock = await readJson(upstreamLockPath);
   assert.equal(lock.schemaVersion, 1);
   assert.equal(normalizeGitSource(lock.source), officialUpstreamSource);
+  assert.equal(normalizeGitSource(run('git', ['config', '-f', '.gitmodules', '--get',
+    'submodule.third_party/rhwp.url'])), pinnedEngineSource(lock),
+    'fresh submodule clones must use the pinned engine source');
   assert.equal(
     normalizeGitSource(run('git', ['remote', 'get-url', 'origin'], { cwd: upstreamDir })),
-    officialUpstreamSource,
+    pinnedEngineSource(lock),
     'submodule origin must match the provenance source',
   );
   assert.match(lock.version, /^\d+\.\d+\.\d+$/);
   assert.equal(lock.tag, `v${lock.version}`);
   assert.match(lock.commit, /^[0-9a-f]{40}$/);
   assert.equal(currentUpstreamCommit(), lock.commit, 'submodule checkout must match upstream lock');
+  if (lock.fork) {
+    assert.equal(run('git', ['rev-parse', `${lock.tag}^{commit}`], { cwd: upstreamDir }),
+      lock.fork.baseCommit, 'downstream patch must identify the official base release');
+    run('git', ['merge-base', '--is-ancestor', lock.fork.baseCommit, lock.commit], { cwd: upstreamDir });
+  }
   assert.equal(run('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: upstreamDir }),
     '', 'upstream checkout must be clean');
 
@@ -55,6 +64,7 @@ export async function verifyRhwpUpstream() {
   assert.equal(wasmPackage.name, 'rhwp');
   assert.equal(wasmPackage.version, lock.version);
   assert.equal(provenance.schemaVersion, 1);
+  assert.deepEqual(provenance.fork, lock.fork, 'downstream provenance must match the lock');
   for (const field of ['source', 'version', 'tag', 'commit', 'rustToolchain', 'wasmPackVersion']) {
     assert.deepEqual(provenance[field], lock[field], `provenance ${field} must match upstream lock`);
   }
