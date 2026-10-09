@@ -20,6 +20,14 @@ HOP는 `edwardkim/rhwp`를 읽기 전용 upstream 의존성으로 사용한다.
 수정을 조용히 덮어쓰지 않는다. 공식 릴리스가 이 수정을 포함하면 origin과 `.gitmodules`를
 공식 공급원으로 되돌리고 fork 메타데이터를 제거한 뒤 기존 업데이트 절차로 전환한다.
 
+fork를 처음 clone하여 검증할 때 공식 기준 tag도 가져온다. submodule clone이 tag refs를
+생략하는 경우가 있으므로 CI도 같은 준비를 수행한다.
+
+```sh
+git -C third_party/rhwp fetch https://github.com/edwardkim/rhwp tag v0.8.7
+pnpm upstream:verify
+```
+
 ## 소유권 규칙
 
 `third_party/rhwp` submodule은 vendor source로 취급한다. HOP 제품 동작을 구현하기 위해 이 폴더 아래 파일을 직접 수정하지 않는다.
