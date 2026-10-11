@@ -1,4 +1,4 @@
-use tauri::menu::{Menu, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder};
+use tauri::menu::{Menu, MenuItemBuilder, PredefinedMenuItem, SubmenuBuilder, WINDOW_SUBMENU_ID};
 use tauri::{App, Emitter};
 
 pub fn install(app: &mut App) -> tauri::Result<()> {
@@ -112,7 +112,8 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
         .item(&fit_page)
         .item(&fit_width)
         .build()?;
-    let window_menu = SubmenuBuilder::new(app, "Window")
+    // Tauri registers this id as NSApp's windows menu, which lets macOS add Window Tiling items.
+    let window_menu = SubmenuBuilder::with_id(app, WINDOW_SUBMENU_ID, "Window")
         .minimize()
         .close_window()
         .build()?;
