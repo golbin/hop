@@ -15,7 +15,7 @@ test('production studio code reaches rhwp internals only through the upstream ad
   const manifest = JSON.parse(await readFile(join(repoRoot, 'config/rhwp-studio-overrides.json'), 'utf8'));
   const overrideIds = new Set(manifest.overrides.map((entry) => entry.id));
   for (const file of await typescriptFiles(studioRoot)) {
-    const relativePath = relative(studioRoot, file);
+    const relativePath = relative(studioRoot, file).replaceAll('\\', '/');
     if (relativePath.startsWith('upstream/') || relativePath.endsWith('.test.ts')) continue;
     const source = await readFile(file, 'utf8');
     if (source.includes("'@upstream/") || source.includes('"@upstream/')) {

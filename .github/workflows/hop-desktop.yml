@@ -602,6 +602,22 @@ jobs:
           tauriScript: pnpm tauri
           args: ${{ steps.tauri-build-args.outputs.args }}
 
+      - name: Test Windows portable packaging
+        if: runner.os == 'Windows'
+        run: pnpm run test:portable:windows
+
+      - name: Package Windows portable ZIP
+        if: runner.os == 'Windows'
+        run: pnpm run build:portable:windows -SkipBuild -ExecutablePath apps/desktop/src-tauri/target/release/hop-desktop.exe
+
+      - name: Upload Windows portable ZIP
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: hop-desktop-windows-x64-portable
+          path: apps/desktop/src-tauri/target/portable/HOP-windows-x64-portable.zip
+          if-no-files-found: error
+
       - name: Verify macOS Quick Look extensions
         if: runner.os == 'macOS'
         shell: bash
@@ -873,6 +889,7 @@ jobs:
           copy_release_asset "macos-arm64" "dmg" "HOP-macos-arm64.dmg"
           copy_release_asset "macos-x64" "dmg" "HOP-macos-x64.dmg"
           copy_release_asset "windows-x64" "msi" "HOP-windows-x64.msi"
+          copy_release_asset "windows-x64" "zip" "HOP-windows-x64-portable.zip"
           copy_release_asset "linux-x64" "AppImage" "HOP-linux-x64.AppImage"
 
           copy_release_asset "windows-x64" "exe" "HOP-windows-x64.exe"

@@ -1,0 +1,4 @@
+# Generated WASM artifacts are verified byte-for-byte against PROVENANCE.json.
+# Preserve upstream bytes even when Windows has core.autocrlf enabled.
+apps/studio-host/vendor/rhwp-core/* -text
+apps/studio-host/public/images/icon_small_ko_dark.svg -text
