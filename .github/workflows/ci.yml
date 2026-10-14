@@ -20,6 +20,17 @@ env:
   NODE_VERSION: "24"
 
 jobs:
+  windows-portable-tests:
+    name: Windows portable packaging tests
+    runs-on: windows-2025
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Test packaging without a native build
+        shell: powershell
+        run: ./tests/windows-portable.test.ps1
+
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-24.04

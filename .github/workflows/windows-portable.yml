@@ -1,0 +1,63 @@
+name: HOP Windows Portable
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    name: Build Windows x64 portable ZIP
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - name: Preserve upstream source bytes on Windows
+        run: git config --global core.autocrlf false
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Pin Rust to upstream contract
+        shell: pwsh
+        run: |
+          $toolchain = (Get-Content config/rhwp-upstream.json -Raw | ConvertFrom-Json).rustToolchain
+          rustup toolchain install $toolchain --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain setup failed.' }
+          "RUSTUP_TOOLCHAIN=$toolchain" >> $env:GITHUB_ENV
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify rhwp upstream contract
+        run: pnpm upstream:verify
+
+      - name: Test upstream boundary
+        run: pnpm run test:upstream
+
+      - name: Test Windows portable packaging
+        run: pnpm run test:portable:windows
+
+      - name: Build Windows portable ZIP
+        run: pnpm run build:portable:windows
+
+      - name: Upload Windows portable ZIP
+        uses: actions/upload-artifact@v7
+        with:
+          name: hop-desktop-windows-x64-portable
+          path: apps/desktop/src-tauri/target/portable/HOP-windows-x64-portable.zip
+          if-no-files-found: error

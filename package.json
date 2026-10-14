@@ -11,6 +11,8 @@
     "build:quicklook:macos": "node scripts/build-quicklook-macos.mjs",
     "build:before-tauri": "pnpm run build:studio && pnpm run build:quicklook:macos",
     "build:desktop": "pnpm --filter hop-desktop build",
+    "build:portable:windows": "powershell -NoProfile -File scripts/build-portable-windows.ps1",
+    "test:portable:windows": "powershell -NoProfile -File tests/windows-portable.test.ps1",
     "tauri": "pnpm --filter hop-desktop tauri",
     "test": "pnpm run test:upstream && pnpm run test:studio && pnpm run test:desktop && pnpm run test:quicklook:macos",
     "test:upstream": "node --test tests/update-upstream.test.mjs tests/rhwp-baseline.test.mjs tests/rhwp-boundary.test.mjs tests/hop-version.test.mjs",

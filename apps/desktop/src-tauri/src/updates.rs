@@ -111,6 +111,9 @@ impl UpdateManagerState {
 }
 
 pub fn install_startup_update_check(app: &AppHandle) {
+    if crate::portable::is_portable() {
+        return;
+    }
     #[cfg(debug_assertions)]
     {
         let _ = app;
@@ -153,6 +156,9 @@ pub fn get_update_state(app: AppHandle) -> Result<UpdateNoticeState, String> {
 
 #[tauri::command]
 pub fn start_update_install(app: AppHandle) -> Result<(), String> {
+    if crate::portable::is_portable() {
+        return Err("포터블 버전은 새 ZIP 파일을 받아 압축을 풀어 업데이트하세요.".to_string());
+    }
     if has_dirty_documents(&app) {
         return Err(
             "저장되지 않은 변경사항이 있어 지금은 업데이트할 수 없습니다. 저장 후 다시 시도하세요."

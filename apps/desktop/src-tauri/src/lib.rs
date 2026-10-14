@@ -10,6 +10,7 @@ mod menu;
 mod pdf_export;
 mod pdf_font_fallbacks;
 mod pending_open;
+mod portable;
 mod recent_documents;
 mod state;
 #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
@@ -36,6 +37,9 @@ use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
 
 pub fn run() {
+    #[cfg(windows)]
+    portable::configure_runtime();
+
     #[cfg(target_os = "linux")]
     linux_runtime::apply_linux_runtime_fixes();
 

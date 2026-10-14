@@ -153,6 +153,19 @@ macOS release build는 다음 조건을 만족하지 않으면 실패한다.
 * `APPLE_CERTIFICATE_PASSWORD`가 설정되어 있어야 한다.
 * App Store Connect API key 방식 또는 Apple ID 방식 중 하나의 notarization credential 묶음이 모두 설정되어 있어야 한다.
 
+## Windows 포터블
+
+`windows_x64=true` 빌드는 설치 파일과 함께 `HOP-windows-x64-portable.zip`을
+생성합니다. Actions에서는 `hop-desktop-windows-x64-portable` artifact로
+분리하고, 릴리스에서는 같은 ZIP 이름으로 수집해 체크섬 목록에 포함합니다.
+ZIP 내부의 `HOP.exe`가 NSIS 설치 파일로 선택되지 않도록 압축을 풀어서
+릴리스 수집 경로에 넣지 않습니다. 포터블 ZIP은 updater manifest에 넣지 않습니다.
+
+기본 ZIP은 기존 WebView2 Runtime을 사용합니다. 설치조차 허용되지 않는
+PC에 런타임이 없다면 배포 담당자가 Fixed Version을 포함한 ZIP을 따로
+만들어야 합니다. 자세한 빌드·사용·업데이트 방법은
+[Windows 포터블 안내](../WINDOWS_PORTABLE.md)를 참조하세요.
+
 ## Windows 사이닝
 
 ### 서명 리스크와 계획
