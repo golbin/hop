@@ -8,6 +8,12 @@ describe('desktop-chrome', () => {
     expect(normalizeDesktopChromeTitle('찾기 (Ctrl+F)', 'macos')).toBe('찾기 (⌘F)');
   });
 
+  it('keeps the plus key in macOS shortcut labels', () => {
+    expect(normalizeShortcutLabel('Shift+Num +', 'macos')).toBe('⇧+');
+    expect(normalizeShortcutLabel('Ctrl+Num +', 'macos')).toBe('⌘+');
+    expect(normalizeShortcutLabel('Shift+Num -', 'macos')).toBe('⇧-');
+  });
+
   it('does not rewrite non-shortcut tooltips', () => {
     expect(normalizeDesktopChromeTitle('줄 간격 증가 (+5%)', 'macos')).toBe('줄 간격 증가 (+5%)');
     expect(normalizeDesktopChromeTitle('파일 이름 + 쪽 번호', 'macos')).toBe('파일 이름 + 쪽 번호');
