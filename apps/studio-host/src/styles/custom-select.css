@@ -163,6 +163,7 @@
 
 #style-bar .custom-select[data-select-id="font-name"] {
   width: 180px;
+  overflow: visible;
 }
 
 #style-bar .custom-select[data-select-id="linespacing-select"] {
