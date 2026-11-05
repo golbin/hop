@@ -8,6 +8,33 @@ export const COLOR_PALETTE = [
   ['#0066cc', '#0000cc', '#6600cc', '#cc00cc', '#cc0066', '#999999', '#000000'],
 ];
 
+const RECENT_COLORS_KEY = 'hop.recent-text-colors';
+const RECENT_COLORS_LIMIT = 7;
+
+function readRecentColors(fallback: string[] = []): string[] {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(RECENT_COLORS_KEY) ?? '[]');
+    if (!Array.isArray(saved)) return [];
+    const colors = saved.filter((color): color is string => (
+      typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)
+    )).map((color) => color.toLowerCase());
+    return [...new Set(colors)].slice(0, RECENT_COLORS_LIMIT);
+  } catch {
+    return fallback;
+  }
+}
+
+function createSwatch(color: string, onSelect: (color: string) => void): HTMLButtonElement {
+  const swatch = document.createElement('button');
+  swatch.type = 'button';
+  swatch.className = 'sb-hl-swatch';
+  swatch.style.background = color;
+  swatch.setAttribute('aria-label', color);
+  swatch.title = color;
+  swatch.addEventListener('click', () => onSelect(color));
+  return swatch;
+}
+
 export function setupTextColorPicker(
   container: HTMLElement,
   onSelect: (color: string) => void,
@@ -21,14 +48,30 @@ export function setupTextColorPicker(
   palette.setAttribute('aria-label', picker.getAttribute('aria-label') ?? '');
   button.setAttribute('aria-controls', palette.id);
   container.appendChild(palette);
+  let recentColors = readRecentColors();
+  const recentRow = document.createElement('div');
+  recentRow.className = 'sb-hl-palette-row';
   const setOpen = (open: boolean) => {
+    if (open) {
+      recentColors = readRecentColors(recentColors);
+      renderRecentColors();
+    }
     palette.hidden = !open;
     button.setAttribute('aria-expanded', String(open));
   };
   const applyColor = (color: string) => {
+    recentColors = [color, ...readRecentColors(recentColors).filter((recent) => recent !== color)]
+      .slice(0, RECENT_COLORS_LIMIT);
+    try { localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recentColors)); }
+    catch { /* 저장이 막혀도 현재 창에서는 최근 색을 재사용할 수 있다. */ }
+    renderRecentColors();
     picker.value = color;
     setOpen(false);
     onSelect(color);
+  };
+  const renderRecentColors = () => {
+    recentRow.replaceChildren(...recentColors.map((color) => createSwatch(color, applyColor)));
+    if (recentColors.length === 0) recentRow.textContent = '아직 없음';
   };
   setOpen(false);
 
@@ -41,17 +84,21 @@ export function setupTextColorPicker(
     const row = document.createElement('div');
     row.className = 'sb-hl-palette-row';
     for (const color of colors) {
-      const swatch = document.createElement('button');
-      swatch.type = 'button';
-      swatch.className = 'sb-hl-swatch';
-      swatch.style.background = color;
-      swatch.setAttribute('aria-label', color);
-      swatch.title = color;
-      swatch.addEventListener('click', () => applyColor(color));
-      row.appendChild(swatch);
+      row.appendChild(createSwatch(color, applyColor));
     }
     palette.appendChild(row);
   }
+
+  const recent = document.createElement('div');
+  recent.id = 'recent-text-colors';
+  recent.setAttribute('role', 'group');
+  recent.setAttribute('aria-label', '최근에 사용한 색');
+  const recentLabel = document.createElement('div');
+  recentLabel.textContent = '최근에 사용한 색';
+  recent.appendChild(recentLabel);
+  recent.appendChild(recentRow);
+  palette.appendChild(recent);
+  renderRecentColors();
 
   const actions = document.createElement('div');
   actions.className = 'sb-hl-palette-actions';
