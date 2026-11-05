@@ -1,0 +1,32 @@
+#text-color-palette:not([hidden]) {
+  display: block;
+}
+
+#text-color-palette .sb-hl-swatch {
+  box-sizing: content-box;
+  padding: 0;
+}
+
+#text-color-palette .sb-hl-swatch:focus-visible {
+  outline: 2px solid var(--color-focus-border);
+  outline-offset: 1px;
+}
+
+#recent-text-colors {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--ui-border-light);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+#recent-text-colors .sb-hl-palette-row {
+  min-height: 16px;
+  margin-top: 4px;
+}
+
+/* WebKit은 크기가 0인 color input의 팝업을 표시하지 않는다. */
+#text-color-picker {
+  width: 1px;
+  height: 1px;
+}
