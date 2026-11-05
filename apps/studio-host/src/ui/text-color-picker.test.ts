@@ -17,6 +17,7 @@ class Element extends EventTarget {
 
   constructor(readonly tagName = 'div') { super(); }
   appendChild(child: Element) { this.children.push(child); }
+  replaceChildren(...children: Element[]) { this.children = children; this.textContent = ''; }
   setAttribute(name: string, value: string) { this.attrs.set(name, value); }
   getAttribute(name: string) { return this.attrs.get(name) ?? null; }
   contains(target: Element | null): boolean {
@@ -31,7 +32,11 @@ class Element extends EventTarget {
   }
 }
 
-function createPicker() {
+function createPicker(storage = new Map<string, string>()) {
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn((key: string) => storage.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => storage.set(key, value)),
+  });
   const doc = Object.assign(new Element(), { createElement: (tag: string) => new Element(tag) });
   vi.stubGlobal('document', doc);
   const container = new Element();
@@ -43,7 +48,8 @@ function createPicker() {
   const onSelect = vi.fn();
   setupTextColorPicker(container as unknown as HTMLElement, onSelect);
   const palette = container.querySelector('#text-color-palette')!;
-  return { doc, container, button, picker, palette, onSelect };
+  const recentRow = palette.querySelector('#recent-text-colors')!.children[1];
+  return { doc, container, button, picker, palette, recentRow, onSelect, storage };
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -99,5 +105,53 @@ describe('text color palette', () => {
     doc.dispatchEvent(new Event('mousedown'));
     expect(palette.hidden).toBe(true);
     expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('remembers custom colors, restores them on reopening, and reuses a recent swatch', () => {
+    const { picker, recentRow, storage } = createPicker();
+    expect(recentRow.textContent).toBe('아직 없음');
+    picker.value = '#123456';
+    picker.dispatchEvent(new Event('input'));
+    expect(recentRow.children[0].attrs.get('aria-label')).toBe('#123456');
+    const reopened = createPicker(storage);
+    reopened.button.click();
+    reopened.recentRow.children[0].click();
+    expect(reopened.onSelect).toHaveBeenCalledExactlyOnceWith('#123456');
+    expect(reopened.palette.hidden).toBe(true);
+  });
+
+  it('keeps seven unique colors with the most recently reused color first', () => {
+    const { picker, recentRow, storage } = createPicker();
+    for (let index = 1; index <= 8; index++) {
+      picker.value = `#00000${index}`;
+      picker.dispatchEvent(new Event('input'));
+    }
+    recentRow.children[2].click();
+    expect(JSON.parse(storage.get('hop.recent-text-colors')!)).toEqual([
+      '#000006', '#000008', '#000007', '#000005', '#000004', '#000003', '#000002',
+    ]);
+    expect(recentRow.children).toHaveLength(7);
+  });
+
+  it('ignores invalid stored entries and normalizes duplicate colors', () => {
+    const { recentRow } = createPicker(new Map([
+      ['hop.recent-text-colors', JSON.stringify(['#ABCDEF', null, 42, 'red', '#abcdef', '#123456'])],
+    ]));
+    expect(recentRow.children.map((swatch) => swatch.attrs.get('aria-label')))
+      .toEqual(['#abcdef', '#123456']);
+    expect(createPicker(new Map([['hop.recent-text-colors', '{broken']])).recentRow.children).toHaveLength(0);
+  });
+
+  it('keeps color selection and in-memory history working when storage is unavailable', () => {
+    const { picker, button, recentRow, onSelect } = createPicker();
+    vi.stubGlobal('localStorage', {
+      getItem: () => { throw new Error('blocked'); },
+      setItem: () => { throw new Error('blocked'); },
+    });
+    picker.value = '#123456';
+    picker.dispatchEvent(new Event('input'));
+    button.click();
+    expect(recentRow.children[0].attrs.get('aria-label')).toBe('#123456');
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith('#123456');
   });
 });
