@@ -5,6 +5,7 @@ import { loadWebFonts } from '@/core/font-loader';
 import { getLocalFonts } from '@/core/local-fonts';
 import { sanitizeAuthoringFontFamily } from '@/core/font-authoring-policy';
 import { getCustomSelectRoot, syncCustomSelect } from './custom-select';
+import { COLOR_PALETTE, setupTextColorPicker } from './text-color-picker';
 
 /** 서식 도구 모음 (style-bar) 컨트롤러 */
 export class Toolbar {
@@ -306,15 +307,7 @@ export class Toolbar {
 
   /** 글자색 피커 이벤트 */
   private setupColorPicker(): void {
-    this.btnTextColor.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-    });
-    this.btnTextColor.addEventListener('click', () => {
-      this.colorPicker.click();
-    });
-
-    this.colorPicker.addEventListener('input', () => {
-      const color = this.colorPicker.value;
+    setupTextColorPicker(this.btnTextColor.parentElement!, (color) => {
       this.colorBar.style.background = color;
       this.eventBus.emit('format-char', { textColor: color } as CharProperties);
     });
@@ -322,16 +315,6 @@ export class Toolbar {
 
   /** 형광펜 팔레트 설정 */
   private setupHighlightPicker(): void {
-    // 한컴 형광펜 색상 팔레트 (7열 × 5행 + 하단 액션)
-    const PALETTE = [
-      ['#ff0000', '#ff8000', '#ffff00', '#80ff00', '#00ff00', '#00ff80', '#00ffff'],
-      ['#0080ff', '#0000ff', '#8000ff', '#ff00ff', '#ff0080', '#c0c0c0', '#808080'],
-      ['#ff9999', '#ffcc99', '#ffff99', '#ccff99', '#99ff99', '#99ffcc', '#99ffff'],
-      ['#99ccff', '#9999ff', '#cc99ff', '#ff99ff', '#ff99cc', '#e0e0e0', '#404040'],
-      ['#cc0000', '#cc6600', '#cccc00', '#66cc00', '#00cc00', '#00cc66', '#00cccc'],
-      ['#0066cc', '#0000cc', '#6600cc', '#cc00cc', '#cc0066', '#999999', '#000000'],
-    ];
-
     const palette = this.container.querySelector('#highlight-palette')!;
 
     // "색 없음" + "다른 색..." 액션 행
@@ -374,7 +357,7 @@ export class Toolbar {
     palette.appendChild(actRow);
 
     // 색상 스워치 행들
-    for (const row of PALETTE) {
+    for (const row of COLOR_PALETTE) {
       const rowEl = document.createElement('div');
       rowEl.className = 'sb-hl-palette-row';
       for (const color of row) {

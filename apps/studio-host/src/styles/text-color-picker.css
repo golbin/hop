@@ -1,0 +1,19 @@
+#text-color-palette:not([hidden]) {
+  display: block;
+}
+
+#text-color-palette .sb-hl-swatch {
+  box-sizing: content-box;
+  padding: 0;
+}
+
+#text-color-palette .sb-hl-swatch:focus-visible {
+  outline: 2px solid var(--color-focus-border);
+  outline-offset: 1px;
+}
+
+/* WebKit은 크기가 0인 color input의 팝업을 표시하지 않는다. */
+#text-color-picker {
+  width: 1px;
+  height: 1px;
+}
