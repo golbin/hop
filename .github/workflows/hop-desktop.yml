@@ -317,7 +317,7 @@ jobs:
       - prepare
       - test
     if: |
-      always()
+      !cancelled()
       && needs.prepare.outputs.has_builds == 'true'
       && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ${{ matrix.os }}
