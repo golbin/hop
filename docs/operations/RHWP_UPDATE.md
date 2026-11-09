@@ -10,7 +10,7 @@
 * `third_party/rhwp` submodule pointer
 * `config/rhwp-upstream.json`의 버전, 태그, 커밋, Rust 및 WASM 생성기 기준선
 * `apps/studio-host/vendor/rhwp-core`의 WASM package와 provenance
-* desktop과 Quick Look의 HOP-owned `[patch]` 선언과 `Cargo.lock`
+* desktop과 Quick Look의 Cargo manifest 및 `Cargo.lock`
 * upstream에서 미러링하는 studio asset
 * `config/rhwp-studio-overrides.json`의 upstream counterpart hash
 
@@ -87,6 +87,14 @@ upstream이 `svg2pdf`를 vendor path로 제공하면 두 native manifest는 각 
 package version을 기록한다. 소스는 upstream commit으로 고정하며 검증기는 checkout의
 tracked 변경·untracked 추가, 경로 이탈, lockfile의 단일 local package를 확인한다. Git patch를 사용하는 이전
 기준선은 기존 source/revision 검증을 유지한다.
+
+rhwp v0.9.0부터 `rhwp-svg2pdf`를 직접 vendoring한다. updater는 기존 `svg2pdf` registry
+patch를 제거한다. desktop과 Quick Look은 공유 Rust adapter를 통해 upstream PDF 생성기를
+사용하며 Quick Look은 별도의 PDF 조립기나 직접 인코더 의존성을 두지 않는다.
+패키지·경로·버전의 기준은 고정 upstream manifest다. 별도 JSON 설정에 복제하지 않는다.
+검증기는 두 native lockfile이 이 기준을 따르고 기존 registry `svg2pdf`가 남지 않았는지
+확인한다. vendor source의 신뢰 기준은 고정 upstream commit과 clean checkout이다.
+TOML은 parser로 읽으며, 갱신할 선언이 바뀐 경우에만 manifest를 재작성한다.
 
 각 변경된 counterpart는 다음 순서로 분류한다.
 

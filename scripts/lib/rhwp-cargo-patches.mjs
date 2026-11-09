@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
+import { parse, stringify } from 'smol-toml';
+import { isDeepStrictEqual } from 'node:util';
 import {
-  cargoLockPackageEntries, escapeRegExp, parsePackageVersion,
-  replaceTomlSection, run, tomlSection, upstreamDir,
+  cargoLockPackageEntries, parsePackageVersion, run, upstreamDir,
 } from './rhwp-upstream.mjs';
 
 // Paths in the contract are relative to the immutable upstream checkout.
@@ -23,7 +24,7 @@ export async function readPathCargoPatch(crateName, path, sourceRoot = upstreamD
   assert.ok(run('git', ['ls-files', '--', `${path}/Cargo.toml`], { cwd: root }),
     'vendor package manifest must be tracked by upstream');
   const toml = await readFile(join(directory, 'Cargo.toml'), 'utf8');
-  assert.match(tomlSection(toml, 'package'), new RegExp(`^name\\s*=\\s*"${escapeRegExp(crateName)}"`, 'm'));
+  assert.equal(parse(toml).package?.name, crateName);
   return { path, version: parsePackageVersion(toml) };
 }
 
@@ -33,48 +34,33 @@ function assertInside(root, path) {
     'vendor patch must stay inside its source directory');
 }
 
-export function cargoPatchTomlPattern(crateName, patch, cargoRoot) {
-  const crate = escapeRegExp(crateName);
-  if (patch.path) {
-    const path = escapeRegExp(cargoPatchPath(patch, cargoRoot));
-    return new RegExp(`^${crate}\\s*=\\s*\\{(?=[^}]*path\\s*=\\s*"${path}")[^}]*\\}[^\\S\\r\\n]*$`, 'm');
-  }
-  const git = escapeRegExp(patch.git);
-  const rev = escapeRegExp(patch.rev);
-  return new RegExp(
-    `^${crate}\\s*=\\s*\\{(?=[^}]*git\\s*=\\s*"${git}")(?=[^}]*rev\\s*=\\s*"${rev}")[^}]*\\}[^\\S\\r\\n]*$`,
-    'm',
-  );
+export function cargoPatchDeclaration(patch, cargoRoot) {
+  return patch.path
+    ? { path: cargoPatchPath(patch, cargoRoot) }
+    : { git: patch.git, rev: patch.rev };
 }
 
 export function synchronizeCargoPatchToml(toml, previousPatches, nextPatches, cargoRoot) {
-  let patchSection = tomlSection(toml, 'patch.crates-io');
+  const manifest = parse(toml);
+  const current = manifest.patch?.['crates-io'] ?? {};
   for (const [crateName, patch] of Object.entries(previousPatches)) {
-    if (!cargoPatchTomlPattern(crateName, patch, cargoRoot).test(patchSection)) {
-      throw new Error(`Cargo.toml patch ${crateName} does not match the current upstream contract`);
-    }
+    assert.deepEqual({ ...current[crateName] }, cargoPatchDeclaration(patch, cargoRoot),
+      `Cargo.toml patch ${crateName} does not match the current upstream contract`);
   }
-
-  const crateNames = new Set([...Object.keys(previousPatches), ...Object.keys(nextPatches)]);
-  for (const crateName of crateNames) {
-    const linePattern = new RegExp(`^${escapeRegExp(crateName)}\\s*=\\s*\\{[^}]*\\}[^\\S\\r\\n]*$`, 'm');
-    const next = nextPatches[crateName];
-    if (!next) {
-      patchSection = patchSection.replace(new RegExp(`${linePattern.source}\\r?\\n?`, 'm'), '');
-      continue;
-    }
-
-    const fields = next.path
-      ? `path = ${JSON.stringify(cargoPatchPath(next, cargoRoot))}`
-      : `git = ${JSON.stringify(next.git)}, rev = ${JSON.stringify(next.rev)}`;
-    const declaration = `${crateName} = { ${fields} }`;
-    if (linePattern.test(patchSection)) {
-      patchSection = patchSection.replace(linePattern, declaration);
-      continue;
-    }
-    patchSection = `${patchSection.trimEnd()}${patchSection ? '\n' : ''}${declaration}\n`;
+  if (isDeepStrictEqual(previousPatches, nextPatches)) return toml;
+  const next = { ...current };
+  for (const crateName of new Set([...Object.keys(previousPatches), ...Object.keys(nextPatches)])) {
+    if (nextPatches[crateName]) next[crateName] = cargoPatchDeclaration(nextPatches[crateName], cargoRoot);
+    else delete next[crateName];
   }
-  return replaceTomlSection(toml, 'patch.crates-io', patchSection);
+  if (Object.keys(next).length) {
+    manifest.patch ??= {};
+    manifest.patch['crates-io'] = next;
+  } else {
+    delete manifest.patch['crates-io'];
+    if (!Object.keys(manifest.patch).length) delete manifest.patch;
+  }
+  return stringify(manifest);
 }
 
 export function cargoLockHasPatchSource(lock, crateName, patch) {
@@ -86,4 +72,16 @@ export function cargoLockHasPatchSource(lock, crateName, patch) {
     const parsed = source?.match(/^git\+([^?#]+)(?:\?[^#]*)?#([0-9a-f]{40})$/);
     return parsed?.[1] === patch.git && parsed[2] === patch.rev;
   });
+}
+
+// The immutable upstream manifest owns the PDF backend's package, path and version.
+export async function readPdfBackend(cargoToml, sourceRoot = upstreamDir) {
+  const dependency = parse(cargoToml).target?.['cfg(not(target_arch = "wasm32"))']?.dependencies?.svg2pdf;
+  // Older releases use a registry dependency with a separate root patch.
+  if (typeof dependency === 'string') return null;
+  assert.ok(dependency?.path, 'upstream native SVG-to-PDF dependency must be vendored');
+  const packageName = dependency.package ?? 'svg2pdf';
+  const vendor = await readPathCargoPatch(packageName, dependency.path, sourceRoot);
+  assert.equal(dependency.version, `=${vendor.version}`, 'upstream PDF dependency must pin its vendor version');
+  return { package: packageName, ...vendor };
 }

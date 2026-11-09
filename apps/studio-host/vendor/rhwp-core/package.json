@@ -1,8 +1,8 @@
 {
   "name": "rhwp",
   "type": "module",
-  "description": "HWP file viewer and editor written in Rust, targeting WebAssembly",
-  "version": "0.8.7",
+  "description": "HWP/HWPX document engine for Rust applications, WebAssembly, and CLI automation",
+  "version": "0.9.0",
   "license": "MIT",
   "repository": {
     "type": "git",

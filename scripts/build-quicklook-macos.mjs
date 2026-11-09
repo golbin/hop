@@ -30,10 +30,7 @@ rmSync(stagingRoot, { recursive: true, force: true });
 mkdirSync(plugInsDir, { recursive: true });
 mkdirSync(libDir, { recursive: true });
 
-buildRustStaticLibrary({
-  features: ['native-skia'],
-  output: stagedStaticLib,
-});
+buildRustStaticLibrary(stagedStaticLib);
 
 buildExtension({
   moduleName: 'HopQuickLookPreview',
@@ -78,7 +75,7 @@ buildExtension({
 
 console.log(`[quicklook] staged extensions in ${plugInsDir}`);
 
-function buildRustStaticLibrary({ features, output }) {
+function buildRustStaticLibrary(output) {
   const args = [
     'build',
     '--manifest-path',
@@ -88,10 +85,6 @@ function buildRustStaticLibrary({ features, output }) {
     '--target',
     target,
   ];
-  if (features.length > 0) {
-    args.push('--features', features.join(','));
-  }
-
   run('cargo', args);
 
   if (!existsSync(staticLib)) {

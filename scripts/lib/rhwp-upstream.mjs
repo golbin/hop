@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { parse } from 'smol-toml';
 
 export const repoRoot = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 export const upstreamDir = join(repoRoot, 'third_party/rhwp');
@@ -54,44 +55,17 @@ export function run(command, args, options = {}) {
 }
 
 export function parsePackageVersion(toml) {
-  const packageBlock = tomlSection(toml, 'package');
-  let version = packageBlock.match(/^version\s*=\s*"([^"]+)"/m)?.[1];
-  if (/^version\s*=\s*\{\s*workspace\s*=\s*true\s*\}/m.test(packageBlock)) {
-    version = tomlSection(toml, 'workspace.package').match(/^version\s*=\s*"([^"]+)"/m)?.[1];
-  }
-  if (!version) throw new Error('Unable to read rhwp package version from Cargo.toml');
+  const manifest = parse(toml);
+  const version = manifest.package?.version?.workspace
+    ? manifest.workspace?.package?.version : manifest.package?.version;
+  if (typeof version !== 'string') throw new Error('Unable to read rhwp package version from Cargo.toml');
   return version;
 }
 
 export function parseRustToolchain(toml) {
-  const channel = toml.match(/^channel\s*=\s*"([^"]+)"/m)?.[1];
-  if (!channel) throw new Error('Unable to read rhwp Rust toolchain');
+  const channel = parse(toml).toolchain?.channel;
+  if (typeof channel !== 'string') throw new Error('Unable to read rhwp Rust toolchain');
   return channel;
-}
-
-export function tomlSection(toml, name) {
-  const range = tomlSectionRange(toml, name);
-  return range ? toml.slice(range.start, range.end) : '';
-}
-
-function tomlSectionRange(toml, name) {
-  const escapedName = escapeRegExp(name);
-  const header = toml.match(new RegExp(`^\\[${escapedName}\\][^\\S\\r\\n]*$`, 'm'));
-  if (!header || header.index === undefined) return null;
-  const afterHeader = header.index + header[0].length;
-  const newlineLength = toml.slice(afterHeader).match(/^\r?\n/)?.[0].length ?? 0;
-  const start = afterHeader + newlineLength;
-  const nextSection = toml.slice(start).search(/^\[/m);
-  return { start, end: nextSection === -1 ? toml.length : start + nextSection };
-}
-
-export function replaceTomlSection(toml, name, contents) {
-  const range = tomlSectionRange(toml, name);
-  if (!range) {
-    if (!contents) return toml;
-    return `${toml.trimEnd()}\n\n[${name}]\n${contents}`;
-  }
-  return `${toml.slice(0, range.start)}${contents}${toml.slice(range.end)}`;
 }
 
 export function cargoLockPackageVersion(lock, packageName) {
@@ -99,14 +73,8 @@ export function cargoLockPackageVersion(lock, packageName) {
 }
 
 export function cargoLockPackageEntries(lock, packageName) {
-  return lock.split(/^\[\[package\]\]\s*$/m).slice(1).flatMap((block) => {
-    const name = block.match(/^name\s*=\s*"([^"]+)"/m)?.[1];
-    if (name !== packageName) return [];
-    return [{
-      version: block.match(/^version\s*=\s*"([^"]+)"/m)?.[1],
-      source: block.match(/^source\s*=\s*"([^"]+)"/m)?.[1],
-    }];
-  });
+  return (parse(lock).package ?? []).filter(({ name }) => name === packageName)
+    .map(({ version, source }) => ({ version, source }));
 }
 
 export async function artifactMetadata(path) {
@@ -179,8 +147,4 @@ export function normalizeGitSource(source) {
   if (scpStyle) normalized = `https://${scpStyle[1]}/${scpStyle[2]}`;
   normalized = normalized.replace(/^ssh:\/\/git@/, 'https://');
   return normalized.replace(/\.git\/?$/, '').replace(/\/$/, '');
-}
-
-export function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

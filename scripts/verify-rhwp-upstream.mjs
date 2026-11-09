@@ -1,4 +1,5 @@
-import { cargoLockHasPatchSource, cargoPatchTomlPattern, readPathCargoPatch } from './lib/rhwp-cargo-patches.mjs';
+import { cargoLockHasPatchSource, cargoPatchDeclaration, readPathCargoPatch, readPdfBackend } from './lib/rhwp-cargo-patches.mjs';
+import { parse } from 'smol-toml';
 import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -22,7 +23,6 @@ import {
   studioOverrideManifestPath,
   studioHostDir,
   studioMirroredAssetPaths,
-  tomlSection,
   vendoredArtifactNames,
   vendorDir,
 } from './lib/rhwp-upstream.mjs';
@@ -49,6 +49,7 @@ export async function verifyRhwpUpstream() {
   assert.equal(parsePackageVersion(cargoToml), lock.version);
   assert.equal(studioPackage.version, lock.version);
   assert.equal(parseRustToolchain(rustToolchain), lock.rustToolchain);
+  const pdfBackend = await readPdfBackend(cargoToml);
 
   const wasmPackage = await readJson(join(vendorDir, 'package.json'));
   const provenance = await readJson(provenancePath);
@@ -71,7 +72,7 @@ export async function verifyRhwpUpstream() {
   for (const cargoRoot of cargoRoots) {
     const cargoLock = await readFile(join(cargoRoot, 'Cargo.lock'), 'utf8');
     assert.equal(cargoLockPackageVersion(cargoLock, 'rhwp'), lock.version);
-    await verifyCargoPatches(lock, cargoRoot, cargoLock);
+    await verifyNativeCargo(lock, cargoRoot, cargoLock, pdfBackend);
   }
   const overrideManifest = await readJson(studioOverrideManifestPath);
   assert.deepEqual(
@@ -90,11 +91,21 @@ export async function verifyRhwpUpstream() {
   return lock;
 }
 
-async function verifyCargoPatches(lock, cargoRoot, cargoLock) {
+async function verifyNativeCargo(lock, cargoRoot, cargoLock, pdfBackend) {
   const cargoToml = await readFile(join(cargoRoot, 'Cargo.toml'), 'utf8');
-  const patchSection = tomlSection(cargoToml, 'patch.crates-io');
+  const manifest = parse(cargoToml);
+  if (pdfBackend) {
+    assert.equal(manifest.patch?.['crates-io']?.svg2pdf, undefined,
+      'remove the obsolete svg2pdf registry patch');
+    assert.ok(cargoLockHasPatchSource(cargoLock, pdfBackend.package, pdfBackend),
+      'native PDF output must use the pinned upstream vendor source');
+    if (pdfBackend.package !== 'svg2pdf') {
+      assert.equal(cargoLockPackageVersion(cargoLock, 'svg2pdf'), undefined,
+        'native graphs must not retain the uncorrected registry PDF backend');
+    }
+  }
   for (const [crateName, patch] of Object.entries(lock.cargoPatches ?? {})) {
-    assert.match(patchSection, cargoPatchTomlPattern(crateName, patch, cargoRoot));
+    assert.deepEqual({ ...manifest.patch?.['crates-io']?.[crateName] }, cargoPatchDeclaration(patch, cargoRoot));
     assert.ok(
       cargoLockHasPatchSource(cargoLock, crateName, patch),
       `${crateName} Cargo.lock must match the upstream patch contract`,

@@ -2,7 +2,6 @@ mod pdf;
 #[cfg(test)]
 mod tests;
 
-#[cfg(feature = "native-skia")]
 use hop_rhwp_adapter::{extract_thumbnail_only, DocumentCore, PngExportOptions};
 use std::ffi::c_void;
 use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -43,7 +42,6 @@ pub struct HopQuickLookThumbnailResult {
 }
 
 #[no_mangle]
-#[cfg(feature = "native-skia")]
 pub extern "C" fn hop_ql_render_preview_pdf(
     data: *const u8,
     len: usize,
@@ -81,16 +79,6 @@ pub extern "C" fn hop_ql_render_preview_pdf(
 }
 
 #[no_mangle]
-#[cfg(not(feature = "native-skia"))]
-pub extern "C" fn hop_ql_render_preview_pdf(
-    _data: *const u8,
-    _len: usize,
-) -> HopQuickLookRenderResult {
-    render_error(HOP_QL_RENDER_FAILED)
-}
-
-#[no_mangle]
-#[cfg(feature = "native-skia")]
 pub extern "C" fn hop_ql_render_first_page_png(
     data: *const u8,
     len: usize,
@@ -113,16 +101,6 @@ pub extern "C" fn hop_ql_render_first_page_png(
             height,
         })
     })
-}
-
-#[no_mangle]
-#[cfg(not(feature = "native-skia"))]
-pub extern "C" fn hop_ql_render_first_page_png(
-    _data: *const u8,
-    _len: usize,
-    _max_dimension: u32,
-) -> HopQuickLookRenderResult {
-    render_error(HOP_QL_RENDER_FAILED)
 }
 
 #[no_mangle]
@@ -235,7 +213,6 @@ fn thumbnail_error(status: i32) -> HopQuickLookThumbnailResult {
     }
 }
 
-#[cfg(feature = "native-skia")]
 fn render_page_png(
     core: &DocumentCore,
     page: u32,

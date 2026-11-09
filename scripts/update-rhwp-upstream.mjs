@@ -1,7 +1,8 @@
-import { cargoPatchTomlPattern, readPathCargoPatch, synchronizeCargoPatchToml } from './lib/rhwp-cargo-patches.mjs';
+import { readPathCargoPatch, readPdfBackend, synchronizeCargoPatchToml } from './lib/rhwp-cargo-patches.mjs';
+import { parse } from 'smol-toml';
 import { access, cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { join } from 'node:path';
 import {
   assertStableTag,
   buildStudioOverrideBaseline,
@@ -21,7 +22,6 @@ import {
   studioOverrideManifestPath,
   studioHostDir,
   studioMirroredAssetPaths,
-  tomlSection,
   vendoredArtifactNames,
   vendorDir,
   writeJson,
@@ -44,6 +44,7 @@ const previousLock = await readJson(upstreamLockPath);
 const previousOverrideManifest = await readJson(studioOverrideManifestPath);
 const backupDir = await mkdtemp(join(tmpdir(), 'hop-rhwp-update-backup-'));
 let backupReady = false;
+let preserveBackup = false;
 
 try {
   await backupOwnedFiles(backupDir);
@@ -53,9 +54,9 @@ try {
   run('git', ['checkout', '--detach', targetCommit], { cwd: upstreamDir, stdio: 'inherit' });
 
   const target = await readTargetMetadata(tag, targetCommit, previousLock.source);
-  target.cargoPatches = await resolveHopCargoPatches(previousLock.cargoPatches ?? {});
+  const pdfBackend = await readPdfBackend(await readFile(join(upstreamDir, 'Cargo.toml'), 'utf8'));
+  target.cargoPatches = await resolveHopCargoPatches(previousLock.cargoPatches ?? {}, pdfBackend);
   await syncHopCargoPatches(previousLock.cargoPatches ?? {}, target.cargoPatches);
-  await assertHopCargoPatches(target.cargoPatches);
 
   const installedWasmPackVersion = run('wasm-pack', ['--version']).replace(/^wasm-pack\s+/, '');
   if (
@@ -69,9 +70,9 @@ try {
     );
   }
   target.wasmPackVersion = installedWasmPackVersion;
-  await buildVendoredWasm();
-
+  // Resolve native compatibility before spending time on the release WASM build.
   await updateCargoLocks(previousLock.version, target.cargoPatches, target.rustToolchain);
+  await buildVendoredWasm(target.rustToolchain);
   await syncStudioAssets();
   const nextOverrideManifest = {
     ...previousOverrideManifest,
@@ -103,11 +104,13 @@ try {
     recoveryErrors.push(recoveryError);
   }
   if (recoveryErrors.length > 0) {
+    preserveBackup = true;
+    console.error(`Recovery incomplete; backup retained at ${backupDir}`);
     throw new AggregateError([error, ...recoveryErrors], 'rhwp update and recovery failed');
   }
   throw error;
 } finally {
-  await rm(backupDir, { recursive: true, force: true });
+  if (!preserveBackup) await rm(backupDir, { recursive: true, force: true });
 }
 
 async function assertSafeWorkingState() {
@@ -148,32 +151,22 @@ async function readTargetMetadata(targetTag, commit, source) {
   };
 }
 
-async function resolveHopCargoPatches(existing) {
+async function resolveHopCargoPatches(existing, pdfBackend) {
+  if (pdfBackend) {
+    const { svg2pdf: obsolete, ...remaining } = existing;
+    return remaining;
+  }
   const cargoToml = await readFile(join(upstreamDir, 'Cargo.toml'), 'utf8');
-  const upstreamCargoLock = await readFile(join(upstreamDir, 'Cargo.lock'), 'utf8').catch(() => '');
-  // Cargo patches are HOP-owned product policy. If upstream carries the same
-  // patch, follow its pinned source; otherwise retain HOP's reviewed pin.
-  if (!/^svg2pdf\s*=/m.test(tomlSection(cargoToml, 'patch.crates-io'))) return existing;
-  const path = tomlSection(cargoToml, 'patch.crates-io').match(/^svg2pdf\s*=\s*\{\s*path\s*=\s*"([^"]+)"\s*\}/m)?.[1];
-  if (path) return { ...existing, svg2pdf: await readPathCargoPatch('svg2pdf', path) };
+  // Legacy releases need a root patch; current releases own the vendor dependency.
+  const patch = parse(cargoToml).patch?.['crates-io']?.svg2pdf;
+  if (!patch) return existing;
+  if (patch.path) return { ...existing, svg2pdf: await readPathCargoPatch('svg2pdf', patch.path) };
+  const upstreamCargoLock = await readFile(join(upstreamDir, 'Cargo.lock'), 'utf8');
   const source = cargoLockPackageEntries(upstreamCargoLock, 'svg2pdf')
     .map((entry) => entry.source?.match(/^git\+([^?#]+)(?:\?[^#]*)?#([0-9a-f]{40})$/))
     .find(Boolean);
   if (!source?.[1] || !source[2]) throw new Error('upstream svg2pdf patch is not pinned in Cargo.lock');
   return { ...existing, svg2pdf: { git: source[1], rev: source[2] } };
-}
-
-async function assertHopCargoPatches(patches) {
-  for (const root of cargoRoots) {
-    const cargoToml = await readFile(join(root, 'Cargo.toml'), 'utf8');
-    const patchSection = tomlSection(cargoToml, 'patch.crates-io');
-    for (const [name, patch] of Object.entries(patches)) {
-      const expected = cargoPatchTomlPattern(name, patch, root);
-      if (!expected.test(patchSection)) {
-        throw new Error(`${basename(root)}/Cargo.toml ${name} must match the upstream patch contract`);
-      }
-    }
-  }
 }
 
 async function syncHopCargoPatches(previousPatches, nextPatches) {
@@ -184,12 +177,13 @@ async function syncHopCargoPatches(previousPatches, nextPatches) {
   }
 }
 
-async function buildVendoredWasm() {
+async function buildVendoredWasm(rustToolchain) {
   const outputDir = await mkdtemp(join(tmpdir(), 'hop-rhwp-wasm-'));
   try {
     run('wasm-pack', ['build', '--target', 'web', '--out-dir', outputDir, '--release'], {
       cwd: upstreamDir,
       stdio: 'inherit',
+      env: { RUSTUP_TOOLCHAIN: rustToolchain },
     });
     for (const name of vendoredArtifactNames) await access(join(outputDir, name));
     for (const entry of await readdir(vendorDir)) {

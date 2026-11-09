@@ -33,10 +33,6 @@ tempfile = "3"
 open = "5"
 usvg = "0.45"
 
-[patch.crates-io]
-# Use upstream's vendored svg2pdf fixes for deterministic ordering and PDF rendering.
-svg2pdf = { path = "../../../third_party/rhwp/vendor/svg2pdf" }
-
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSDocumentController"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSURL"] }

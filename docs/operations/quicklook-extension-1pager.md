@@ -29,7 +29,7 @@ Ship macOS 12+ Quick Look preview and thumbnail extensions inside the HOP app bu
 ## Implementation outline
 
 - Add a HOP-owned Rust FFI crate under `apps/desktop/quicklook/rust` that wraps `rhwp::DocumentCore` for PDF preview bytes, first-page PNG bytes, and embedded thumbnail bytes.
-- Build the preview Rust static library without `native-skia`; build the thumbnail static library with `native-skia` only where PNG rendering needs it.
+- Build one Rust static library with the adapter's `native-skia` dependency for both raster PDF previews and PNG thumbnails.
 - Add Swift Quick Look app extension sources under `apps/desktop/quicklook/Sources`.
 - Build `.appex` bundles from source with `scripts/build-quicklook-macos.mjs`; on non-macOS platforms the script is a no-op.
 - Stage built extensions under `apps/desktop/src-tauri/target/quicklook/PlugIns`.
@@ -38,7 +38,7 @@ Ship macOS 12+ Quick Look preview and thumbnail extensions inside the HOP app bu
 
 ## Verification plan
 
-- `cargo test --manifest-path apps/desktop/quicklook/rust/Cargo.toml --features native-skia`
+- `cargo test --manifest-path apps/desktop/quicklook/rust/Cargo.toml`
 - `pnpm run build:quicklook:macos`
 - `pnpm --filter hop-desktop tauri build --debug --bundles app`
 - Verify `HOP.app/Contents/PlugIns/HopQuickLookPreview.appex` and `HopQuickLookThumbnail.appex`.

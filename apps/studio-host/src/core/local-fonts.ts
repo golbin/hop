@@ -40,6 +40,7 @@ export type { LocalFontEntry } from './desktop-local-fonts';
 
 export const hasHostFontProvider = upstreamLocalFonts.hasHostFontProvider;
 export const getHostFontState = upstreamLocalFonts.getHostFontState;
+export const changedLocalFontNames = upstreamLocalFonts.changedLocalFontNames;
 
 export function resolveRendererLocalFont(name: string, style?: LocalFontStyleRequest): LocalFontRecord | null {
   return isDesktopTauriRuntime() && !hasHostFontProvider()

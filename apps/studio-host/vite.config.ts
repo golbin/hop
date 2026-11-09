@@ -69,6 +69,8 @@ export default defineConfig({
     alias: [
       ...createHopOverrides(hopSrc),
       { find: '@wasm/rhwp.js', replacement: rhwpWasmModule },
+      // Shared upstream workers import the package relative to rhwp-shared/pdf.
+      { find: '../../pkg/rhwp.js', replacement: rhwpWasmModule },
       { find: '@/upstream', replacement: resolve(hopSrc, 'upstream') },
       { find: '@upstream', replacement: upstreamSrc },
       { find: '@', replacement: upstreamSrc },

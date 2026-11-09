@@ -15,8 +15,7 @@ import {
   TableResizeRenderer,
 } from '@/upstream/editor';
 import { Toolbar } from '@/ui/toolbar';
-import { MODAL_DIALOG_CLOSED_EVENT } from '@/ui/dialog';
-import { CommandPalette, ContextMenu, MenuBar, initStyleToolbarOverflow } from '@/upstream/ui';
+import { CommandPalette, ContextMenu, MenuBar, MODAL_DIALOG_CLOSED_EVENT, initStyleToolbarOverflow } from '@/upstream/ui';
 import { loadWebFonts } from '@/core/font-loader';
 import { loadStoredLocalFonts } from '@/core/local-fonts';
 import { isSupportedDocumentPath } from '@/core/document-files';
@@ -529,6 +528,7 @@ async function initializeDocument(
 ): Promise<void> {
   const msg = sbMessage();
   try {
+    eventBus.emit('document-swapped');
     canvasView?.prepareDocumentLoad();
     if (docInfo.fontsUsed?.length) {
       await loadWebFonts(docInfo.fontsUsed, (loaded, total) => {

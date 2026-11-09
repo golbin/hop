@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import { parse } from 'smol-toml';
 import {
   artifactMetadata,
   assertStableTag,
@@ -14,13 +15,12 @@ import {
   parseRustToolchain,
   parseUpdateTag,
   repoRelativePath,
-  tomlSection,
   vendoredArtifactNames,
 } from '../scripts/lib/rhwp-upstream.mjs';
 
 import {
-  cargoLockHasPatchSource, cargoPatchPath, cargoPatchTomlPattern,
-  readPathCargoPatch, synchronizeCargoPatchToml,
+  cargoLockHasPatchSource, cargoPatchPath, cargoPatchDeclaration,
+  readPathCargoPatch, readPdfBackend, synchronizeCargoPatchToml,
 } from '../scripts/lib/rhwp-cargo-patches.mjs';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -52,18 +52,13 @@ test('normalizes supported Git remote spellings to one provenance source', () =>
 
 test('reads upstream Cargo and toolchain metadata without depending on formatting order', () => {
   assert.equal(parsePackageVersion('[package]\nname = "rhwp"\nversion = "1.2.3"\n'), '1.2.3');
+  assert.equal(parsePackageVersion("[package]\nversion = '1.2.3' # release\n"), '1.2.3');
   assert.equal(parsePackageVersion('[workspace.package]\nversion = "0.13.0"\n[package]\nname = "svg2pdf"\nversion = { workspace = true }\n'), '0.13.0');
   assert.equal(parseRustToolchain('[toolchain]\nprofile = "minimal"\nchannel = "1.93.1"\n'), '1.93.1');
   assert.equal(
     cargoLockPackageVersion('[[package]]\nname = "rhwp"\nversion = "0.7.19"\n', 'rhwp'),
     '0.7.19',
   );
-});
-
-test('reads only the requested TOML section', () => {
-  const toml = '[patch.crates-io]\nfoo = "one"\n\n[dependencies]\nsvg2pdf = "0.13"\n';
-  assert.equal(tomlSection(toml, 'patch.crates-io').trim(), 'foo = "one"');
-  assert.doesNotMatch(tomlSection(toml, 'patch.crates-io'), /svg2pdf/);
 });
 
 test('formats repository-relative paths for git pathspecs', () => {
@@ -84,32 +79,20 @@ test('computes artifact provenance from bytes', async () => {
   }
 });
 
-test('requires the exact Cargo patch repository and revision independent of TOML field order', () => {
-  const patch = {
-    git: 'https://github.com/planet6897/svg2pdf',
-    rev: '2caeb0a038f9128b79833d803b94c2667565c4da',
-  };
-  const tomlPattern = cargoPatchTomlPattern('svg2pdf', patch);
-  assert.match(
-    'svg2pdf = { rev = "2caeb0a038f9128b79833d803b94c2667565c4da", git = "https://github.com/planet6897/svg2pdf" }',
-    tomlPattern,
-  );
-  assert.doesNotMatch(
-    'svg2pdf = { git = "https://example.com/svg2pdf", rev = "2caeb0a038f9128b79833d803b94c2667565c4da" }',
-    tomlPattern,
-  );
-  assert.doesNotMatch(
-    '# svg2pdf = { git = "https://github.com/planet6897/svg2pdf", rev = "2caeb0a038f9128b79833d803b94c2667565c4da" }',
-    tomlPattern,
-  );
-  assert.equal(
-    cargoLockHasPatchSource(
-      '[[package]]\nname = "svg2pdf"\nversion = "0.13.0"\nsource = "git+https://github.com/planet6897/svg2pdf?rev=x#2caeb0a038f9128b79833d803b94c2667565c4da"',
-      'svg2pdf',
-      patch,
-    ),
-    true,
-  );
+test('requires the exact Cargo patch repository and revision independent of TOML formatting', () => {
+  const patch = { git: 'https://github.com/planet6897/svg2pdf', rev: '2caeb0a038f9128b79833d803b94c2667565c4da' };
+  const source = `[patch.crates-io.svg2pdf]
+rev = '${patch.rev}'
+git = '${patch.git}' # upstream source
+`;
+  assert.equal(synchronizeCargoPatchToml(source, { svg2pdf: patch }, { svg2pdf: patch }), source);
+  assert.throws(() => synchronizeCargoPatchToml(source.replace(patch.git, 'https://example.com/svg2pdf'),
+    { svg2pdf: patch }, {}), /does not match the current upstream contract/);
+  assert.throws(() => synchronizeCargoPatchToml('# no active patch\n', { svg2pdf: patch }, {}),
+    /does not match the current upstream contract/);
+  assert.equal(cargoLockHasPatchSource(
+    `[[package]]\nname = 'svg2pdf'\nversion = '0.13.0'\nsource = 'git+${patch.git}?rev=x#${patch.rev}'`,
+    'svg2pdf', patch), true);
 });
 
 test('synchronizes Cargo patch sources as one upstream contract transition', () => {
@@ -120,10 +103,8 @@ test('synchronizes Cargo patch sources as one upstream contract transition', () 
     svg2pdf: { git: 'https://github.com/new/svg2pdf', rev: '2222222222222222222222222222222222222222' },
   };
   const cargoToml = '[patch.crates-io]\nsvg2pdf = { rev = "1111111111111111111111111111111111111111", git = "https://github.com/old/svg2pdf" }\n';
-  assert.equal(
-    synchronizeCargoPatchToml(cargoToml, previous, next),
-    '[patch.crates-io]\nsvg2pdf = { git = "https://github.com/new/svg2pdf", rev = "2222222222222222222222222222222222222222" }\n',
-  );
+  assert.deepEqual({ ...parse(synchronizeCargoPatchToml(cargoToml, previous, next)).patch['crates-io'].svg2pdf },
+    cargoPatchDeclaration(next.svg2pdf));
   assert.throws(
     () => synchronizeCargoPatchToml(cargoToml, next, previous),
     /does not match the current upstream contract/,
@@ -137,14 +118,8 @@ test('synchronizes Cargo patch sources as one upstream contract transition', () 
     '',
   ].join('\n');
   const synchronized = synchronizeCargoPatchToml(dependencyAndPatch, previous, next);
-  assert.match(
-    tomlSection(synchronized, 'dependencies'),
-    /https:\/\/github\.com\/dependency\/svg2pdf/,
-  );
-  assert.match(
-    tomlSection(synchronized, 'patch.crates-io'),
-    /https:\/\/github\.com\/new\/svg2pdf/,
-  );
+  assert.deepEqual(parse(synchronized).dependencies, parse(dependencyAndPatch).dependencies);
+  assert.deepEqual({ ...parse(synchronized).patch['crates-io'].svg2pdf }, cargoPatchDeclaration(next.svg2pdf));
 });
 
 test('transitions both native graphs from Git to vendor path and back', () => {
@@ -154,8 +129,8 @@ test('transitions both native graphs from Git to vendor path and back', () => {
   for (const root of ['apps/desktop/src-tauri', 'apps/desktop/quicklook/rust']) {
     const cargoRoot = join(repoRoot, root);
     const updated = synchronizeCargoPatchToml(initial, previous, next, cargoRoot);
-    assert.match(updated, cargoPatchTomlPattern('svg2pdf', next.svg2pdf, cargoRoot));
-    assert.equal(synchronizeCargoPatchToml(updated, next, previous, cargoRoot), initial);
+    assert.deepEqual({ ...parse(updated).patch['crates-io'].svg2pdf }, cargoPatchDeclaration(next.svg2pdf, cargoRoot));
+    assert.deepEqual(parse(synchronizeCargoPatchToml(updated, next, previous, cargoRoot)), parse(initial));
     assert.equal(cargoPatchPath(next.svg2pdf, cargoRoot),
       (root.endsWith('src-tauri') ? '../../../' : '../../../../') + 'third_party/rhwp/vendor/svg2pdf');
   }
@@ -187,6 +162,12 @@ test('vendor contract requires tracked, clean source and refuses escaping direct
     }
     const before = await readPathCargoPatch('svg2pdf', 'vendor/svg2pdf', root);
     assert.deepEqual(before, { path: 'vendor/svg2pdf', version: '0.13.0' });
+    const declaration = `[target.'cfg(not(target_arch = "wasm32"))'.dependencies.svg2pdf]
+path = 'vendor/svg2pdf'
+version = '=0.13.0'
+`;
+    assert.deepEqual(await readPdfBackend(declaration, root), { package: 'svg2pdf', ...before });
+    await assert.rejects(readPdfBackend(declaration.replace('=0.13.0', '=0.14.0'), root), /pin its vendor version/);
     await writeFile(join(directory, 'lib.rs'), 'changed');
     await assert.rejects(readPathCargoPatch('svg2pdf', 'vendor/svg2pdf', root), /must be a clean part/);
     await writeFile(join(directory, 'lib.rs'), 'original');

@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-rhwp = { path = "../../../third_party/rhwp" }
+rhwp = { path = "../../../third_party/rhwp", default-features = false }
 
 [features]
 default = []

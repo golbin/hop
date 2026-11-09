@@ -4,6 +4,7 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { parse } from 'smol-toml';
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const studioRoot = join(repoRoot, 'apps/studio-host/src');
@@ -42,7 +43,9 @@ test('desktop product crates reach rhwp only through the shared Rust adapter', a
   assert.match(quickLookManifest, /hop-rhwp-adapter\s*=\s*\{/);
   assert.doesNotMatch(desktopManifest, /^rhwp\s*=/m);
   assert.doesNotMatch(quickLookManifest, /^rhwp\s*=/m);
-  assert.match(adapterManifest, /^rhwp\s*=\s*\{\s*path\s*=\s*"\.\.\/\.\.\/\.\.\/third_party\/rhwp"\s*\}/m);
+  assert.deepEqual({ ...parse(adapterManifest).dependencies.rhwp }, {
+    path: '../../../third_party/rhwp', 'default-features': false,
+  });
 
   const violations = [];
   for (const root of [
@@ -76,6 +79,16 @@ test('desktop keeps PDF policy thin and delegates searchable encoding to rhwp', 
   assert.match(tauriConfig, /NotoSansKR-Regular\.ttf/);
   assert.match(tauriConfig, /fonts\/pdf\/NotoSansKR-Regular\.ttf/);
   assert.match(pdfExport, /third_party\/rhwp\/ttfs\/opensource/);
+});
+
+test('Quick Look delegates PDF assembly through the same Rust adapter as desktop', async () => {
+  const manifest = parse(await readFile(join(repoRoot, 'apps/desktop/quicklook/rust/Cargo.toml'), 'utf8'));
+  for (const name of ['svg2pdf', 'pdf-writer', 'usvg']) {
+    assert.equal(manifest.dependencies[name], undefined, `Quick Look must not own ${name} encoding`);
+  }
+  assert.deepEqual(manifest.dependencies['hop-rhwp-adapter'].features, ['native-skia']);
+  const pdf = await readFile(join(repoRoot, 'apps/desktop/quicklook/rust/src/pdf.rs'), 'utf8');
+  assert.doesNotMatch(pdf, /pdf_writer::|svg2pdf::|usvg::/);
 });
 
 test('every Vite override is classified and points to an intentional HOP module', async () => {

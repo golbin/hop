@@ -16,8 +16,6 @@ run('cargo', [
   '--manifest-path',
   manifestPath,
   '--locked',
-  '--features',
-  'native-skia',
 ]);
 
 function run(command, args) {

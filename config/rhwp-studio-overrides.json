@@ -1,17 +1,16 @@
 {
   "schemaVersion": 1,
   "upstream": {
-    "version": "0.8.7",
-    "commit": "1a76570e833917d15817415a53c09ad61ab3203f",
+    "version": "0.9.0",
+    "commit": "c9095c5f67632e6721e800ccc7fb43ea49d26682",
     "counterparts": {
-      "core/font-loader": "64a7f5fa58f0aa4638ac0665875a02eb841e6225bf53b54a7e5d3aaca827cef1",
-      "core/local-fonts": "78228d2db58ea6467271bfe3bd5018ae7fb16b17480cc23f453cd0dc186fe1c8",
-      "command/shortcut-map": "a5c28535469c3d076dfe45f7ccf783a5227b48f1600c67b993823f2e1caf5ad8",
-      "command/commands/edit": "30a4708bd9b688c0d91104c3a3fdb41409c3adf07be82f1066e48c991deb5ec6",
-      "command/commands/file": "9fb77378cdf84564579b13348b0d99f59874560666a983b2e0d7fa782baf91d9",
+      "core/font-loader": "3c503a5328954fb1fdf2fbc1649e75b920c3252e9212c978053aa55087a66814",
+      "core/local-fonts": "37f51713e87eece3bcee9fc63e683dfbc09b970dd114850fcf23a961cf726e39",
+      "command/shortcut-map": "79717567371e1de04d84b247089419a1f0210492c6c3323e24888b6b6b2f4593",
+      "command/commands/edit": "ba96c46b1d8d0a38397de3c6f63ecf36473c8752d1c79dd6e9c5509791dbde3e",
+      "command/commands/file": "c38806f48d907b55f64a0e1dec59ed163ac8941329b2f8ae98d02e18a3fe0185",
       "ui/about-dialog": "fb42625816fe8bbaac2de2c7e8b8044fa592374a89c3e312ce2cb76b58cf8d63",
-      "ui/dialog": "f45b9c7b5980e70bc6cd97ecf7c7c671441a16ad7d67638b1987e7bb8c7a2175",
-      "ui/toolbar": "f80b61e04ddd36d64d08a4f06c364fbef174400e2ecec7186c4ae145bb3d4bb9"
+      "ui/toolbar": "c002d7d96f9dde577328f476ff9d23ebe436a33cf38602dc6ac6795896987467"
     },
     "assets": {
       "public/images/icon_small_ko_dark.svg": "9d02ea0b8c1d399a89290d97613759826f19f3e3f392b6d79dcf6109e7e15fa6"
@@ -87,11 +86,6 @@
       "id": "ui/custom-select",
       "strategy": "contribution",
       "reason": "Provides HOP desktop select styling and interaction."
-    },
-    {
-      "id": "ui/dialog",
-      "strategy": "fork",
-      "reason": "Preserves HOP modal focus and desktop interaction behavior."
     },
     {
       "id": "ui/home-screen",

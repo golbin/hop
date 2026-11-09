@@ -23,5 +23,8 @@
   },
   "dependencies": {
     "@noble/hashes": "^2.4.0"
+  },
+  "devDependencies": {
+    "smol-toml": "^1.9.1"
   }
 }
