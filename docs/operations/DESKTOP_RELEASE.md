@@ -47,7 +47,8 @@ pnpm --filter hop-desktop tauri build --debug --bundles app
 
 플랫폼 GUI에서는 복사한 sample로 열기·편집·저장·재열기, HWPX 열기, PDF·인쇄 진입,
 미저장 guard, 다중 창, drag/drop과 변경된 UI를 확인한다. native 색 선택은 OS마다
-확정 이벤트 순서가 다르므로 팔레트 바깥 클릭과 취소도 확인한다. 실제 수행한 OS·경로를
+확정 방식이 다르다. Windows에서는 Enter 확정과 바깥 클릭 취소를, GTK에서는 선택창을
+닫기 전 연속 색 변경도 확인한다. 실제 수행한 OS·경로를
 기록하고, 자동 테스트나 다른 OS의 성공을 실물 인쇄·IME·문서 호환성 검증으로 대체하지 않는다.
 
 ## Workflow 입력과 플랫폼

@@ -132,8 +132,8 @@ export function setupColorPicker(
   // Native choosers may commit several changes while their window stays open.
   // Ignore previews and repeated values, not later distinct commits.
   picker.addEventListener('change', () => {
-    // WebView2 commits after the outside click has already closed the palette.
-    // Scope the native result to its document, not the palette's visibility.
+    // Native choosers outlive the toolbar popup. Scope committed results to
+    // their document, not the palette's visibility.
     if (nativeChoice && nativeChoice.documentVersion === options.documentVersion?.()
       && nativeChoice.color !== picker.value) {
       applyColor(picker.value);
