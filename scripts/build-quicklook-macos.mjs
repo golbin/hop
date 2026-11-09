@@ -11,7 +11,7 @@ const ffiHeader = join(quicklookRoot, 'Sources/Shared/HopQuickLookFFI.h');
 const tauriTargetRoot = join(repoRoot, 'apps/desktop/src-tauri/target');
 const stagingRoot = join(tauriTargetRoot, 'quicklook');
 const plugInsDir = join(stagingRoot, 'PlugIns');
-const libDir = join(stagingRoot, 'lib');
+const libDir = join(stagingRoot, 'Frameworks');
 
 if (process.platform !== 'darwin') {
   console.log('[quicklook] non-macOS platform; skipping Quick Look extension build');
@@ -23,19 +23,19 @@ const swiftTarget = target === 'x86_64-apple-darwin'
   ? 'x86_64-apple-macosx12.0'
   : 'aarch64-apple-macosx12.0';
 const releaseDir = join(rustRoot, 'target', target, 'release');
-const staticLib = join(releaseDir, 'libhop_quicklook_ffi.a');
-const stagedStaticLib = join(libDir, 'libhop_quicklook_ffi.a');
+const sharedLib = join(releaseDir, 'libhop_quicklook_ffi.dylib');
+const stagedSharedLib = join(libDir, 'libhop_quicklook_ffi.dylib');
 
 rmSync(stagingRoot, { recursive: true, force: true });
 mkdirSync(plugInsDir, { recursive: true });
 mkdirSync(libDir, { recursive: true });
 
-buildRustStaticLibrary(stagedStaticLib);
+buildRustSharedLibrary(stagedSharedLib);
 
 buildExtension({
   moduleName: 'HopQuickLookPreview',
   appexName: 'HopQuickLookPreview.appex',
-  staticLib: stagedStaticLib,
+  sharedLib: stagedSharedLib,
   infoPlist: join(quicklookRoot, 'Resources/Preview/Info.plist'),
   sources: [
     join(quicklookRoot, 'Sources/Shared/HopQuickLookFFI.swift'),
@@ -55,7 +55,7 @@ buildExtension({
 buildExtension({
   moduleName: 'HopQuickLookThumbnail',
   appexName: 'HopQuickLookThumbnail.appex',
-  staticLib: stagedStaticLib,
+  sharedLib: stagedSharedLib,
   infoPlist: join(quicklookRoot, 'Resources/Thumbnail/Info.plist'),
   sources: [
     join(quicklookRoot, 'Sources/Shared/HopQuickLookFFI.swift'),
@@ -75,7 +75,7 @@ buildExtension({
 
 console.log(`[quicklook] staged extensions in ${plugInsDir}`);
 
-function buildRustStaticLibrary(output) {
+function buildRustSharedLibrary(output) {
   const args = [
     'build',
     '--manifest-path',
@@ -87,13 +87,16 @@ function buildRustStaticLibrary(output) {
   ];
   run('cargo', args);
 
-  if (!existsSync(staticLib)) {
-    throw new Error(`Quick Look Rust static library was not produced: ${staticLib}`);
+  if (!existsSync(sharedLib)) {
+    throw new Error(`Quick Look Rust shared library was not produced: ${sharedLib}`);
   }
-  copyFileSync(staticLib, output);
+  copyFileSync(sharedLib, output);
+  run('xcrun', ['install_name_tool', '-id', '@rpath/libhop_quicklook_ffi.dylib', output]);
+  run('xcrun', ['strip', '-S', '-x', output]);
+  sign(output);
 }
 
-function buildExtension({ moduleName, appexName, staticLib, infoPlist, sources, frameworks }) {
+function buildExtension({ moduleName, appexName, sharedLib, infoPlist, sources, frameworks }) {
   const appexDir = join(plugInsDir, appexName);
   const contentsDir = join(appexDir, 'Contents');
   const macosDir = join(contentsDir, 'MacOS');
@@ -101,6 +104,36 @@ function buildExtension({ moduleName, appexName, staticLib, infoPlist, sources, 
   cpSync(infoPlist, join(contentsDir, 'Info.plist'));
 
   const output = join(macosDir, moduleName);
+  linkSwift({ moduleName, sources, sharedLib, frameworks, output, entry: '_NSExtensionMain' });
+
+  // Exercise the same optimized Swift/Rust link, including dynamic class lookup.
+  // Cross-compiled extensions are exercised by their native CI runner instead.
+  if (target === defaultMacTarget()) {
+    const smoke = join(macosDir, `${moduleName}-smoke`);
+    linkSwift({
+      moduleName, sharedLib, frameworks, output: smoke, entry: '_main',
+      sources: [...sources, join(quicklookRoot, 'Tests/LinkSmoke.swift')],
+      defines: moduleName === 'HopQuickLookPreview' ? ['HOP_PREVIEW'] : [],
+    });
+    sign(smoke);
+    run(smoke, [join(repoRoot, 'third_party/rhwp/samples/text-align-2.hwp')]);
+    rmSync(smoke);
+  }
+
+  sign(appexDir, ['--entitlements', join(quicklookRoot, 'Resources/Extension.entitlements')]);
+}
+
+function sign(path, extraArgs = []) {
+  const identity = process.env.APPLE_SIGNING_IDENTITY || '-';
+  const timestampArgs = identity === '-' ? ['--timestamp=none'] : ['--timestamp'];
+  run('codesign', [
+    '--force', '--sign', identity, ...timestampArgs,
+    // Ad-hoc development signatures have no Team ID for library validation.
+    ...(identity === '-' ? [] : ['--options', 'runtime']), ...extraArgs, path,
+  ]);
+}
+
+function linkSwift({ moduleName, sources, sharedLib, frameworks, output, entry, defines = [] }) {
   const swiftArgs = [
     '-target',
     swiftTarget,
@@ -110,34 +143,25 @@ function buildExtension({ moduleName, appexName, staticLib, infoPlist, sources, 
     '-emit-executable',
     '-module-name',
     moduleName,
+    ...defines.flatMap((define) => ['-D', define]),
     '-import-objc-header',
     ffiHeader,
     '-o',
     output,
     ...sources,
-    staticLib,
+    sharedLib,
+    '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../../../../Frameworks',
+    '-Xlinker',
+    '-dead_strip',
     '-Xlinker',
     '-e',
     '-Xlinker',
-    '_NSExtensionMain',
+    entry,
     ...frameworks.flatMap((framework) => ['-framework', framework]),
   ];
   run('xcrun', ['swiftc', ...swiftArgs]);
-
-  const entitlements = join(quicklookRoot, 'Resources/Extension.entitlements');
-  const identity = process.env.APPLE_SIGNING_IDENTITY || '-';
-  const timestampArgs = identity === '-' ? ['--timestamp=none'] : ['--timestamp'];
-  run('codesign', [
-    '--force',
-    '--sign',
-    identity,
-    ...timestampArgs,
-    '--options',
-    'runtime',
-    '--entitlements',
-    entitlements,
-    appexDir,
-  ]);
+  // Strip local/debug symbols before signing, preserving dynamic exports.
+  run('xcrun', ['strip', '-S', '-x', output]);
 }
 
 function defaultMacTarget() {

@@ -6,9 +6,12 @@ publish = false
 
 [lib]
 name = "hop_quicklook_ffi"
-crate-type = ["staticlib", "rlib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 base64 = "0.22"
 hop-rhwp-adapter = { path = "../../rhwp-adapter", features = ["native-skia"] }
 serde_json = "1"
+
+[profile.release]
+lto = "thin"

@@ -24,6 +24,7 @@ import {
   studioMirroredAssetPaths,
   vendoredArtifactNames,
   vendorDir,
+  wasmFeatures,
   writeJson,
   buildProvenance,
 } from './lib/rhwp-upstream.mjs';
@@ -180,7 +181,8 @@ async function syncHopCargoPatches(previousPatches, nextPatches) {
 async function buildVendoredWasm(rustToolchain) {
   const outputDir = await mkdtemp(join(tmpdir(), 'hop-rhwp-wasm-'));
   try {
-    run('wasm-pack', ['build', '--target', 'web', '--out-dir', outputDir, '--release'], {
+    run('wasm-pack', ['build', '--target', 'web', '--out-dir', outputDir, '--release',
+      '--no-default-features', '--features', wasmFeatures.join(',')], {
       cwd: upstreamDir,
       stdio: 'inherit',
       env: { RUSTUP_TOOLCHAIN: rustToolchain },

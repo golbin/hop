@@ -99,7 +99,9 @@ WASM 재생성은 생략할 수 없다. Cargo patch는 HOP 제품 정책으로 �
 때에만 그 고정 Git source/revision 또는 vendor path로 두 native graph를 함께 전환한다.
 현재 PDF backend는 upstream manifest의 `rhwp-svg2pdf` vendor 의존성을 사용한다.
 과거 `svg2pdf` registry patch와 중복 PDF 조립기는 유지하지 않는다. native adapter는 기본
-feature를 끄며 Quick Look만 `native-skia`를 명시한다. WASM은 upstream 기본 생성 방식을 따른다.
+feature를 끄며 Quick Look만 `native-skia`를 명시한다. WASM도 기본 feature를 끄고
+`console_error_panic_hook,wasm-api`만 사용한다. HOP가 지원하지 않는 PDF 가져오기와 전용
+디코더를 포함하지 않으며 PDF 내보내기는 유지한다. 선택한 feature는 provenance에 기록한다.
 
 ```sh
 pnpm upstream:verify
@@ -116,7 +118,7 @@ UPSTREAM_REF=vX.Y.Z scripts/update-upstream.sh
 `apps/studio-host/vendor/rhwp-core`에 반영한다. 수동 복구가 필요할 때만 다음 명령을 사용한다.
 
 ```sh
-(cd third_party/rhwp && wasm-pack build --target web --out-dir ../../apps/studio-host/vendor/rhwp-core --release)
+(cd third_party/rhwp && wasm-pack build --target web --out-dir ../../apps/studio-host/vendor/rhwp-core --release --no-default-features --features console_error_panic_hook,wasm-api)
 ```
 
 업데이트 후에는 다음을 확인한다.

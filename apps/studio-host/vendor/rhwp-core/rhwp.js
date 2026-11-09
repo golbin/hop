@@ -13701,265 +13701,6 @@ export class HwpViewer {
 if (Symbol.dispose) HwpViewer.prototype[Symbol.dispose] = HwpViewer.prototype.free;
 
 /**
- * A generated editor handoff has its own finite remaining-credit scope. Once
- * taken, the ordinary document and lazy assets own an independent lifetime.
- */
-export class PdfEditorReopen {
-    static __wrap(ptr) {
-        const obj = Object.create(PdfEditorReopen.prototype);
-        obj.__wbg_ptr = ptr;
-        PdfEditorReopenFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        PdfEditorReopenFinalization.unregister(this);
-        return ptr;
-    }
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_pdfeditorreopen_free(ptr, 0);
-    }
-    /**
-     * @param {any} data
-     * @param {any} options
-     * @param {number} maximum
-     * @param {number} remaining
-     * @param {number} timeout_ms
-     * @returns {PdfEditorReopen}
-     */
-    static open(data, options, maximum, remaining, timeout_ms) {
-        const ret = wasm.pdfeditorreopen_open(data, options, maximum, remaining, timeout_ms);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return PdfEditorReopen.__wrap(ret[0]);
-    }
-    /**
-     * @returns {string}
-     */
-    resourceUsage() {
-        let deferred1_0;
-        let deferred1_1;
-        try {
-            const ret = wasm.pdfeditorreopen_resourceUsage(this.__wbg_ptr);
-            deferred1_0 = ret[0];
-            deferred1_1 = ret[1];
-            return getStringFromWasm0(ret[0], ret[1]);
-        } finally {
-            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-        }
-    }
-    /**
-     * @returns {HwpDocument}
-     */
-    takeDocument() {
-        const ret = wasm.pdfeditorreopen_takeDocument(this.__wbg_ptr);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return HwpDocument.__wrap(ret[0]);
-    }
-}
-if (Symbol.dispose) PdfEditorReopen.prototype[Symbol.dispose] = PdfEditorReopen.prototype.free;
-
-export class PdfImportRequest {
-    static __wrap(ptr) {
-        const obj = Object.create(PdfImportRequest.prototype);
-        obj.__wbg_ptr = ptr;
-        PdfImportRequestFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        PdfImportRequestFinalization.unregister(this);
-        return ptr;
-    }
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_pdfimportrequest_free(ptr, 0);
-    }
-    /**
-     * @param {string} format
-     * @param {number} maximum
-     * @returns {Uint8Array}
-     */
-    exportDocument(format, maximum) {
-        const ptr0 = passStringToWasm0(format, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.pdfimportrequest_exportDocument(this.__wbg_ptr, ptr0, len0, maximum);
-        if (ret[3]) {
-            throw takeFromExternrefTable0(ret[2]);
-        }
-        var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        return v2;
-    }
-    /**
-     * @returns {string}
-     */
-    getTransferLimits() {
-        let deferred1_0;
-        let deferred1_1;
-        try {
-            const ret = wasm.pdfimportrequest_getTransferLimits(this.__wbg_ptr);
-            deferred1_0 = ret[0];
-            deferred1_1 = ret[1];
-            return getStringFromWasm0(ret[0], ret[1]);
-        } finally {
-            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-        }
-    }
-    /**
-     * @param {any} data
-     * @param {any} options
-     * @returns {PdfImportRequest}
-     */
-    static importPdf(data, options) {
-        const ret = wasm.pdfimportrequest_importPdf(data, options);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return PdfImportRequest.__wrap(ret[0]);
-    }
-    /**
-     * @returns {string}
-     */
-    inspect() {
-        let deferred2_0;
-        let deferred2_1;
-        try {
-            const ret = wasm.pdfimportrequest_inspect(this.__wbg_ptr);
-            var ptr1 = ret[0];
-            var len1 = ret[1];
-            if (ret[3]) {
-                ptr1 = 0; len1 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred2_0 = ptr1;
-            deferred2_1 = len1;
-            return getStringFromWasm0(ptr1, len1);
-        } finally {
-            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
-        }
-    }
-    /**
-     * @param {any} data
-     */
-    open(data) {
-        const ret = wasm.pdfimportrequest_open(this.__wbg_ptr, data);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
-     * Notify the Worker synchronously at actual page boundaries, without polling.
-     * @param {any} data
-     * @param {Function | null} [progress]
-     */
-    openWithProgress(data, progress) {
-        const ret = wasm.pdfimportrequest_openWithProgress(this.__wbg_ptr, data, isLikeNone(progress) ? 0 : addToExternrefTable0(progress));
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
-     * @returns {number}
-     */
-    pageCount() {
-        const ret = wasm.pdfimportrequest_pageCount(this.__wbg_ptr);
-        return ret >>> 0;
-    }
-    /**
-     * Construct the request before its owner makes the private transfer copy.
-     * @param {any} options
-     * @returns {PdfImportRequest}
-     */
-    static prepare(options) {
-        const ret = wasm.pdfimportrequest_prepare(options);
-        if (ret[2]) {
-            throw takeFromExternrefTable0(ret[1]);
-        }
-        return PdfImportRequest.__wrap(ret[0]);
-    }
-    /**
-     * @returns {number}
-     */
-    remainingDecodedBytes() {
-        const ret = wasm.pdfimportrequest_remainingDecodedBytes(this.__wbg_ptr);
-        return ret;
-    }
-    /**
-     * @param {number} page
-     * @returns {string}
-     */
-    renderPageSvg(page) {
-        let deferred2_0;
-        let deferred2_1;
-        try {
-            const ret = wasm.pdfimportrequest_renderPageSvg(this.__wbg_ptr, page);
-            var ptr1 = ret[0];
-            var len1 = ret[1];
-            if (ret[3]) {
-                ptr1 = 0; len1 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred2_0 = ptr1;
-            deferred2_1 = len1;
-            return getStringFromWasm0(ptr1, len1);
-        } finally {
-            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
-        }
-    }
-    /**
-     * @param {number} page
-     * @param {number} maximum
-     * @returns {string}
-     */
-    renderPageSvgLimited(page, maximum) {
-        let deferred2_0;
-        let deferred2_1;
-        try {
-            const ret = wasm.pdfimportrequest_renderPageSvgLimited(this.__wbg_ptr, page, maximum);
-            var ptr1 = ret[0];
-            var len1 = ret[1];
-            if (ret[3]) {
-                ptr1 = 0; len1 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred2_0 = ptr1;
-            deferred2_1 = len1;
-            return getStringFromWasm0(ptr1, len1);
-        } finally {
-            wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
-        }
-    }
-    /**
-     * @param {number} length
-     */
-    reserveInput(length) {
-        const ret = wasm.pdfimportrequest_reserveInput(this.__wbg_ptr, length);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-    /**
-     * Count and reserve response backing before allocation, using the same
-     * cumulative request as parsing, Core construction and first serialization.
-     * @param {number} bytes
-     */
-    reserveResponseCopy(bytes) {
-        const ret = wasm.pdfimportrequest_reserveResponseCopy(this.__wbg_ptr, bytes);
-        if (ret[1]) {
-            throw takeFromExternrefTable0(ret[0]);
-        }
-    }
-}
-if (Symbol.dispose) PdfImportRequest.prototype[Symbol.dispose] = PdfImportRequest.prototype.free;
-
-/**
  * HWP 파일에서 썸네일 이미지만 경량 추출 (전체 파싱 없이)
  *
  * 반환: JSON `{ "format": "png"|"gif", "base64": "...", "width": N, "height": N }`
@@ -14238,22 +13979,12 @@ export function version() {
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg___wbindgen_boolean_get_c9c83ebd41b34df3: function(arg0) {
-            const v = arg0;
-            const ret = typeof(v) === 'boolean' ? v : undefined;
-            return isLikeNone(ret) ? 0xFFFFFF : ret ? 1 : 0;
-        },
         __wbg___wbindgen_is_function_5e4570eb24ffa122: function(arg0) {
             const ret = typeof(arg0) === 'function';
             return ret;
         },
         __wbg___wbindgen_is_null_7d13f41e1a2d5140: function(arg0) {
             const ret = arg0 === null;
-            return ret;
-        },
-        __wbg___wbindgen_is_object_a2790eb24c211ea0: function(arg0) {
-            const val = arg0;
-            const ret = typeof(val) === 'object' && val !== null;
             return ret;
         },
         __wbg___wbindgen_is_string_e6f02f0ea5f20a32: function(arg0) {
@@ -14263,12 +13994,6 @@ function __wbg_get_imports() {
         __wbg___wbindgen_is_undefined_6cff064c44e0d823: function(arg0) {
             const ret = arg0 === undefined;
             return ret;
-        },
-        __wbg___wbindgen_number_get_136b9679cab35cfb: function(arg0, arg1) {
-            const obj = arg1;
-            const ret = typeof(obj) === 'number' ? obj : undefined;
-            getDataViewMemory0().setFloat64(arg0 + 8 * 1, isLikeNone(ret) ? 0 : ret, true);
-            getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
         },
         __wbg___wbindgen_string_get_d154f1e671052120: function(arg0, arg1) {
             const obj = arg1;
@@ -14316,16 +14041,8 @@ function __wbg_get_imports() {
             const ret = arg0.c;
             return ret;
         },
-        __wbg_call_1c5886ab9c57d1c7: function() { return handleError(function (arg0, arg1) {
-            const ret = arg0.call(arg1);
-            return ret;
-        }, arguments); },
         __wbg_call_35dba3c747ad7521: function() { return handleError(function (arg0, arg1, arg2) {
             const ret = arg0.call(arg1, arg2);
-            return ret;
-        }, arguments); },
-        __wbg_call_85c2616c93afb65b: function() { return handleError(function (arg0, arg1, arg2, arg3, arg4, arg5) {
-            const ret = arg0.call(arg1, arg2, arg3, arg4, arg5);
             return ret;
         }, arguments); },
         __wbg_clearRect_81c3c80fbe793b63: function(arg0, arg1, arg2, arg3, arg4) {
@@ -14443,14 +14160,6 @@ function __wbg_get_imports() {
             const ret = arg0.getImageData(arg1, arg2, arg3, arg4);
             return ret;
         }, arguments); },
-        __wbg_getPrototypeOf_28594fd8c494d87a: function(arg0) {
-            const ret = Object.getPrototypeOf(arg0);
-            return ret;
-        },
-        __wbg_getPrototypeOf_55a24d07487f0509: function() { return handleError(function (arg0) {
-            const ret = Reflect.getPrototypeOf(arg0);
-            return ret;
-        }, arguments); },
         __wbg_getRandomValues_436a51d0629d84e1: function() { return handleError(function (arg0, arg1) {
             globalThis.crypto.getRandomValues(getArrayU8FromWasm0(arg0, arg1));
         }, arguments); },
@@ -14534,15 +14243,7 @@ function __wbg_get_imports() {
             const ret = Array.isArray(arg0);
             return ret;
         },
-        __wbg_is_86be747e88e872fb: function(arg0, arg1) {
-            const ret = Object.is(arg0, arg1);
-            return ret;
-        },
         __wbg_length_36bd29c6848c2144: function(arg0) {
-            const ret = arg0.length;
-            return ret;
-        },
-        __wbg_length_7afd83ae4ddf324f: function(arg0) {
             const ret = arg0.length;
             return ret;
         },
@@ -14627,10 +14328,6 @@ function __wbg_get_imports() {
             const ret = Array.of(arg0, arg1);
             return ret;
         },
-        __wbg_ownKeys_49880e0197268893: function() { return handleError(function (arg0) {
-            const ret = Reflect.ownKeys(arg0);
-            return ret;
-        }, arguments); },
         __wbg_parse_1cc93481b0865939: function() { return handleError(function (arg0, arg1) {
             const ret = JSON.parse(getStringFromWasm0(arg0, arg1));
             return ret;
@@ -14827,12 +14524,6 @@ const HwpDocumentFinalization = (typeof FinalizationRegistry === 'undefined')
 const HwpViewerFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_hwpviewer_free(ptr, 1));
-const PdfEditorReopenFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_pdfeditorreopen_free(ptr, 1));
-const PdfImportRequestFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_pdfimportrequest_free(ptr, 1));
 
 function addToExternrefTable0(obj) {
     const idx = wasm.__externref_table_alloc();

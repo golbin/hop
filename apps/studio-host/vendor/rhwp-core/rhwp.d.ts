@@ -2928,48 +2928,6 @@ export class HwpViewer {
 }
 
 /**
- * A generated editor handoff has its own finite remaining-credit scope. Once
- * taken, the ordinary document and lazy assets own an independent lifetime.
- */
-export class PdfEditorReopen {
-    private constructor();
-    free(): void;
-    [Symbol.dispose](): void;
-    static open(data: any, options: any, maximum: number, remaining: number, timeout_ms: number): PdfEditorReopen;
-    resourceUsage(): string;
-    takeDocument(): HwpDocument;
-}
-
-export class PdfImportRequest {
-    private constructor();
-    free(): void;
-    [Symbol.dispose](): void;
-    exportDocument(format: string, maximum: number): Uint8Array;
-    getTransferLimits(): string;
-    static importPdf(data: any, options: any): PdfImportRequest;
-    inspect(): string;
-    open(data: any): void;
-    /**
-     * Notify the Worker synchronously at actual page boundaries, without polling.
-     */
-    openWithProgress(data: any, progress?: Function | null): void;
-    pageCount(): number;
-    /**
-     * Construct the request before its owner makes the private transfer copy.
-     */
-    static prepare(options: any): PdfImportRequest;
-    remainingDecodedBytes(): number;
-    renderPageSvg(page: number): string;
-    renderPageSvgLimited(page: number, maximum: number): string;
-    reserveInput(length: number): void;
-    /**
-     * Count and reserve response backing before allocation, using the same
-     * cumulative request as parsing, Core construction and first serialization.
-     */
-    reserveResponseCopy(bytes: number): void;
-}
-
-/**
  * HWP 파일에서 썸네일 이미지만 경량 추출 (전체 파싱 없이)
  *
  * 반환: JSON `{ "format": "png"|"gif", "base64": "...", "width": N, "height": N }`
@@ -3033,8 +2991,6 @@ export interface InitOutput {
     readonly __wbg_documentexport_free: (a: number, b: number) => void;
     readonly __wbg_hwpdocument_free: (a: number, b: number) => void;
     readonly __wbg_hwpviewer_free: (a: number, b: number) => void;
-    readonly __wbg_pdfeditorreopen_free: (a: number, b: number) => void;
-    readonly __wbg_pdfimportrequest_free: (a: number, b: number) => void;
     readonly documentexport_contentLoss: (a: number) => [number, number];
     readonly documentexport_hasBytes: (a: number) => number;
     readonly documentexport_takeBytes: (a: number) => [number, number, number, number];
@@ -3619,22 +3575,6 @@ export interface InitOutput {
     readonly mapPrintBitmapClip: (a: number, b: number, c: number, d: number) => any;
     readonly mapPrintBitmapImage: (a: number, b: number, c: number, d: number) => any;
     readonly mapPrintRectangleFill: (a: number, b: number, c: number, d: number) => any;
-    readonly pdfeditorreopen_open: (a: any, b: any, c: number, d: number, e: number) => [number, number, number];
-    readonly pdfeditorreopen_resourceUsage: (a: number) => [number, number];
-    readonly pdfeditorreopen_takeDocument: (a: number) => [number, number, number];
-    readonly pdfimportrequest_exportDocument: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-    readonly pdfimportrequest_getTransferLimits: (a: number) => [number, number];
-    readonly pdfimportrequest_importPdf: (a: any, b: any) => [number, number, number];
-    readonly pdfimportrequest_inspect: (a: number) => [number, number, number, number];
-    readonly pdfimportrequest_open: (a: number, b: any) => [number, number];
-    readonly pdfimportrequest_openWithProgress: (a: number, b: any, c: number) => [number, number];
-    readonly pdfimportrequest_pageCount: (a: number) => number;
-    readonly pdfimportrequest_prepare: (a: any) => [number, number, number];
-    readonly pdfimportrequest_remainingDecodedBytes: (a: number) => number;
-    readonly pdfimportrequest_renderPageSvg: (a: number, b: number) => [number, number, number, number];
-    readonly pdfimportrequest_renderPageSvgLimited: (a: number, b: number, c: number) => [number, number, number, number];
-    readonly pdfimportrequest_reserveInput: (a: number, b: number) => [number, number];
-    readonly pdfimportrequest_reserveResponseCopy: (a: number, b: number) => [number, number];
     readonly prepareBitmapRaster: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => any;
     readonly prepareStaticSvgRaster: (a: number, b: number, c: number, d: number) => any;
     readonly printPicturePenWidth: (a: number, b: number, c: number, d: number) => [number, number];
@@ -3647,19 +3587,6 @@ export interface InitOutput {
     readonly init_panic_hook: () => void;
     readonly hwpviewer_pageCount: (a: number) => number;
     readonly hwpviewer_setAnnotateMetricFont: (a: number, b: number) => void;
-    readonly lut_inverse_interp16: (a: number, b: number, c: number) => number;
-    readonly qcms_profile_precache_output_transform: (a: number) => void;
-    readonly lut_interp_linear16: (a: number, b: number, c: number) => number;
-    readonly qcms_enable_iccv4: () => void;
-    readonly qcms_profile_is_bogus: (a: number) => number;
-    readonly qcms_transform_data_bgra_out_lut: (a: number, b: number, c: number, d: number) => void;
-    readonly qcms_transform_data_bgra_out_lut_precache: (a: number, b: number, c: number, d: number) => void;
-    readonly qcms_transform_data_rgb_out_lut: (a: number, b: number, c: number, d: number) => void;
-    readonly qcms_transform_data_rgb_out_lut_precache: (a: number, b: number, c: number, d: number) => void;
-    readonly qcms_transform_data_rgba_out_lut: (a: number, b: number, c: number, d: number) => void;
-    readonly qcms_transform_data_rgba_out_lut_precache: (a: number, b: number, c: number, d: number) => void;
-    readonly qcms_transform_release: (a: number) => void;
-    readonly qcms_white_point_sRGB: (a: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_exn_store: (a: number) => void;
