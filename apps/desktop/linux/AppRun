@@ -29,6 +29,10 @@ hop_remove_bundle_paths() {
 if [[ -n "$hop_bundle_prefix" ]]; then
   case "${GTK_EXE_PREFIX-}" in
     "$hop_bundle_prefix"/usr|"$hop_bundle_prefix"//usr)
+      # A retiring bundle must not remain cwd. Keep normal caller directories.
+      case "$(pwd -P 2>/dev/null || true)" in
+        ""|"$hop_bundle_prefix"|"$hop_bundle_prefix"/*) cd "$HOME" ;;
+      esac
       for hop_variable in PATH LD_LIBRARY_PATH XDG_DATA_DIRS \
         GTK_DATA_PREFIX GTK_EXE_PREFIX GTK_PATH GTK_IM_MODULE_FILE \
         GSETTINGS_SCHEMA_DIR GI_TYPELIB_PATH GDK_PIXBUF_MODULE_FILE \
