@@ -2105,7 +2105,7 @@ dependencies = [
 
 [[package]]
 name = "hop-desktop"
-version = "0.4.5"
+version = "0.4.6"
 dependencies = [
  "hop-rhwp-adapter",
  "objc2-app-kit",
