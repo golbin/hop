@@ -70,10 +70,10 @@ function enhanceCustomSelect(select: HTMLSelectElement): void {
   const commit = (option: HTMLOptionElement) => {
     if (option.disabled) return;
     select.value = option.value;
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-    sync();
     popup.close();
     trigger.focus();
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    sync();
   };
 
   const rebuildMenu = () => {

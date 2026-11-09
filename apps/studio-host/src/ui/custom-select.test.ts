@@ -374,6 +374,20 @@ describe('custom-select', () => {
     expect(root.querySelector('.custom-select-menu')!.hidden).toBe(true);
   });
 
+  it('lets the change handler restore editor focus after a selection', () => {
+    const container = new FakeElement('div');
+    const select = createFakeSelect('sb-ls-select', ['160%', '200%']);
+    container.appendChild(select);
+    enhanceCustomSelects(container as unknown as ParentNode);
+    const root = getCustomSelectRoot(select as unknown as HTMLSelectElement) as unknown as FakeElement;
+    const trigger = root.querySelector('.custom-select-trigger')!;
+    let focused = 'editor';
+    vi.spyOn(trigger, 'focus').mockImplementation(() => { focused = 'trigger'; });
+    select.addEventListener('change', () => { focused = 'editor'; });
+    root.querySelectorAll<FakeElement>('.custom-select-option')[1].dispatchEvent({ type: 'click' });
+    expect(focused).toBe('editor');
+  });
+
   it('syncCustomSelect updates display text and selected class', () => {
     const container = new FakeElement('div');
     const select = createFakeSelect('sb-combo', ['First', 'Second']);
