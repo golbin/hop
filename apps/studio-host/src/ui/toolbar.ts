@@ -34,6 +34,7 @@ export class Toolbar {
   private btnLsDown: HTMLButtonElement;
   private fontLang: HTMLSelectElement;
   private fontApplyRequestId = 0;
+  private documentVersion = 0;
   private alignButtons: Array<{ button: HTMLButtonElement; alignment: string }> = [];
 
   private enabled = false;
@@ -286,6 +287,7 @@ export class Toolbar {
 
   /** 문서 로드 시 글꼴 드롭다운을 기본/문서/대표/로컬 글꼴로 재구성한다. */
   initFontDropdown(docFonts?: string[]): void {
+    this.documentVersion += 1;
     closeToolbarPopup();
     this.beginFontApplyRequest();
     this.lastFontFamilies = undefined;
@@ -310,7 +312,7 @@ export class Toolbar {
     setupColorPicker(this.btnTextColor.parentElement!, (color) => {
       this.colorBar.style.background = color;
       this.eventBus.emit('format-char', { textColor: color } as CharProperties);
-    }, { remember: true });
+    }, { remember: true, documentVersion: () => this.documentVersion });
   }
 
   /** 형광펜 팔레트 설정 */
@@ -318,7 +320,7 @@ export class Toolbar {
     const picker = setupColorPicker(this.btnHighlight.parentElement!, (color) => {
       this.highlightBar.style.background = color;
       this.eventBus.emit('format-char', { shadeColor: color } as CharProperties);
-    }, { clear: true });
+    }, { clear: true, documentVersion: () => this.documentVersion });
     picker.value = '#ffff00';
     return picker;
   }
@@ -509,6 +511,7 @@ export class Toolbar {
 
   /** 문서 로드 상태에 따라 활성화/비활성화 */
   setEnabled(enabled: boolean): void {
+    if (!enabled) this.documentVersion += 1;
     this.enabled = enabled;
     const opacity = enabled ? '1' : '0.5';
     this.container.style.opacity = opacity;

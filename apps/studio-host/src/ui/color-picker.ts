@@ -84,6 +84,7 @@ function appendRecentColors(panel: HTMLElement, onSelect: (color: string) => voi
 interface ColorPickerOptions {
   remember?: boolean;
   clear?: boolean;
+  documentVersion?: () => number;
 }
 
 /** The text and highlight controls use the same palette and native picker. */
@@ -108,7 +109,9 @@ export function setupColorPicker(
   if (!panel.parentElement) host.appendChild(panel);
   button.setAttribute('aria-controls', panel.id);
   const popup = createToolbarPopup(host, button, panel);
+  let nativeSelection: { documentVersion: number | undefined } | undefined;
   const applyColor = (color: string) => {
+    nativeSelection = undefined;
     remember?.(color);
     picker.value = color;
     popup.close();
@@ -119,13 +122,22 @@ export function setupColorPicker(
   const actions = document.createElement('div');
   actions.className = 'sb-hl-palette-actions';
   if (options.clear) actions.appendChild(createButton('색 없음', () => applyColor('#ffffff')));
-  actions.appendChild(createButton('다른 색...', () => picker.click()));
+  actions.appendChild(createButton('다른 색...', () => {
+    nativeSelection = { documentVersion: options.documentVersion?.() };
+    picker.click();
+  }));
   panel.appendChild(actions);
   host.addEventListener('mousedown', event => event.preventDefault());
   button.addEventListener('click', popup.toggle);
   // Preview input events must not create edits or history entries; commit once.
   picker.addEventListener('change', () => {
-    if (!panel.hidden) applyColor(picker.value);
+    // WebView2 commits after the outside click has already closed the palette.
+    // Scope the native result to its document, not the palette's visibility.
+    const selection = nativeSelection;
+    nativeSelection = undefined;
+    if (selection && selection.documentVersion === options.documentVersion?.()) {
+      applyColor(picker.value);
+    }
   });
   button.addEventListener('keydown', (event) => {
     if (event.key !== 'ArrowDown') return;

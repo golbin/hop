@@ -49,7 +49,7 @@ function createDocument() {
 
 function createPicker(
   storage = new Map<string, string>(),
-  options = { remember: true, clear: false },
+  options: { remember: boolean; clear: boolean; documentVersion?: () => number } = { remember: true, clear: false },
   doc = createDocument(),
 ) {
   vi.stubGlobal('localStorage', {
@@ -71,6 +71,7 @@ function createPicker(
 
 function chooseCustom(control: ReturnType<typeof createPicker>, color: string) {
   control.button.click();
+  control.palette.children.at(-1)!.children[0].click();
   control.picker.value = color;
   control.picker.dispatchEvent(new Event('change'));
 }
@@ -101,7 +102,7 @@ describe('color controls', () => {
     expect(button.attrs.get('aria-expanded')).toBe('false');
   });
 
-  it('commits a native color once and ignores previews or changes after dismissal', () => {
+  it('commits a native color once after an outside click closes the palette', () => {
     const { doc, button, picker, palette, onSelect } = createPicker();
     button.click();
     palette.children.at(-1)!.children[0].click();
@@ -109,6 +110,8 @@ describe('color controls', () => {
     picker.value = '#123456';
     picker.dispatchEvent(new Event('input'));
     expect(onSelect).not.toHaveBeenCalled();
+    doc.dispatchEvent(new Event('mousedown'));
+    expect(palette.hidden).toBe(true);
     picker.dispatchEvent(new Event('change'));
     expect(onSelect).toHaveBeenCalledExactlyOnceWith('#123456');
     button.click();
@@ -116,6 +119,20 @@ describe('color controls', () => {
     picker.value = '#abcdef';
     picker.dispatchEvent(new Event('change'));
     expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores native results after the document changes or editing is disabled', () => {
+    let version = 0;
+    const control = createPicker(new Map(), {
+      remember: true, clear: false, documentVersion: () => version,
+    });
+    control.button.click();
+    control.palette.children.at(-1)!.children[0].click();
+    version += 1;
+    control.picker.value = '#123456';
+    control.picker.dispatchEvent(new Event('change'));
+    expect(control.onSelect).not.toHaveBeenCalled();
+    expect(control.recentRow?.children).toHaveLength(0);
   });
 
   it('supports keyboard opening and Escape while editor focus is retained', () => {
