@@ -16,6 +16,9 @@ pnpm install --frozen-lockfile
 pnpm --filter hop-desktop dev
 ```
 
+개인 pnpm 설정에서 lockfile 사용이 꺼져 있으면 설치 명령에 `--lockfile=true`를 추가한다.
+frozen 설치를 유지하고 전역 설정은 바꾸지 않는다.
+
 독립 Studio 실행은 `pnpm --filter @golbin/hop-studio-host dev`다.
 브라우저 실행만으로 native 파일·창·인쇄 동작을 검증할 수는 없다.
 
