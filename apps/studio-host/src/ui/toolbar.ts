@@ -81,6 +81,11 @@ export class Toolbar {
     this.setupBulletPopup();
     this.setupStyleDropdown();
 
+    eventBus.on('document-swapped', () => {
+      this.setEnabled(false);
+      this.beginFontApplyRequest();
+    });
+
     eventBus.on('cursor-format-changed', (props) => {
       this.updateState(props as CharProperties);
     });
@@ -287,7 +292,6 @@ export class Toolbar {
 
   /** 문서 로드 시 글꼴 드롭다운을 기본/문서/대표/로컬 글꼴로 재구성한다. */
   initFontDropdown(docFonts?: string[]): void {
-    this.documentVersion += 1;
     closeToolbarPopup();
     this.beginFontApplyRequest();
     this.lastFontFamilies = undefined;
