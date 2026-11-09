@@ -57,7 +57,7 @@ export function normalizeShortcutLabel(
     .replace(/\bOption\b/gi, '⌥')
     .replace(/\bShift\b/gi, '⇧')
     .replace(/\bNum\s+/gi, '')
-    .replace(/\+/g, '')
+    .replace(/\+(?![\s,)]|$)/g, '')
     .replace(/,\s*/g, ' ');
 }
 

@@ -32,7 +32,7 @@
 
    ```sh
    git submodule update --init --recursive
-   pnpm install --frozen-lockfile --lockfile=true
+   pnpm install --frozen-lockfile
    pnpm upstream:verify
    ```
 
@@ -117,7 +117,7 @@ upstream이 요구하는 Rust toolchain은 `config/rhwp-upstream.json`의 `rustT
 아래 예시의 `<toolchain>`을 그 값으로 바꾼다.
 
 ```sh
-pnpm install --frozen-lockfile --lockfile=true
+pnpm install --frozen-lockfile
 pnpm upstream:verify
 RUSTUP_TOOLCHAIN=<toolchain> pnpm test
 RUSTUP_TOOLCHAIN=<toolchain> pnpm run clippy:desktop

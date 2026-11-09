@@ -1,25 +1,16 @@
 # HOP 문서
 
-이 디렉터리는 HOP의 개발, 아키텍처 결정, 운영 문서를 둔다.
+현재 개발과 운영에 필요한 문서만 유지한다.
 
-## 구성
+| 문서 | 내용 |
+| --- | --- |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | 환경, 코드 위치, 검증 명령, 제품 동작과 제한 |
+| [KEYBOARD_SHORTCUTS.md](KEYBOARD_SHORTCUTS.md) | 공통 단축키와 macOS native 메뉴 차이 |
+| [architecture/UPSTREAM.md](architecture/UPSTREAM.md) | upstream 소유권과 통합 경계 |
+| [architecture/LOCAL_FONTS.md](architecture/LOCAL_FONTS.md) | 로컬 글꼴 탐색·사용·라이선스 정책 |
+| [operations/RHWP_UPDATE.md](operations/RHWP_UPDATE.md) | 안정 태그 갱신, 검증과 복구 |
+| [operations/DESKTOP_RELEASE.md](operations/DESKTOP_RELEASE.md) | 브랜치 통합, 테스트, 서명·빌드·배포 |
 
-```text
-docs/
-  DEVELOPMENT.md             로컬 개발 환경과 주요 명령
-  KEYBOARD_SHORTCUTS.md      키보드 단축키 레퍼런스
-  architecture/
-    UPSTREAM.md              upstream rhwp 경계와 업데이트 방식
-  operations/
-    DESKTOP_RELEASE.md       데스크톱 릴리즈와 서명/공증 메모
-    RHWP_UPDATE.md           rhwp 업데이트 실행 체크리스트와 복구 절차
-```
-
-## 작성 규칙
-
-* 새 기능 스펙이 필요하면 `docs/specs/<topic>/` 아래에 둔다.
-* 작업용 계획 문서나 구현 상태 추적 문서는 구현이 끝나면 커밋 후 삭제한다. 완료 기록은 git history를 기준으로 확인한다.
-* 로컬 개발 환경과 명령은 `docs/DEVELOPMENT.md`에 둔다.
-* 여러 스펙에 걸쳐 적용되는 아키텍처 결정은 `docs/architecture/`에 둔다.
-* 빌드, 배포, 서명, 유지보수 절차는 `docs/operations/`에 둔다.
-* HOP 제품 동작을 `third_party/rhwp`의 변경으로 문서화하지 않는다. HOP가 소유하는 동작은 `apps/desktop` 또는 `apps/studio-host`에 있어야 한다.
+작업용 1-Pager는 구현 전에 작성하고, 완료 후 재사용할 지식을 위 문서에 통합한 뒤 삭제한다.
+과거 계획·QA 결과·릴리스별 기록은 Git history와 GitHub 이슈/릴리스에서 확인한다.
+문서의 파일·명령·제품 동작은 구현과 함께 갱신한다. upstream 또는 폰트의 라이선스는 보존한다.
