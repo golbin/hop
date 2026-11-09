@@ -48,6 +48,7 @@ pub fn apply_linux_runtime_fixes() {
 }
 
 fn apply_linux_runtime_fixes_for_os_release(os_release: Option<&str>) {
+    apply_display_backend_fallback();
     apply_webkit_graphics_fallbacks(os_release);
 
     if !is_appimage_runtime() {
@@ -56,6 +57,23 @@ fn apply_linux_runtime_fixes_for_os_release(os_release: Option<&str>) {
 
     let host_cache_candidates = host_cache_candidate_paths();
     apply_appimage_runtime_fixes_with_host_caches(&host_cache_candidates);
+}
+
+fn apply_display_backend_fallback() {
+    if env::var_os("GDK_BACKEND").is_some() || !env_var_is_nonempty("DISPLAY") {
+        return;
+    }
+    let kde = env::var_os("XDG_CURRENT_DESKTOP").is_some_and(|desktop| {
+        desktop
+            .to_string_lossy()
+            .split(':')
+            .any(|name| name.eq_ignore_ascii_case("KDE"))
+    });
+    if is_appimage_runtime() || (kde && is_wayland_session()) {
+        // Preserve the AppImage X11 default. GTK3 Wayland can also allocate
+        // oversized buffers with mixed monitor scales on KDE (#124).
+        env::set_var("GDK_BACKEND", "x11");
+    }
 }
 
 fn apply_webkit_graphics_fallbacks(os_release: Option<&str>) {

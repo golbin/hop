@@ -103,6 +103,20 @@ workflow는 기존 draft의 릴리스 노트를 유지하고 산출물만 갱신
 - updater 서명을 앱에 설정된 public key로 검증했는가.
 - 다운로드한 설치 파일에서 변경된 핵심 흐름이 동작하는가.
 
+Linux x64 AppImage는 Tauri가 만든 실행 파일·HOP 리소스·AppImage runtime을 보존하고,
+`scripts/repack-linux-appimage.mjs`에서 시스템 WebKitGTK를 사용하는 파일 구성으로 다시 패키징한다.
+공식 appimagetool 1.9.1의 SHA-256을 검사한다. 시스템 런타임을 로드할 수 있으면 번들 GTK·입력기·테마 경로 설정을 사용하지 않고, 없으면 기존 번들 실행 경로를 유지한다. 실행 파일의 내장 rpath만 제거하고, 번들 경로에서는 기존 AppRun의 LD_LIBRARY_PATH를 사용한다. 실행 파일을 중복 저장하지 않는다.
+재패키징하면 기존 `.sig`를 삭제하므로 릴리스 workflow에서 반드시 다시 서명한다.
+AppImage updater marker, 리소스 해시, 시스템 WebKitGTK 실행과 한글 입력을 확인한다.
+
+Windows MSI 바로가기 변경은 HOP가 설치되지 않은 임시 Windows VM에서 관리자 PowerShell로 확인한다.
+아래 검사는 실제 설치·업그레이드·제거를 수행하며 로그는 `%TEMP%`에 남긴다.
+0.5.1의 바로가기 누락 복구, 첫 설치, 기존 바로가기 유지, 사용자가 삭제한 바탕화면 바로가기 유지와 제거를 검사한다.
+
+```powershell
+.\scripts\test-windows-msi.ps1 -BaselineMsi C:\qa\HOP-0.5.1.msi -CandidateMsi C:\qa\HOP-candidate.msi
+```
+
 안정 updater endpoint는 `https://github.com/golbin/hop/releases/latest/download/latest.json`이다.
 installer-specific key는 해당 패키지 형식을 가리키며, generic Linux fallback은 deb를 사용한다.
 AppImage를 updater로 deb에 전환하는 흐름은 보장하지 않는다. draft/prerelease는 안정 latest 채널이 아니다.

@@ -28,9 +28,13 @@
                  InstallScope="perMachine"
                  SummaryCodepage="!(loc.TauriCodepage)"/>
 
-        <!-- https://docs.microsoft.com/en-us/windows/win32/msi/reinstallmode -->
-        <!-- reinstall all files and rewrite registry entries, but do not recreate user-deleted shortcuts on update -->
-        <Property Id="REINSTALLMODE" Value="amu" />
+        <!-- Preserve a deleted desktop shortcut on upgrade without suppressing
+             Start Menu shortcuts or shortcuts on a fresh installation. -->
+        <Property Id="HOP_DESKTOP_SHORTCUT" Secure="yes">
+            <DirectorySearch Id="HopDesktopSearch" Path="[DesktopFolder]" Depth="0">
+                <FileSearch Id="HopDesktopShortcutSearch" Name="{{product_name}}.lnk" />
+            </DirectorySearch>
+        </Property>
 
         <!-- Auto launch app after installation, useful for passive mode which usually used in updates -->
         <Property Id="AUTOLAUNCHAPP" Secure="yes" />
@@ -42,10 +46,6 @@
         {{else}}
             <MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="!(loc.DowngradeErrorMessage)" AllowSameVersionUpgrades="yes" />
         {{/if}}
-
-        <InstallExecuteSequence>
-            <RemoveShortcuts>Installed AND NOT UPGRADINGPRODUCTCODE</RemoveShortcuts>
-        </InstallExecuteSequence>
 
         <Media Id="1" Cabinet="app.cab" EmbedCab="yes" CompressionLevel="high" />
 
@@ -113,6 +113,7 @@
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="DesktopFolder" Name="Desktop">
                 <Component Id="ApplicationShortcutDesktop" Guid="*">
+                    <Condition>NOT WIX_UPGRADE_DETECTED OR HOP_DESKTOP_SHORTCUT</Condition>
                     <Shortcut Id="ApplicationDesktopShortcut" Name="{{product_name}}" Description="Runs {{product_name}}" Target="[!Path]" WorkingDirectory="INSTALLDIR" />
                     <RemoveFolder Id="DesktopFolder" On="uninstall" />
                     <RegistryValue Root="HKCU" Key="Software\\{{manufacturer}}\\{{product_name}}" Name="Desktop Shortcut" Type="integer" Value="1" KeyPath="yes" />
