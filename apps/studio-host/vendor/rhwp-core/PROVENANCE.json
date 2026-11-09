@@ -6,22 +6,27 @@
   "commit": "c9095c5f67632e6721e800ccc7fb43ea49d26682",
   "rustToolchain": "1.93.1",
   "wasmPackVersion": "0.14.0",
+  "wasmDefaultFeatures": false,
+  "wasmFeatures": [
+    "console_error_panic_hook",
+    "wasm-api"
+  ],
   "artifacts": {
     "rhwp_bg.wasm": {
-      "bytes": 26823214,
-      "sha256": "5e13e4fbf3c3e6f98e0b8753e1aaccf4beb40360bde435e0d170e38222ea3fa6"
+      "bytes": 18381935,
+      "sha256": "34c9f59b7b1898f1663ce8b7b9f90184d91462d1ed3c0de58de2a75285ffb1cd"
     },
     "rhwp.js": {
-      "bytes": 570533,
-      "sha256": "02dcb4a17782f65814129c7971c81c05237e93e67327b205cfdb00b3a3ac0568"
+      "bytes": 560099,
+      "sha256": "7b55da01376a60255a409c8f40b888ec17c0b9687a75f57916116d0b3c220b68"
     },
     "rhwp.d.ts": {
-      "bytes": 228600,
-      "sha256": "7746cbd5271086269c80121cd1e9bc6506fd5b9e55fcef16d207e71a8d502dac"
+      "bytes": 224394,
+      "sha256": "4bee4b2ffd88c45c69cdaf2431c857ed22d9bf38c21e7cb946ac444168156197"
     },
     "rhwp_bg.wasm.d.ts": {
-      "bytes": 79293,
-      "sha256": "f97fb71cdf9f10f0f9bbc8a0c07d686cd4194fe09f06f9abeeae7414dae00676"
+      "bytes": 76599,
+      "sha256": "cb05c4cd2b1855cf19b71cec45e34ac0324dc25f4b4f972a6dca0d7cfc105af8"
     },
     "package.json": {
       "bytes": 428,

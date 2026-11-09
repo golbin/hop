@@ -321,7 +321,7 @@ jobs:
       && needs.prepare.outputs.has_builds == 'true'
       && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       HAS_APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE != '' }}
       HAS_APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8_BASE64 != '' }}
@@ -614,12 +614,20 @@ jobs:
             exit 1
           fi
 
+          library_path="$app_path/Contents/Frameworks/libhop_quicklook_ffi.dylib"
+          test -f "$library_path"
+          codesign --verify --strict "$library_path"
+          xcrun otool -D "$library_path" | grep -Fx '@rpath/libhop_quicklook_ffi.dylib'
+
           for extension in HopQuickLookPreview.appex HopQuickLookThumbnail.appex; do
             if [[ ! -d "$app_path/Contents/PlugIns/$extension" ]]; then
               echo "::error::Missing Quick Look extension: $app_path/Contents/PlugIns/$extension"
               exit 1
             fi
             codesign --verify --deep --strict "$app_path/Contents/PlugIns/$extension"
+            executable="$app_path/Contents/PlugIns/$extension/Contents/MacOS/${extension%.appex}"
+            xcrun otool -L "$executable" | grep -F '@rpath/libhop_quicklook_ffi.dylib'
+            xcrun otool -l "$executable" | grep -F '@executable_path/../../../../Frameworks'
             if ! codesign -d --entitlements :- "$app_path/Contents/PlugIns/$extension" 2>/dev/null \
               | grep -q '<key>com.apple.security.app-sandbox</key><true/>'; then
               echo "::error::Quick Look extension is missing app sandbox entitlement: $extension"

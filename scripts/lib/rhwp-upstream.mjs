@@ -18,6 +18,8 @@ export const cargoRoots = [
   join(repoRoot, 'apps/desktop/quicklook/rust'),
 ];
 export const officialUpstreamSource = 'https://github.com/edwardkim/rhwp';
+// HOP opens HWP/HWPX; upstream's default PDF import codecs are not needed.
+export const wasmFeatures = ['console_error_panic_hook', 'wasm-api'];
 
 export const generatedArtifactNames = [
   'rhwp_bg.wasm',
@@ -102,6 +104,8 @@ export async function buildProvenance(lock) {
     commit: lock.commit,
     rustToolchain: lock.rustToolchain,
     wasmPackVersion: lock.wasmPackVersion,
+    wasmDefaultFeatures: false,
+    wasmFeatures,
     artifacts,
   };
 }

@@ -97,7 +97,8 @@ workflow는 기존 draft의 릴리스 노트를 유지하고 산출물만 갱신
 
 - tag가 검증한 main commit을 가리키며 모든 선택 플랫폼 job이 성공했는가.
 - 고정 asset이 빠지지 않았고 `SHA256SUMS.txt`와 다운로드 파일의 SHA-256이 일치하는가.
-- macOS 앱과 두 Quick Look 확장의 서명, notarization과 staple이 유효한가.
+- macOS 앱·두 Quick Look 확장·공유 엔진 dylib의 서명, 앱 notarization과 staple이 유효한가.
+- 두 확장이 `@rpath`로 번들 내부 공통 라이브러리를 찾고, native build smoke가 통과했는가.
 - `latest.json`의 버전, 해당 태그 URL, installer-specific/fallback platform key와 서명이 맞는가.
 - updater 서명을 앱에 설정된 public key로 검증했는가.
 - 다운로드한 설치 파일에서 변경된 핵심 흐름이 동작하는가.

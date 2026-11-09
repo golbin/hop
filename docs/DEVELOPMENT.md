@@ -54,10 +54,25 @@ Rust formatting과 Quick Look clippy는 해당 Cargo manifest를 지정해 실�
 
 macOS 번들은 `apps/desktop/src-tauri/target/debug/bundle/macos/HOP.app`에 생성된다.
 Quick Look 빌드 hook은 `pnpm run build:quicklook:macos`이며 다른 OS에서는 건너뛴다.
-확장은 `HOP.app/Contents/PlugIns`에 포함된다. Quick Look은 Skia로 페이지를 PNG로
+확장은 `HOP.app/Contents/PlugIns`에 포함되고, 공통 엔진은 `Contents/Frameworks`의
+`libhop_quicklook_ffi.dylib` 하나를 공유한다. 빌드 hook이 확장과 같은 identity로 서명하고
+Tauri의 macOS `files` 설정이
+라이브러리를 번들에 복사한다. 일반 Rust 테스트가 Quick Look 산출물에 의존하지 않도록
+빌드 전 라이브러리 복사를 요구하는 `frameworks` 설정은 사용하지 않는다.
+Swift 링크 후 미사용 코드와 로컬 심볼을 제거하며, native target
+빌드는 같은 서명·링크 조건의 smoke 실행 파일로 principal class와 PDF·PNG 생성을 확인한다.
+개발용 ad-hoc 서명은 Team ID가 없어 hardened runtime을 적용하지 않는다. 배포 identity로
+서명할 때는 앱·확장·공유 라이브러리에 기존 hardened runtime을 유지한다.
+Quick Look은 Skia로 페이지를 PNG로
 렌더링하고 공유 Rust adapter의 PDF 변환을 사용한다. 별도 PDF 조립기는 없다.
 Finder 등록·미리보기는 공개 sample의 복사본으로 `qlmanage -r`, `qlmanage -p`,
-`qlmanage -t -s 512`를 사용해 확인한다. 배포 빌드는 앱과 두 확장의 서명·공증도 검증한다.
+`qlmanage -t -s 512`를 사용해 확인한다. 배포 빌드는 앱·두 확장·공유 라이브러리의 서명과 앱 공증도 검증한다.
+
+release Rust 빌드는 Thin LTO를 사용한다. desktop 심볼은 Cargo에서, Quick Look의
+최종 라이브러리·Swift 실행 파일 심볼은 빌드 hook에서 제거한다. Windows MSI는 cabinet을 high
+압축으로 생성한다. WASM은 PDF 가져오기 코덱을 제외한 명시적
+feature로 생성하며, 빌드 정책과 산출물 hash를 provenance에서 검증한다. 글꼴과 문서
+편집·내보내기 기능을 용량 절감 목적으로 제거하지 않는다.
 
 Codex 내장 Node에서 Vite/Vitest의 native binding 로딩이 실패하면 외부 Node를 먼저
 `PATH`에 넣고 `which node`로 확인한다. macOS 27에서 Rust dylib strip 오류가 발생하는

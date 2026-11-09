@@ -73,7 +73,8 @@ git diff -- apps/studio-host/vendor/rhwp-core/PROVENANCE.json
 다음을 확인한다.
 
 * tag, commit, Cargo package, studio package와 vendored WASM 버전이 모두 같다.
-* provenance에는 배포되는 모든 vendor 파일의 byte 수와 SHA-256이 있다.
+* provenance에는 배포되는 모든 vendor 파일의 byte 수와 SHA-256, HOP의 명시적 WASM feature가 있다.
+  upstream 기본 feature는 끈다. PDF 가져오기 전용 codec을 포함하지 않으며 HWP/HWPX와 PDF 내보내기는 유지한다.
 * 두 Cargo manifest의 patch Git source/revision 또는 upstream vendor path/version과 lockfile의 `rhwp`가 같은 새 버전을 가리킨다. upstream이
   patch 저장소를 옮겼다면 updater가 이전 계약에서 새 계약으로 두 manifest를 함께 전환해야 한다.
 * updater가 출력한 `Review changed studio inputs`의 각 파일을 upstream diff와 비교한다.

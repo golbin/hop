@@ -25,6 +25,7 @@ import {
   studioMirroredAssetPaths,
   vendoredArtifactNames,
   vendorDir,
+  wasmFeatures,
 } from './lib/rhwp-upstream.mjs';
 
 export async function verifyRhwpUpstream() {
@@ -56,6 +57,8 @@ export async function verifyRhwpUpstream() {
   assert.equal(wasmPackage.name, 'rhwp');
   assert.equal(wasmPackage.version, lock.version);
   assert.equal(provenance.schemaVersion, 1);
+  assert.equal(provenance.wasmDefaultFeatures, false, 'WASM must disable upstream default features');
+  assert.deepEqual(provenance.wasmFeatures, wasmFeatures, 'WASM features must match HOP product scope');
   for (const field of ['source', 'version', 'tag', 'commit', 'rustToolchain', 'wasmPackVersion']) {
     assert.deepEqual(provenance[field], lock[field], `provenance ${field} must match upstream lock`);
   }

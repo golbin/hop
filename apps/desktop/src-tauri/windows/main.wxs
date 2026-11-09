@@ -47,7 +47,7 @@
             <RemoveShortcuts>Installed AND NOT UPGRADINGPRODUCTCODE</RemoveShortcuts>
         </InstallExecuteSequence>
 
-        <Media Id="1" Cabinet="app.cab" EmbedCab="yes" />
+        <Media Id="1" Cabinet="app.cab" EmbedCab="yes" CompressionLevel="high" />
 
         {{#if banner_path}}
         <WixVariable Id="WixUIBannerBmp" Value="{{banner_path}}" />
