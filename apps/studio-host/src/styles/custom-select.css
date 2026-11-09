@@ -57,7 +57,8 @@
   background: var(--color-hover-bg);
 }
 
-.custom-select:focus-visible .custom-select-trigger {
+.custom-select:focus-visible .custom-select-trigger,
+.custom-select-trigger:focus-visible {
   border-color: var(--color-focus-border);
   outline: none;
 }

@@ -341,6 +341,39 @@ describe('custom-select', () => {
     expect(rowsAfter.length).toBe(2);
   });
 
+  it('activates a trigger and commits an option through click without a mouse event', () => {
+    const container = new FakeElement('div');
+    const select = createFakeSelect('sb-combo', ['First', 'Second']);
+    container.appendChild(select);
+    const changed = vi.fn();
+    select.addEventListener('change', changed);
+    enhanceCustomSelects(container as unknown as ParentNode);
+    const root = getCustomSelectRoot(select as unknown as HTMLSelectElement) as unknown as FakeElement;
+    const trigger = root.querySelector('.custom-select-trigger')!;
+    const panel = root.querySelector('.custom-select-menu')!;
+    expect(root.tabIndex).toBe(-1);
+    expect(select.tabIndex).toBe(-1);
+    trigger.dispatchEvent({ type: 'click' });
+    expect(panel.hidden).toBe(false);
+    root.querySelectorAll<FakeElement>('.custom-select-option')[1].dispatchEvent({ type: 'click' });
+    expect(select.value).toBe('Second');
+    expect(changed).toHaveBeenCalledOnce();
+    expect(panel.hidden).toBe(true);
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('closes an open menu when its select is disabled', () => {
+    const container = new FakeElement('div');
+    const select = createFakeSelect('sb-combo', ['A', 'B']);
+    container.appendChild(select);
+    enhanceCustomSelects(container as unknown as ParentNode);
+    const root = getCustomSelectRoot(select as unknown as HTMLSelectElement) as unknown as FakeElement;
+    root.querySelector('.custom-select-trigger')!.dispatchEvent({ type: 'click' });
+    select.disabled = true;
+    syncCustomSelect(select as unknown as HTMLSelectElement);
+    expect(root.querySelector('.custom-select-menu')!.hidden).toBe(true);
+  });
+
   it('syncCustomSelect updates display text and selected class', () => {
     const container = new FakeElement('div');
     const select = createFakeSelect('sb-combo', ['First', 'Second']);

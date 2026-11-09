@@ -1,3 +1,5 @@
+import { createToolbarPopup } from './toolbar-popup';
+
 const ENHANCED = Symbol('rhwp-custom-select');
 
 type EnhancedSelect = HTMLSelectElement & {
@@ -35,13 +37,14 @@ function enhanceCustomSelect(select: HTMLSelectElement): void {
   const root = document.createElement('div');
   root.className = `custom-select ${select.className}`.trim();
   root.dataset.selectId = select.id || '';
-  root.tabIndex = select.disabled ? -1 : 0;
+  root.tabIndex = -1;
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'custom-select-trigger';
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
+  const label = select.getAttribute('aria-label') ?? select.labels?.[0]?.textContent?.trim() ?? select.title;
 
   const value = document.createElement('span');
   value.className = 'custom-select-value';
@@ -59,32 +62,18 @@ function enhanceCustomSelect(select: HTMLSelectElement): void {
   select.before(root);
   root.append(trigger, menu, select);
   select.classList.add('native-select-hidden');
+  select.tabIndex = -1;
+  select.setAttribute('aria-hidden', 'true');
 
-  const close = () => {
-    root.classList.remove('open');
-    trigger.setAttribute('aria-expanded', 'false');
-  };
-
-  const open = () => {
-    if (select.disabled) return;
-    closeOtherSelects(root);
-    sync();
-    root.classList.add('open');
-    trigger.setAttribute('aria-expanded', 'true');
-  };
-
-  const toggle = () => {
-    if (root.classList.contains('open')) close();
-    else open();
-  };
+  const popup = createToolbarPopup(root, trigger, menu);
 
   const commit = (option: HTMLOptionElement) => {
     if (option.disabled) return;
     select.value = option.value;
     select.dispatchEvent(new Event('change', { bubbles: true }));
     sync();
-    close();
-    root.focus();
+    popup.close();
+    trigger.focus();
   };
 
   const rebuildMenu = () => {
@@ -107,22 +96,26 @@ function enhanceCustomSelect(select: HTMLSelectElement): void {
 
   const sync = () => {
     root.classList.toggle('disabled', select.disabled);
-    root.tabIndex = select.disabled ? -1 : 0;
     trigger.disabled = select.disabled;
+    if (select.disabled) popup.close();
 
     const selected = select.selectedOptions[0] ?? select.options[select.selectedIndex];
     value.textContent = selected?.textContent?.trim() || '';
     value.title = value.textContent;
+    if (label) trigger.setAttribute('aria-label', `${label}: ${value.textContent}`);
 
     menu.querySelectorAll<HTMLElement>('.custom-select-option').forEach((row) => {
       row.classList.toggle('selected', row.dataset.value === select.value);
+      row.setAttribute('aria-selected', String(row.dataset.value === select.value));
     });
   };
 
   trigger.addEventListener('mousedown', (event) => {
     event.preventDefault();
-    event.stopPropagation();
-    toggle();
+  });
+  trigger.addEventListener('click', () => {
+    sync();
+    popup.toggle();
   });
 
   trigger.addEventListener('dblclick', (event) => {
@@ -137,26 +130,19 @@ function enhanceCustomSelect(select: HTMLSelectElement): void {
 
   root.addEventListener('keydown', (event) => {
     if (select.disabled) return;
-    if (event.key === 'Escape') {
-      close();
-      event.preventDefault();
-      return;
-    }
-    if (event.key === 'Enter' || event.key === ' ') {
-      toggle();
-      event.preventDefault();
-      return;
-    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      stepSelection(select, event.key === 'ArrowDown' ? 1 : -1);
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-      sync();
+      const delta = event.key === 'ArrowDown' ? 1 : -1;
+      if (menu.contains(event.target as Node)) {
+        const rows = Array.from(menu.querySelectorAll<HTMLButtonElement>('button')).filter(row => !row.disabled);
+        const index = rows.indexOf(event.target as HTMLButtonElement);
+        rows[(index + delta + rows.length) % rows.length]?.focus();
+      } else {
+        stepSelection(select, delta);
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        sync();
+      }
       event.preventDefault();
     }
-  });
-
-  document.addEventListener('mousedown', (event) => {
-    if (!root.contains(event.target as Node)) close();
   });
 
   const observer = new MutationObserver(() => {
@@ -181,19 +167,9 @@ function createOptionRow(option: HTMLOptionElement, commit: (option: HTMLOptionE
   row.setAttribute('role', 'option');
   row.addEventListener('mousedown', (event) => {
     event.preventDefault();
-    event.stopPropagation();
-    commit(option);
   });
+  row.addEventListener('click', () => commit(option));
   return row;
-}
-
-function closeOtherSelects(current: HTMLElement): void {
-  document.querySelectorAll<HTMLElement>('.custom-select.open').forEach((select) => {
-    if (select !== current) {
-      select.classList.remove('open');
-      select.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
-    }
-  });
 }
 
 function stepSelection(select: HTMLSelectElement, delta: number): void {

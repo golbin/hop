@@ -5,7 +5,8 @@ import { loadWebFonts } from '@/core/font-loader';
 import { getLocalFonts } from '@/core/local-fonts';
 import { sanitizeAuthoringFontFamily } from '@/core/font-authoring-policy';
 import { getCustomSelectRoot, syncCustomSelect } from './custom-select';
-import { COLOR_PALETTE, setupTextColorPicker } from './text-color-picker';
+import { setupColorPicker } from './color-picker';
+import { closeToolbarPopup } from './toolbar-popup';
 
 /** 서식 도구 모음 (style-bar) 컨트롤러 */
 export class Toolbar {
@@ -20,9 +21,8 @@ export class Toolbar {
   private colorPicker: HTMLInputElement;
   private colorBar: HTMLElement;
   private btnHighlight: HTMLButtonElement;
-  private highlightDropdown: HTMLElement;
   private highlightBar: HTMLElement;
-  private highlightColor = '#ffff00';
+  private highlightPicker: HTMLInputElement;
   private btnSizeUp: HTMLButtonElement;
   private btnSizeDown: HTMLButtonElement;
   private charfxDropdown: HTMLElement;
@@ -58,7 +58,6 @@ export class Toolbar {
     this.colorPicker = container.querySelector('#text-color-picker')!;
     this.colorBar = container.querySelector('#color-bar')!;
     this.btnHighlight = container.querySelector('#btn-highlight')!;
-    this.highlightDropdown = container.querySelector('#highlight-dropdown')!;
     this.highlightBar = container.querySelector('#highlight-bar')!;
     this.btnSizeUp = container.querySelector('#btn-size-up')!;
     this.btnSizeDown = container.querySelector('#btn-size-down')!;
@@ -76,7 +75,7 @@ export class Toolbar {
     this.setupLineSpacingDropdown();
     this.setupFontControls();
     this.setupColorPicker();
-    this.setupHighlightPicker();
+    this.highlightPicker = this.setupHighlightPicker();
     this.setupAlignButtons();
     this.setupBulletPopup();
     this.setupStyleDropdown();
@@ -287,6 +286,7 @@ export class Toolbar {
 
   /** 문서 로드 시 글꼴 드롭다운을 기본/문서/대표/로컬 글꼴로 재구성한다. */
   initFontDropdown(docFonts?: string[]): void {
+    closeToolbarPopup();
     this.beginFontApplyRequest();
     this.lastFontFamilies = undefined;
     const baseFonts = ['함초롬바탕', '함초롬돋움', '맑은 고딕', '나눔고딕', '바탕', '돋움', '궁서'];
@@ -307,98 +307,20 @@ export class Toolbar {
 
   /** 글자색 피커 이벤트 */
   private setupColorPicker(): void {
-    setupTextColorPicker(this.btnTextColor.parentElement!, (color) => {
+    setupColorPicker(this.btnTextColor.parentElement!, (color) => {
       this.colorBar.style.background = color;
       this.eventBus.emit('format-char', { textColor: color } as CharProperties);
-    });
+    }, { remember: true });
   }
 
   /** 형광펜 팔레트 설정 */
-  private setupHighlightPicker(): void {
-    const palette = this.container.querySelector('#highlight-palette')!;
-
-    // "색 없음" + "다른 색..." 액션 행
-    const actRow = document.createElement('div');
-    actRow.className = 'sb-hl-palette-actions';
-    const btnNone = document.createElement('button');
-    btnNone.textContent = '색 없음';
-    btnNone.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-    });
-    btnNone.addEventListener('click', () => {
-      this.highlightColor = '#ffffff';
-      this.highlightBar.style.background = '#ffffff';
-      this.eventBus.emit('format-char', { shadeColor: '#ffffff' } as CharProperties);
-      this.highlightDropdown.classList.remove('open');
-    });
-    const btnOther = document.createElement('button');
-    btnOther.textContent = '다른 색...';
-    const hiddenPicker = document.createElement('input');
-    hiddenPicker.type = 'color';
-    hiddenPicker.tabIndex = -1;
-    hiddenPicker.setAttribute('aria-label', '형광펜 색상');
-    hiddenPicker.value = this.highlightColor;
-    hiddenPicker.style.cssText = 'position:absolute;width:0;height:0;opacity:0;';
-    btnOther.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-    });
-    btnOther.addEventListener('click', () => {
-      hiddenPicker.click();
-    });
-    hiddenPicker.addEventListener('input', () => {
-      this.highlightColor = hiddenPicker.value;
-      this.highlightBar.style.background = this.highlightColor;
-      this.eventBus.emit('format-char', { shadeColor: this.highlightColor } as CharProperties);
-      this.highlightDropdown.classList.remove('open');
-    });
-    actRow.appendChild(btnNone);
-    actRow.appendChild(btnOther);
-    actRow.appendChild(hiddenPicker);
-    palette.appendChild(actRow);
-
-    // 색상 스워치 행들
-    for (const row of COLOR_PALETTE) {
-      const rowEl = document.createElement('div');
-      rowEl.className = 'sb-hl-palette-row';
-      for (const color of row) {
-        const swatch = document.createElement('div');
-        swatch.className = 'sb-hl-swatch';
-        swatch.style.background = color;
-        swatch.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          this.highlightColor = color;
-          this.highlightBar.style.background = color;
-          this.eventBus.emit('format-char', { shadeColor: color } as CharProperties);
-          this.highlightDropdown.classList.remove('open');
-        });
-        rowEl.appendChild(swatch);
-      }
-      palette.appendChild(rowEl);
-    }
-
-    // 버튼 클릭 → 팔레트 토글
-    this.btnHighlight.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-    this.btnHighlight.addEventListener('click', () => {
-      this.highlightDropdown.classList.toggle('open');
-    });
-
-    this.highlightDropdown.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || !this.highlightDropdown.classList.contains('open')) return;
-      event.preventDefault();
-      event.stopPropagation();
-      this.highlightDropdown.classList.remove('open');
-      this.btnHighlight.focus();
-    });
-
-    // 외부 클릭 시 닫기
-    document.addEventListener('mousedown', (e) => {
-      if (!this.highlightDropdown.contains(e.target as Node)) {
-        this.highlightDropdown.classList.remove('open');
-      }
-    });
+  private setupHighlightPicker(): HTMLInputElement {
+    const picker = setupColorPicker(this.btnHighlight.parentElement!, (color) => {
+      this.highlightBar.style.background = color;
+      this.eventBus.emit('format-char', { shadeColor: color } as CharProperties);
+    }, { clear: true });
+    picker.value = '#ffff00';
+    return picker;
   }
 
   /** 문단 정렬 버튼 이벤트 → 커맨드 디스패치 */
@@ -581,7 +503,7 @@ export class Toolbar {
     // 형광펜 색상 표시
     if (props.shadeColor) {
       this.highlightBar.style.background = props.shadeColor;
-      this.highlightColor = props.shadeColor;
+      this.highlightPicker.value = props.shadeColor;
     }
   }
 
@@ -593,6 +515,7 @@ export class Toolbar {
     this.container.style.pointerEvents = enabled ? 'auto' : 'none';
     this.container.setAttribute('aria-disabled', String(!enabled));
     this.container.inert = !enabled;
+    if (!enabled) closeToolbarPopup();
   }
 
   /** 선택된 언어 카테고리에 해당하는 글꼴명을 반환한다 */
