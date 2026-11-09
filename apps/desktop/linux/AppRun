@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -e
+APPDIR=${APPDIR:-$(readlink -f "$(dirname "$0")")}
+export APPDIR
+
+# Tauri relaunches inherit the old AppImage environment. Remove only paths
+# owned by that bundle; explicit paths elsewhere and logical IME choices survive.
+hop_bundle_prefix=${GTK_DATA_PREFIX-}
+hop_remove_bundle_paths() {
+  local variable="$1"
+  local remaining="${!variable}"
+  [[ -n "$remaining" ]] || return 0
+  local cleaned= separator= part
+  while :; do
+    part=${remaining%%:*}
+    case "$part" in
+      "$hop_bundle_prefix"|"$hop_bundle_prefix"/*) ;;
+      *) cleaned+="$separator$part"; separator=: ;;
+    esac
+    [[ "$remaining" == *:* ]] || break
+    remaining=${remaining#*:}
+  done
+  if [[ -n "$separator" ]]; then
+    export "$variable=$cleaned"
+  else
+    unset "$variable"
+  fi
+}
+if [[ -n "$hop_bundle_prefix" ]]; then
+  case "${GTK_EXE_PREFIX-}" in
+    "$hop_bundle_prefix"/usr|"$hop_bundle_prefix"//usr)
+      for hop_variable in PATH LD_LIBRARY_PATH XDG_DATA_DIRS \
+        GTK_DATA_PREFIX GTK_EXE_PREFIX GTK_PATH GTK_IM_MODULE_FILE \
+        GSETTINGS_SCHEMA_DIR GI_TYPELIB_PATH GDK_PIXBUF_MODULE_FILE \
+        GIO_EXTRA_MODULES PYTHONHOME PYTHONPATH PERLLIB QT_PLUGIN_PATH \
+        GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0; do
+        hop_remove_bundle_paths "$hop_variable"
+      done
+      ;;
+  esac
+fi
+
+if /lib64/ld-linux-x86-64.so.2 --list "$APPDIR/usr/bin/hop-desktop" >/dev/null 2>&1; then
+  exec "$APPDIR/usr/bin/hop-desktop" "$@"
+fi
+# Preserve standalone execution when the system WebKitGTK runtime is unavailable.
+hop_overrides=()
+for hop_variable in GDK_BACKEND GTK_IM_MODULE_FILE GTK_PATH; do
+  if declare -p "$hop_variable" >/dev/null 2>&1; then
+    hop_overrides+=("$hop_variable=${!hop_variable}")
+  fi
+done
+. "$APPDIR/apprun-hooks/linuxdeploy-plugin-gtk.sh"
+for hop_override in "${hop_overrides[@]}"; do export "$hop_override"; done
+exec "$APPDIR/AppRun.wrapped" "$@"

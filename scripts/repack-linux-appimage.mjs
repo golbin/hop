@@ -41,20 +41,8 @@ try {
   // The fallback AppRun supplies LD_LIBRARY_PATH. Without an embedded rpath,
   // the same executable can also load the complete system runtime.
   execFileSync('patchelf', ['--remove-rpath', join(appDir, 'usr/bin/hop-desktop')]);
-  writeFileSync(join(appDir, 'AppRun'), `#!/usr/bin/env bash
-set -e
-APPDIR=\${APPDIR:-$(readlink -f "$(dirname "$0")")}
-export APPDIR
-if /lib64/ld-linux-x86-64.so.2 --list "$APPDIR/usr/bin/hop-desktop" >/dev/null 2>&1; then
-  exec "$APPDIR/usr/bin/hop-desktop" "$@"
-fi
-# Preserve standalone execution when the system WebKitGTK runtime is unavailable.
-hop_backend_set=\${GDK_BACKEND+x}
-hop_backend=\${GDK_BACKEND-}
-. "$APPDIR/apprun-hooks/linuxdeploy-plugin-gtk.sh"
-if [ "$hop_backend_set" = x ]; then export GDK_BACKEND="$hop_backend"; fi
-exec "$APPDIR/AppRun.wrapped" "$@"
-`, { mode: 0o755 });
+  cpSync(new URL('../apps/desktop/linux/AppRun', import.meta.url), join(appDir, 'AppRun'));
+  chmodSync(join(appDir, 'AppRun'), 0o755);
 
   const output = join(dirname(image), `${productName}-repacked.AppImage`);
   try {

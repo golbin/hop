@@ -29,6 +29,7 @@ frozen 설치를 유지하고 전역 설정은 바꾸지 않는다.
 | `apps/desktop/src-tauri` | native 문서 세션, 파일·저장·PDF·인쇄·창·업데이트 |
 | `apps/desktop/rhwp-adapter` | 제품 Rust 코드가 사용하는 upstream API 경계 |
 | `apps/desktop/quicklook` | macOS Finder preview/thumbnail 확장 |
+| `apps/desktop/linux` | AppImage 런타임 선택과 재시작 환경 경계 |
 | `apps/studio-host` | desktop bridge, 명령 조립, HOP 전용 UI와 스타일 |
 | `third_party/rhwp` | 고정 안정 태그의 upstream source; 제품 수정 금지 |
 | `config` | upstream 기준선과 Studio override 목록 |
