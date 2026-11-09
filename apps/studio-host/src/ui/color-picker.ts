@@ -109,9 +109,9 @@ export function setupColorPicker(
   if (!panel.parentElement) host.appendChild(panel);
   button.setAttribute('aria-controls', panel.id);
   const popup = createToolbarPopup(host, button, panel);
-  let nativeSelection: { documentVersion: number | undefined } | undefined;
+  let nativeChoice: { documentVersion: number | undefined; color: string } | undefined;
   const applyColor = (color: string) => {
-    nativeSelection = undefined;
+    if (nativeChoice) nativeChoice.color = color;
     remember?.(color);
     picker.value = color;
     popup.close();
@@ -123,19 +123,19 @@ export function setupColorPicker(
   actions.className = 'sb-hl-palette-actions';
   if (options.clear) actions.appendChild(createButton('색 없음', () => applyColor('#ffffff')));
   actions.appendChild(createButton('다른 색...', () => {
-    nativeSelection = { documentVersion: options.documentVersion?.() };
+    nativeChoice = { documentVersion: options.documentVersion?.(), color: picker.value };
     picker.click();
   }));
   panel.appendChild(actions);
   host.addEventListener('mousedown', event => event.preventDefault());
   button.addEventListener('click', popup.toggle);
-  // Preview input events must not create edits or history entries; commit once.
+  // Native choosers may commit several changes while their window stays open.
+  // Ignore previews and repeated values, not later distinct commits.
   picker.addEventListener('change', () => {
     // WebView2 commits after the outside click has already closed the palette.
     // Scope the native result to its document, not the palette's visibility.
-    const selection = nativeSelection;
-    nativeSelection = undefined;
-    if (selection && selection.documentVersion === options.documentVersion?.()) {
+    if (nativeChoice && nativeChoice.documentVersion === options.documentVersion?.()
+      && nativeChoice.color !== picker.value) {
       applyColor(picker.value);
     }
   });

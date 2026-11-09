@@ -114,25 +114,46 @@ describe('color controls', () => {
     expect(palette.hidden).toBe(true);
     picker.dispatchEvent(new Event('change'));
     expect(onSelect).toHaveBeenCalledExactlyOnceWith('#123456');
-    button.click();
-    doc.dispatchEvent(new Event('focusin'));
-    picker.value = '#abcdef';
     picker.dispatchEvent(new Event('change'));
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
-  it('ignores native results after the document changes or editing is disabled', () => {
+  it('applies later native changes while GTK keeps its chooser open', () => {
+    const control = createPicker();
+    chooseCustom(control, '#33cc66');
+    control.picker.value = '#cc3333';
+    control.picker.dispatchEvent(new Event('change'));
+    control.picker.dispatchEvent(new Event('change'));
+    expect(control.onSelect.mock.calls).toEqual([['#33cc66'], ['#cc3333']]);
+    expect(control.recentRow?.children.map(child => child.attrs.get('aria-label')))
+      .toEqual(['#cc3333', '#33cc66']);
+  });
+
+  it('does not edit when a native chooser closes without changing its color', () => {
+    const { button, picker, palette, onSelect } = createPicker();
+    button.click();
+    palette.children.at(-1)!.children[0].click();
+    picker.dispatchEvent(new Event('change'));
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])('ignores stale native results (previous commit: %s)', (committed) => {
     let version = 0;
     const control = createPicker(new Map(), {
       remember: true, clear: false, documentVersion: () => version,
     });
     control.button.click();
     control.palette.children.at(-1)!.children[0].click();
+    if (committed) {
+      control.picker.value = '#33cc66';
+      control.picker.dispatchEvent(new Event('change'));
+    }
     version += 1;
     control.picker.value = '#123456';
     control.picker.dispatchEvent(new Event('change'));
-    expect(control.onSelect).not.toHaveBeenCalled();
-    expect(control.recentRow?.children).toHaveLength(0);
+    expect(control.onSelect.mock.calls).toEqual(committed ? [['#33cc66']] : []);
+    expect(control.recentRow?.children.map(child => child.attrs.get('aria-label')))
+      .toEqual(committed ? ['#33cc66'] : []);
   });
 
   it('supports keyboard opening and Escape while editor focus is retained', () => {
