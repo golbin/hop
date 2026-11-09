@@ -366,41 +366,16 @@ function setupZoomControls(): void {
     applyIncrementalZoom(-1);
   });
 
-  // 폭 맞춤: 용지 폭에 맞게 줌 조절
+  // 현재 쪽 배치를 반영하는 upstream 맞춤 계산을 메뉴와 공유한다.
   document.getElementById('sb-zoom-fit-width')!.addEventListener('click', () => {
-    if (wasm.pageCount === 0) return;
-    const container = document.getElementById('scroll-container')!;
-    const containerWidth = container.clientWidth - 40; // 좌우 여백 제외
-    const pageInfo = wasm.getPageInfo(0);
-    // pageInfo.width는 이미 px 단위 (96dpi 기준)
-    const zoom = containerWidth / pageInfo.width;
-    vm.setZoom(Math.max(0.1, Math.min(zoom, 4.0)));
+    dispatcher.dispatch('view:zoom-fit-width');
   });
-
-  // 쪽 맞춤: 한 페이지 전체가 보이도록 줌 조절
   document.getElementById('sb-zoom-fit')!.addEventListener('click', () => {
-    if (wasm.pageCount === 0) return;
-    const container = document.getElementById('scroll-container')!;
-    const containerWidth = container.clientWidth - 40;
-    const containerHeight = container.clientHeight - 40;
-    const pageInfo = wasm.getPageInfo(0);
-    // pageInfo.width/height는 이미 px 단위 (96dpi 기준)
-    const zoomW = containerWidth / pageInfo.width;
-    const zoomH = containerHeight / pageInfo.height;
-    vm.setZoom(Math.max(0.1, Math.min(zoomW, zoomH, 4.0)));
+    dispatcher.dispatch('view:zoom-fit-page');
   });
 
-  // 모바일: 줌 값 클릭 → 100% 토글
-  document.getElementById('sb-zoom-val')!.addEventListener('click', () => {
-    const currentZoom = vm.getZoom();
-    if (Math.abs(currentZoom - 1.0) < 0.05) {
-      // 현재 100% → 쪽 맞춤으로 전환
-      document.getElementById('sb-zoom-fit')!.click();
-    } else {
-      // 현재 쪽 맞춤/기타 → 100%로 전환
-      vm.setZoom(1.0);
-    }
-  });
+  // 배율과 쪽 배치는 upstream의 같은 대화상자에서 변경한다.
+  sbZoomVal().addEventListener('click', () => dispatcher.dispatch('view:zoom-dialog'));
 
   document.addEventListener('keydown', (e) => {
     if (!e.ctrlKey && !e.metaKey) return;

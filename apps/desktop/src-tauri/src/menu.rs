@@ -64,6 +64,7 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let zoom_100 = MenuItemBuilder::with_id("view:zoom-100", "Actual Size").build(app)?;
     let fit_page = MenuItemBuilder::with_id("view:zoom-fit-page", "Fit Page").build(app)?;
     let fit_width = MenuItemBuilder::with_id("view:zoom-fit-width", "Fit Width").build(app)?;
+    let zoom_dialog = MenuItemBuilder::with_id("view:zoom-dialog", "Zoom...").build(app)?;
 
     let app_menu = SubmenuBuilder::new(app, "HOP")
         .item(&app_about)
@@ -111,6 +112,7 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
         .separator()
         .item(&fit_page)
         .item(&fit_width)
+        .item(&zoom_dialog)
         .build()?;
     // Tauri registers this id as NSApp's windows menu, which lets macOS add Window Tiling items.
     let window_menu = SubmenuBuilder::with_id(app, WINDOW_SUBMENU_ID, "Window")
