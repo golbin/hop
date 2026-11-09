@@ -372,7 +372,10 @@ jobs:
             libxdo-dev \
             patchelf \
             rpm \
-            wget
+            wget \
+            dbus-x11 \
+            xauth \
+            xvfb
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -601,6 +604,50 @@ jobs:
           projectPath: apps/desktop
           tauriScript: pnpm tauri
           args: ${{ steps.tauri-build-args.outputs.args }}
+
+      - name: Prefer system WebKitGTK in AppImage
+        if: matrix.name == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="$(find apps/desktop/src-tauri/target -path '*/bundle/appimage/*.AppImage' -type f -print -quit)"
+          test -n "$image"
+          env -u TAURI_SIGNING_PRIVATE_KEY -u TAURI_SIGNING_PRIVATE_KEY_PASSWORD \
+            node scripts/repack-linux-appimage.mjs "$image"
+          if [[ "${{ needs.prepare.outputs.create_release }}" == "true" ]]; then
+            pnpm --filter hop-desktop tauri signer sign "$(realpath "$image")"
+          fi
+
+      - name: Verify AppImage startup
+        if: matrix.name == 'linux-x64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="$(find apps/desktop/src-tauri/target -path '*/bundle/appimage/*.AppImage' -type f -print -quit)"
+          mkdir -p "$RUNNER_TEMP/hop-unavailable-host"
+          printf 'QA unavailable host runtime\n' > "$RUNNER_TEMP/hop-unavailable-host/libwebkit2gtk-4.1.so.0"
+          for runtime in system bundled; do
+            extra_env=()
+            if [[ "$runtime" == bundled ]]; then
+              extra_env=("LD_LIBRARY_PATH=$RUNNER_TEMP/hop-unavailable-host")
+            fi
+            log="$RUNNER_TEMP/hop-appimage-startup-$runtime.log"
+            set +e
+            env -u TAURI_SIGNING_PRIVATE_KEY -u TAURI_SIGNING_PRIVATE_KEY_PASSWORD "${extra_env[@]}" \
+              xvfb-run -a dbus-run-session -- timeout --signal=TERM --kill-after=5s 15s \
+              "$image" --appimage-extract-and-run > "$log" 2>&1
+            status=$?
+            set -e
+            if [[ "$status" != 124 ]]; then
+              echo "::error::AppImage $runtime runtime exited before the smoke test completed (status $status)."
+              grep -iE 'error|critical|failed|not found|undefined symbol' "$log" | head -n 20 || true
+              exit 1
+            fi
+            if grep -iE 'undefined symbol|Loading IM context type.*failed|Failed to allocate shared memory buffer|Truncating shared memory file failed' "$log"; then
+              echo "::error::AppImage $runtime runtime initialization failed."
+              exit 1
+            fi
+          done
 
       - name: Verify macOS Quick Look extensions
         if: runner.os == 'macOS'

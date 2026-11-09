@@ -51,7 +51,9 @@ Windows 빌드는 아직 서명되지 않아 Edge나 Windows SmartScreen에서 "
 
 ### Linux
 
-Linux에서는 한글 IME와 WebKitGTK 런타임 안정성을 위해 배포판에 맞는 네이티브 패키지를 우선 사용해 주세요. arm64 Linux는 Ubuntu/Debian 계열 `.deb`를 먼저 지원합니다. AppImage는 portable 실행이 필요할 때만 권장하며, 일부 Wayland/IME 환경에서는 한영 전환이나 창 표시가 불안정할 수 있습니다.
+Linux에서는 배포판에 맞는 네이티브 패키지를 우선 사용해 주세요. arm64 Linux는 Ubuntu/Debian 계열 `.deb`를 먼저 지원합니다.
+
+0.5.2부터 AppImage는 시스템의 **WebKitGTK 4.1 런타임**을 우선 사용해 배포판의 입력기·그래픽 드라이버와 호환되도록 합니다. 시스템 런타임이 없으면 기존 번들 런타임으로 실행합니다. 한글 입력기 호환성 문제가 있다면 Ubuntu/Debian에서는 `sudo apt install libwebkit2gtk-4.1-0`으로 시스템 런타임을 준비해 주세요. AppImage와 KDE Wayland에서는 XWayland를 사용할 수 있을 때 X11을 기본으로 선택합니다. Wayland를 직접 사용하려면 `GDK_BACKEND=wayland`를 지정할 수 있습니다.
 
 Arch, CachyOS, EndeavourOS 계열은 AUR의 `hop-openhwp-bin` 패키지로 설치할 수 있습니다. 이 패키지는 [seunghun-kim](https://github.com/seunghun-kim)님이 올려주셨습니다.
 

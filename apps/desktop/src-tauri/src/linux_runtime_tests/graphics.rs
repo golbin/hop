@@ -125,3 +125,77 @@ fn webkit_graphics_fallback_preserves_user_overrides() {
         Some(OsString::from("0"))
     );
 }
+
+#[test]
+fn kde_wayland_uses_xwayland_when_available_and_preserves_user_choice() {
+    let _env = env_guard();
+    unsafe {
+        env::remove_var("APPDIR");
+        env::remove_var("APPIMAGE");
+    }
+    for (session, desktop, display, backend, expected) in [
+        ("wayland", "KDE", Some(":0"), None, Some("x11")),
+        ("wayland", "other:kde", Some(":0"), None, Some("x11")),
+        ("wayland", "GNOME", Some(":0"), None, None),
+        ("x11", "KDE", Some(":0"), None, None),
+        ("wayland", "KDE", None, None, None),
+        (
+            "wayland",
+            "KDE",
+            Some(":0"),
+            Some("wayland"),
+            Some("wayland"),
+        ),
+        ("wayland", "KDE", Some(":0"), Some(""), Some("")),
+    ] {
+        unsafe {
+            env::remove_var("WAYLAND_DISPLAY");
+            env::set_var("XDG_SESSION_TYPE", session);
+            env::set_var("XDG_CURRENT_DESKTOP", desktop);
+            super::restore_env("DISPLAY", &display.map(OsString::from));
+            super::restore_env("GDK_BACKEND", &backend.map(OsString::from));
+        }
+        apply_display_backend_fallback();
+        assert_eq!(env::var_os("GDK_BACKEND"), expected.map(OsString::from));
+    }
+}
+
+#[test]
+fn native_packages_also_apply_kde_wayland_fallback() {
+    let _env = env_guard();
+    unsafe {
+        env::remove_var("APPDIR");
+        env::remove_var("APPIMAGE");
+        env::remove_var("GDK_BACKEND");
+        env::set_var("WAYLAND_DISPLAY", "wayland-0");
+        env::set_var("DISPLAY", ":0");
+        env::set_var("XDG_CURRENT_DESKTOP", "KDE");
+    }
+    apply_linux_runtime_fixes_for_os_release(Some("ID=ubuntu\n"));
+    assert_eq!(env::var_os("GDK_BACKEND"), Some(OsString::from("x11")));
+}
+
+#[test]
+fn appimage_preserves_x11_default_but_allows_native_wayland() {
+    let _env = env_guard();
+    unsafe {
+        env::set_var("APPIMAGE", "/tmp/HOP.AppImage");
+        env::set_var("DISPLAY", ":0");
+        env::set_var("XDG_CURRENT_DESKTOP", "GNOME");
+        env::set_var("WAYLAND_DISPLAY", "wayland-0");
+        env::remove_var("GDK_BACKEND");
+    }
+    apply_display_backend_fallback();
+    assert_eq!(env::var_os("GDK_BACKEND"), Some(OsString::from("x11")));
+    unsafe {
+        env::set_var("GDK_BACKEND", "wayland");
+    }
+    apply_display_backend_fallback();
+    assert_eq!(env::var_os("GDK_BACKEND"), Some(OsString::from("wayland")));
+    unsafe {
+        env::remove_var("DISPLAY");
+        env::remove_var("GDK_BACKEND");
+    }
+    apply_display_backend_fallback();
+    assert!(env::var_os("GDK_BACKEND").is_none());
+}
