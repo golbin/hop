@@ -750,7 +750,14 @@ jobs:
             exit 1
           fi
 
-          max_glibc="$(strings "${elf_files[@]}" | grep -o 'GLIBC_[0-9.]*' | sort -V | tail -n 1 || true)"
+          # Inspect ELF version requirements, not arbitrary strings in program data.
+          max_glibc="$(LC_ALL=C readelf --version-info --wide "${elf_files[@]}" \
+            | awk '
+                /^File:|^Version / { needs = 0 }
+                /^Version needs section/ { needs = 1; next }
+                needs { for (i = 1; i < NF; i++)
+                  if ($i == "Name:" && $(i + 1) ~ /^GLIBC_[0-9]+([.][0-9]+)*$/) print $(i + 1) }
+              ' | sort -V | tail -n 1)"
           if [[ -z "$max_glibc" ]]; then
             echo "::error::Unable to determine GLIBC requirements for Linux ELF files."
             exit 1

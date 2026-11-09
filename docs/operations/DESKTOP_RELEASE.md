@@ -106,6 +106,7 @@ workflow는 기존 draft의 릴리스 노트를 유지하고 산출물만 갱신
 Linux x64 AppImage는 Tauri가 만든 실행 파일·HOP 리소스·AppImage runtime을 보존하고,
 `scripts/repack-linux-appimage.mjs`에서 시스템 WebKitGTK를 사용하는 파일 구성으로 다시 패키징한다.
 공식 appimagetool 1.9.1의 SHA-256을 검사한다. 시스템 런타임을 로드할 수 있으면 번들 GTK·입력기·테마 경로 설정을 사용하지 않고, 없으면 기존 번들 실행 경로를 유지한다. 실행 파일의 내장 rpath만 제거하고, 번들 경로에서는 기존 AppRun의 LD_LIBRARY_PATH를 사용한다. 실행 파일을 중복 저장하지 않는다.
+런처 `apps/desktop/linux/AppRun`은 재시작 때 상속된 이전 번들의 경로만 제거하며, 그 밖의 사용자 경로와 입력기·백엔드 선택은 보존한다. `pnpm run test:appimage:linux`로 이 환경 경계를 검사한다.
 재패키징하면 기존 `.sig`를 삭제하므로 릴리스 workflow에서 반드시 다시 서명한다.
 AppImage updater marker, 리소스 해시, 시스템 WebKitGTK 실행과 한글 입력을 확인한다.
 
