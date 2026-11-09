@@ -19,6 +19,8 @@ HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Window
 * 파일 드래그 앤 드롭으로 열기
 * `.hwp`, `.hwpx` 파일 연결
 * 여러 창에서 문서 열기
+* macOS Finder의 Quick Look 미리보기·썸네일
+* 글꼴·글자색 팔레트, 최근 사용한 색, 여러 쪽 모아 보기
 
 ## 다운로드
 

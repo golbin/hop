@@ -20,3 +20,7 @@ HOP는 studio host에서 fallback으로 사용할 수 있는 재배포 가능 �
 | `SpoqaHanSans-Regular.woff2` | SIL OFL 1.1 | Spoqa Han Sans |
 | `Cafe24*.woff2` | Cafe24 무료 폰트 라이선스 | Cafe24 |
 | `Happiness*.woff2` | 행복고흥 무료 폰트 라이선스 | 행복고흥 |
+
+native PDF에는 고정 upstream의 `third_party/rhwp/ttfs/opensource/NotoSansKR-Regular.ttf`를
+사용한다. `NotoSansKR-OFL.txt`와 함께 앱의 `fonts/pdf` resource로 패키징하며,
+위 웹폰트 목록과 별도로 관리한다. upstream 및 폰트 라이선스 파일은 삭제하지 않는다.

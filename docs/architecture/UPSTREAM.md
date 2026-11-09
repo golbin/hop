@@ -42,7 +42,8 @@ Rust 코드는 `apps/desktop/rhwp-adapter`에 의존하며 이 adapter만 `rhwp`
 | 편집 command | command 구현, snapshot/undo, `gotoPage`를 포함한 `CommandServices` | command 조립, WebView clipboard와 desktop shortcut | `host/command-runtime.ts`; command-runtime tests |
 | 렌더링 | `CanvasView`, `RendererSession`, page overlay와 ruler 위치 계산 | Canvas2D backend 선택과 host lifecycle 호출 | `host/renderer-session.ts`, `prepareDocumentLoad()` 뒤 `loadDocument()`; boundary tests |
 | 글꼴 | browser font discovery와 document font ID | 배포 가능한 font catalog, native font bytes, 제한 글꼴 authoring 정책 | 선택 가능한 catalog/UI 입력을 정규화하고 기존 document font lookup은 보존; font policy tests |
-| UI/dialog | 일반 dialog와 studio UI | desktop focus, 최근 문서, native print, 업데이트 UI | manifest의 명시적 extension/fork/contribution; counterpart hash tests |
+| UI/dialog | 일반 dialog, focus trap과 studio UI | toolbar popup, 최근 문서, native print, 업데이트 UI | manifest의 명시적 extension/fork/contribution; counterpart hash tests |
+| PDF/Quick Look | SVG→PDF 조립·인코딩과 Skia PNG 렌더링 | PDF 글꼴 정책·파일 쓰기, Finder 확장·PNG 페이지 포장 | 공유 Rust adapter; PDF 텍스트·쪽 수·물리 크기 테스트 |
 | WASM/Rust dependency | release source와 API | 불변 tag 선택, 생성 WASM/provenance, 두 native graph | updater와 `upstream:verify` |
 
 렌더러의 backend 선택처럼 제품 정책인 값은 작은 factory에서 한 번만 결정한다. document load처럼 순서가
@@ -61,17 +62,19 @@ override는 다음 순서로 선택한다.
 제품 정책과 검증 책임을 다시 기록한다. upstream 동작을 자동으로 고치는 별도 repair path는 두지 않는다.
 
 HOP는 upstream `main.ts`를 그대로 실행하지 않으므로 browser/PWA file handling, embed runtime,
-upstream autosave/recovery, theme, optional CanvasKit host wiring 같은 full-host 기능은 자동으로 채택하지
+upstream autosave/recovery, optional CanvasKit host wiring 같은 full-host 기능은 자동으로 채택하지
 않는다. 이 기능들은 HOP native session·제품 정책과 충돌 여부를 별도로 검토한 뒤 도입한다. HOP bootstrap은
 upstream renderer/session과 command API를 조합하고 native 제품 경계만 추가한다. browser 전용 format-save와
 print-to-PDF command도 native session을 우회하므로 명시적으로 제외하며, HOP의 Save As와 PDF export가 파일
-형식 선택과 side effect를 소유한다.
+형식 선택과 side effect를 소유한다. 테마는 upstream `initThemeSync`를 명시적으로 연결한다.
+`document-swapped`는 비동기 문서 초기화 전에 발행하여 editor 캐시와 진행 중인 toolbar 작업을
+무효화한다. native 색상 선택의 유효성은 팔레트 표시 여부가 아니라 문서 세대에 묶는다.
 
 현재 HOP가 소유하는 studio host override 범위는 다음과 같다.
 
 * `core/bridge-factory`, `core/tauri-bridge`, `core/desktop-events`, `core/font-loader`, `core/local-fonts`: 데스크톱 런타임, 파일 이벤트, 로컬/벤더 폰트 정책
 * `command/commands/file`, `command/commands/edit`, `command/shortcut-map`: 데스크톱 파일·clipboard 명령과 HOP 단축키
-* `ui/dialog`, `ui/toolbar`, `ui/custom-select`, `ui/print-dialog`: HOP UI와 native 인쇄 정책
+* `ui/toolbar`, `ui/custom-select`, `ui/color-picker`, `ui/toolbar-popup`, `ui/print-dialog`: HOP UI와 native 인쇄 정책. 일반 dialog는 upstream을 직접 사용한다.
 * `host/renderer-session`: upstream renderer를 Canvas2D 제품 정책으로 조립
 * `styles/*`, `style.css`: HOP가 소유하는 스타일 override
 * `main.ts`: upstream이 더 작은 bootstrap hook을 제공하기 전까지 유지하는 앱 bootstrap override
@@ -94,6 +97,9 @@ pnpm upstream:update -- vX.Y.Z
 실행 전 submodule `origin`이 기준선의 공식 source와 일치하고 보호 산출물이 clean인지 확인하며,
 WASM 재생성은 생략할 수 없다. Cargo patch는 HOP 제품 정책으로 유지하고, upstream이 같은 patch를 선언할
 때에만 그 고정 Git source/revision 또는 vendor path로 두 native graph를 함께 전환한다.
+현재 PDF backend는 upstream manifest의 `rhwp-svg2pdf` vendor 의존성을 사용한다.
+과거 `svg2pdf` registry patch와 중복 PDF 조립기는 유지하지 않는다. native adapter는 기본
+feature를 끄며 Quick Look만 `native-skia`를 명시한다. WASM은 upstream 기본 생성 방식을 따른다.
 
 ```sh
 pnpm upstream:verify
@@ -103,7 +109,7 @@ pnpm test
 기존 shell entrypoint는 호환 목적으로만 남아 있으며 `UPSTREAM_REF`가 필수다.
 
 ```sh
-UPSTREAM_REF=v0.7.19 scripts/update-upstream.sh
+UPSTREAM_REF=vX.Y.Z scripts/update-upstream.sh
 ```
 
 업데이트 도구는 submodule release에서 WASM package를 임시 디렉터리에 생성한 뒤

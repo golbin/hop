@@ -1,118 +1,92 @@
 # HOP 개발하기
 
-이 문서는 HOP를 로컬에서 실행하거나 수정할 때 필요한 기본 정보를 정리합니다.
+HOP는 Tauri 2, Rust, TypeScript로 만든 macOS·Windows·Linux 문서 편집기다.
+문서 엔진과 Studio는 읽기 전용 `third_party/rhwp`를 사용한다.
 
-## 빠른 시작
+## 시작하기
 
-처음 한 번 의존성과 submodule을 준비합니다.
+Corepack/pnpm, Rust, 해당 OS의 Tauri 빌드 의존성이 필요하다. Node는 CI와 같은
+24를 기준으로 하며, 로컬에서도 Vite와 호환되는 외부 런타임을 사용한다.
+Rust 버전은 `config/rhwp-upstream.json`의 `rustToolchain`을 사용한다.
 
 ```sh
 git submodule update --init --recursive
+corepack enable
 pnpm install --frozen-lockfile
-```
-
-studio host를 빌드합니다.
-
-```sh
-pnpm run build:studio
-```
-
-데스크톱 앱을 개발 모드로 실행합니다.
-
-```sh
 pnpm --filter hop-desktop dev
 ```
 
-debug 번들을 만들 때는 다음 명령을 사용합니다.
+독립 Studio 실행은 `pnpm --filter @golbin/hop-studio-host dev`다.
+브라우저 실행만으로 native 파일·창·인쇄 동작을 검증할 수는 없다.
+
+## 코드 위치
+
+| 위치 | 책임 |
+| --- | --- |
+| `apps/desktop/src-tauri` | native 문서 세션, 파일·저장·PDF·인쇄·창·업데이트 |
+| `apps/desktop/rhwp-adapter` | 제품 Rust 코드가 사용하는 upstream API 경계 |
+| `apps/desktop/quicklook` | macOS Finder preview/thumbnail 확장 |
+| `apps/studio-host` | desktop bridge, 명령 조립, HOP 전용 UI와 스타일 |
+| `third_party/rhwp` | 고정 안정 태그의 upstream source; 제품 수정 금지 |
+| `config` | upstream 기준선과 Studio override 목록 |
+| `scripts`, `tests` | 갱신·패키징 도구와 저장소 계약 테스트 |
+
+일반 편집·렌더링·대화상자는 upstream에 위임한다. HOP는 native side effect와
+제품 정책을 추가한다. 자세한 경계는 [UPSTREAM.md](architecture/UPSTREAM.md)를 따른다.
+
+## 검증 명령
 
 ```sh
+pnpm upstream:verify
+pnpm test
+pnpm run clippy:desktop
+pnpm run build:studio
 pnpm --filter hop-desktop tauri build --debug --bundles app
 ```
 
-## 프로젝트 구조
+`pnpm test`는 저장소 계약, Studio, desktop, macOS Quick Look 테스트를 실행한다.
+각각 `test:upstream`, `test:studio`, `test:desktop`, `test:quicklook:macos`로 좁혀 실행할 수 있다.
+Rust formatting과 Quick Look clippy는 해당 Cargo manifest를 지정해 실행한다.
+빌드와 Rust 테스트는 같은 target directory를 사용하므로 동시에 실행하지 않는다.
 
-```text
-apps/
-  desktop/       Tauri 2 데스크톱 앱
-  studio-host/   upstream rhwp-studio 위에 얹는 HOP overlay
-third_party/
-  rhwp/          read-only upstream submodule
-assets/          아이콘, 폰트, 스크린샷
-docs/            스펙, 아키텍처, 운영 문서
-scripts/         유지보수 스크립트
-```
+macOS 번들은 `apps/desktop/src-tauri/target/debug/bundle/macos/HOP.app`에 생성된다.
+Quick Look 빌드 hook은 `pnpm run build:quicklook:macos`이며 다른 OS에서는 건너뛴다.
+확장은 `HOP.app/Contents/PlugIns`에 포함된다. Quick Look은 Skia로 페이지를 PNG로
+렌더링하고 공유 Rust adapter의 PDF 변환을 사용한다. 별도 PDF 조립기는 없다.
+Finder 등록·미리보기는 공개 sample의 복사본으로 `qlmanage -r`, `qlmanage -p`,
+`qlmanage -t -s 512`를 사용해 확인한다. 배포 빌드는 앱과 두 확장의 서명·공증도 검증한다.
 
-HOP 전용 동작은 `apps/desktop`과 `apps/studio-host`에 둡니다. `third_party/rhwp`는 upstream submodule로 유지하고, HOP 제품 기능 때문에 직접 수정하지 않는 것을 원칙으로 합니다.
+Codex 내장 Node에서 Vite/Vitest의 native binding 로딩이 실패하면 외부 Node를 먼저
+`PATH`에 넣고 `which node`로 확인한다. macOS 27에서 Rust dylib strip 오류가 발생하는
+환경에서는 로컬 검증에 `CARGO_PROFILE_DEV_STRIP=none`,
+`CARGO_PROFILE_TEST_STRIP=none`, `CARGO_PROFILE_RELEASE_STRIP=none`을 사용할 수 있다.
+이 환경 조정 때문에 제품의 minimum deployment target을 바꾸지는 않는다.
 
-## rhwp와의 관계
+## 제품 동작과 제한
 
-HOP는 `rhwp`의 문서 엔진과 웹 에디터를 기반으로 합니다. HOP가 맡는 부분은 데스크톱 앱에서 필요한 얇은 제품 레이어입니다.
+- HWP/HWPX 열기, 편집, HWP 저장·Save As, 검색 가능한 PDF 내보내기를 지원한다.
+  HWPX 저장은 제품 UI에서 지원하지 않는다.
+- 암호 HWP는 암호 입력 후 열 수 있다. 원본의 암호를 조용히 제거하지 않도록 직접 저장은
+  차단하며, Save As에서 안내에 동의한 경우 암호 없는 HWP를 별도로 저장한다.
+- native 문서 작업은 겹쳐 실행하지 않는다. 취소·오류 시 기존 문서와 미저장 상태를 보존하고,
+  외부 파일 변경은 저장 전에 충돌 확인을 거친다. autosave/recovery는 제공하지 않는다.
+- Studio는 Canvas2D와 WASM mirror를 사용한다. native 파일/session과의 동기화는 bridge가 맡는다.
+- 시스템·밝게·어둡게 테마는 upstream 설정과 `initThemeSync`를 명시적으로 연결한다.
+- 글꼴과 색상 선택은 문서 선택 영역을 보존해야 한다. 글자색 최근 목록은 최대 7개이며,
+  형광펜에는 연속 칠하기 모드를 추가하지 않는다.
+- 창 제목은 파일명·미저장 표시를 포함한다. 확대 대화상자와 맞춤 명령은 upstream의 쪽 배치를 사용한다.
+- 창 간 rich clipboard의 문단 서식 손실은 [#96](https://github.com/golbin/hop/issues/96)에서
+  추적한다. 재현되지 않은 IME·출력·한컴 호환성 보고는 해결됐다고 간주하지 않는다.
 
-* Tauri 2 앱 셸
-* native menu와 파일 명령 연결
-* Rust document session 관리
-* atomic save
-* native SVG-to-PDF export 경로
-* webview print 경로
-* single-instance와 파일 open event 라우팅
-* 새 창 생성과 창별 drag/drop 처리
-* GitHub Actions 기반 desktop build/release 초안
+플랫폼 GUI 검증은 실제 OS에서 수행하고 자동 테스트와 구분한다. 실물 인쇄, IME,
+복잡한 문서 호환성은 해당 환경·원본 대조가 필요하다. 비공개 문서를 로그·업로드하지 않는다.
 
-upstream이 업데이트되면 submodule pointer를 올리고, HOP overlay에서 필요한 호환성만 조정하는 구조를 목표로 합니다.
+## 유지보수
 
-## 아직 준비 중인 부분
+- [단축키](KEYBOARD_SHORTCUTS.md)
+- [로컬 글꼴 정책](architecture/LOCAL_FONTS.md)
+- [rhwp 갱신 절차](operations/RHWP_UPDATE.md)
+- [브랜치 통합과 배포 절차](operations/DESKTOP_RELEASE.md)
 
-public beta 전까지는 아래 항목이 더 필요합니다.
-
-* HWPX 저장은 아직 막아 두었습니다. HWPX 열기는 가능하지만, 안전한 HWPX serializer가 준비되기 전까지 저장은 지원하지 않습니다.
-* autosave/recovery는 아직 없습니다.
-* 외부 파일 변경은 저장 전에 감지하고 충돌 확인을 거칩니다.
-* 큰 문서에서는 현재 WASM mirror를 거치는 구간이 있어 native-authoritative 구조로 더 개선해야 합니다.
-* signing, notarization, updater manifest는 배포 자격증명이 준비된 뒤 활성화할 예정입니다.
-
-현재 상태에서도 HWP 문서를 열고, 가볍게 편집하고, 저장하고, PDF로 내보내는 기본 데스크톱 흐름은 확인할 수 있습니다.
-
-## 개발 명령
-
-전체 단위 테스트:
-
-```sh
-pnpm test
-```
-
-upstream submodule 갱신 스크립트 테스트:
-
-```sh
-pnpm run test:upstream
-```
-
-studio host TypeScript 테스트:
-
-```sh
-pnpm run test:studio
-```
-
-desktop Rust 테스트:
-
-```sh
-pnpm run test:desktop
-```
-
-desktop Rust clippy:
-
-```sh
-pnpm run clippy:desktop
-```
-
-upstream 갱신:
-
-```sh
-pnpm upstream:update -- vX.Y.Z
-pnpm upstream:verify
-```
-
-## 관련 문서
-
-* [upstream 경계와 업데이트 방식](architecture/UPSTREAM.md)
-* [rhwp 업데이트 운영 매뉴얼](operations/RHWP_UPDATE.md)
-* [데스크톱 릴리즈 노트](operations/DESKTOP_RELEASE.md)
+완료한 계획·QA·트리아지 기록은 저장소에 누적하지 않는다. 변경 이유와 과거 검증은
+Git history, 이슈, 릴리스 기록에서 찾는다.

@@ -37,6 +37,9 @@ HOP는 `third_party/rhwp`를 수정하지 않고, 데스크톱 셸과 studio hos
 ## Editor / PDF 일관성
 
 - editor: `list_local_fonts` + `read_local_font` Tauri command를 통해 system-installed / file-backed 폰트를 구분하고 필요 시 lazy load한다.
-- PDF export: `font_catalog::create_pdf_font_database()`를 사용해 같은 추가 스캔 루트를 공유한다.
+- PDF export: `font_catalog::pdf_font_dirs(app)`가 같은 추가 스캔 루트와 번들 `fonts/pdf`를
+  공유 Rust adapter에 전달한다. upstream PDF 변환기가 font database를 구성한다.
+- 한국어 system font가 없는 환경에서도 PDF 텍스트를 보존하도록 Noto Sans KR TTF와 OFL을
+  함께 패키징한다. 폰트 소스는 고정 upstream의 `ttfs/opensource`이며 Tauri resource API로 찾는다.
 
 이 규칙 덕분에 upstream `rhwp`를 건드리지 않고도 editor와 PDF export가 같은 high-level font discovery policy를 따른다.
