@@ -43,6 +43,21 @@ const WEBKIT_GRAPHICS_FALLBACK_DISTRO_FAMILIES: &[&str] = &[
 ];
 const WEBKIT_GRAPHICS_FALLBACK_WAYLAND_DISTRO_FAMILIES: &[&str] = &["fedora", "rhel", "redhat"];
 
+#[cfg(target_os = "linux")]
+pub fn enable_inline_preedit(window: &tauri::WebviewWindow) {
+    use webkit2gtk::{InputMethodContextExt, WebViewExt};
+
+    // Wry disables GTK preedit. The editor needs composition updates to
+    // display the current syllable at its document caret (#124).
+    if let Err(error) = window.with_webview(|webview| {
+        if let Some(context) = webview.inner().input_method_context() {
+            context.set_enable_preedit(true);
+        }
+    }) {
+        eprintln!("[ime] 인라인 조합 설정 실패: {error}");
+    }
+}
+
 pub fn apply_linux_runtime_fixes() {
     apply_linux_runtime_fixes_for_os_release(read_os_release().as_deref());
 }

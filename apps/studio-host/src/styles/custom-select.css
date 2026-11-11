@@ -15,7 +15,6 @@
   display: inline-flex;
   align-items: stretch;
   min-width: 0;
-  height: 22px;
   vertical-align: middle;
   font-size: var(--font-size-base);
   color: var(--color-text);
@@ -143,32 +142,14 @@
   white-space: nowrap;
 }
 
-#style-bar .custom-select {
-  height: 22px;
-  font-size: var(--font-size-base);
-}
-
 #style-bar .custom-select-trigger {
   border-color: var(--color-border-input);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
 }
 
-#style-bar .custom-select[data-select-id="style-name"] {
-  width: 112px;
-}
-
-#style-bar .custom-select[data-select-id="font-lang"] {
-  width: 76px;
-}
-
-#style-bar .custom-select[data-select-id="font-name"] {
-  width: 180px;
+.custom-select.sb-font {
   overflow: visible;
-}
-
-#style-bar .custom-select[data-select-id="linespacing-select"] {
-  width: 78px;
 }
 
 .dialog-wrap .custom-select {
