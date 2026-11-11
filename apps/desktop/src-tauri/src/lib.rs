@@ -72,7 +72,7 @@ pub fn run() {
             queue_open_paths(app.handle(), startup_document_paths());
             if let Some(window) = app.get_webview_window("main") {
                 windows::install_editor_window_minimum(&window);
-                windows::attach_document_drop_handler(app.handle(), &window);
+                windows::configure_editor_webview(app.handle(), &window);
             }
             #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
             updates::install_startup_update_check(app.handle());

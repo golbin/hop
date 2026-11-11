@@ -2105,7 +2105,7 @@ dependencies = [
 
 [[package]]
 name = "hop-desktop"
-version = "0.5.2"
+version = "0.5.3"
 dependencies = [
  "hop-rhwp-adapter",
  "objc2-app-kit",
@@ -2125,6 +2125,7 @@ dependencies = [
  "tempfile",
  "usvg 0.45.1",
  "uuid",
+ "webkit2gtk",
 ]
 
 [[package]]

@@ -2,7 +2,7 @@
 // rather than mixing it with copies from the Ubuntu build runner.
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { chmodSync, cpSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
@@ -38,6 +38,10 @@ try {
 
   const appDir = join(temporary, `${productName}.AppDir`);
   cpSync(realpathSync(source), appDir, { recursive: true, verbatimSymlinks: true });
+  // linuxdeploy can leave a link into the build runner's AppDir. Keep the icon
+  // usable after mounting or extraction by AppImage managers on another machine.
+  rmSync(join(appDir, '.DirIcon'), { force: true });
+  symlinkSync(`${productName}.png`, join(appDir, '.DirIcon'));
   // The fallback AppRun supplies LD_LIBRARY_PATH. Without an embedded rpath,
   // the same executable can also load the complete system runtime.
   execFileSync('patchelf', ['--remove-rpath', join(appDir, 'usr/bin/hop-desktop')]);
