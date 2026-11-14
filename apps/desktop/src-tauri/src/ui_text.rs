@@ -42,8 +42,8 @@ pub fn text_with(key: &'static str, args: &[&dyn Display]) -> String {
 fn text_in(lang: Lang, key: &'static str) -> &'static str {
     match MESSAGES.iter().find(|(k, _, _)| *k == key) {
         Some((_, ko, en)) => match lang {
-            Lang::Ko => *ko,
-            Lang::En => *en,
+            Lang::Ko => ko,
+            Lang::En => en,
         },
         None => key,
     }
