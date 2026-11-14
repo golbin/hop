@@ -1,8 +1,15 @@
 import type { CommandDef } from '@/upstream/commands';
-import { getLocale, isSupportedLocale, resolveLocale } from '@upstream/i18n';
+import {
+  collectBrowserSources,
+  getLocale,
+  isSupportedLocale,
+  LOCALE_STORAGE_KEY,
+  readStoredLocale,
+  resolveLocale,
+  storeLocale,
+} from '@/upstream/i18n';
+import type { Locale } from '@/upstream/i18n';
 import { t } from '../hop-i18n';
-import type { Locale } from '@upstream/i18n';
-import { collectBrowserSources, LOCALE_STORAGE_KEY, readStoredLocale, storeLocale } from '@upstream/i18n/resolve';
 
 /** 'system' 은 저장된 선택을 지우고 OS 언어를 따른다. */
 type LanguageChoice = 'system' | Locale;

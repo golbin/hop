@@ -13,6 +13,7 @@ HOP 화면과 데스크톱 쪽 문구를 한국어와 영어로 보여 준다. `
 
 ## 구성
 
+- `apps/studio-host/src/upstream/i18n.ts`: upstream 언어팩을 부르는 경계(adapter). HOP 코드는 이 파일로만 upstream 언어팩에 닿는다.
 - `apps/studio-host/src/hop-i18n/index.ts`: upstream 카탈로그에 HOP 카탈로그(`locales/ko.ts`, `locales/en.ts`, 키는 `hop.*`)를 합쳐 등록한다. HOP 코드는 여기서 `t`를 가져온다.
 - `apps/studio-host/src/hop-i18n/bootstrap.ts`: 위 순서로 로케일을 정한다. upstream 모듈이 최상위에서 `t()`를 부르기 전에 평가되도록 `main.ts`의 첫 import 로 둔다.
 - `apps/studio-host/index.html`: 문구마다 `data-i18n*` 표시를 붙인다. upstream 마크업에 같은 문구가 있으면 그 키를 쓴다.

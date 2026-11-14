@@ -10,10 +10,8 @@
  */
 
 import './index';
-import { applyI18nToDom, getLocale, resolveLocale } from '@upstream/i18n';
-import type { Locale } from '@upstream/i18n';
-import { setLocale } from '@upstream/i18n/core';
-import { collectBrowserSources } from '@upstream/i18n/resolve';
+import { applyI18nToDom, collectBrowserSources, getLocale, resolveLocale, setLocale } from '@/upstream/i18n';
+import type { Locale } from '@/upstream/i18n';
 
 setLocale(resolveLocale({ ...collectBrowserSources(), preferBrowserLanguage: true }));
 

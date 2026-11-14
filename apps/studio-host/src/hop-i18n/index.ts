@@ -6,15 +6,12 @@
  * 로케일 결정(OS 언어 따르기)과 정적 마크업 갱신은 bootstrap.ts 가 맡는다.
  */
 
-import { getLocale, t } from '@upstream/i18n';
-import type { Catalog } from '@upstream/i18n';
-import { registerCatalog } from '@upstream/i18n/core';
-import upstreamKo from '@upstream/i18n/locales/ko';
-import upstreamEn from '@upstream/i18n/locales/en';
+import { getLocale, registerCatalog, t, upstreamEnCatalog, upstreamKoCatalog } from '@/upstream/i18n';
+import type { Catalog } from '@/upstream/i18n';
 import hopKo from './locales/ko';
 import hopEn from './locales/en';
 
-registerCatalog('ko', { ...upstreamKo, ...hopKo } as Catalog);
-registerCatalog('en', { ...upstreamEn, ...hopEn } as Catalog);
+registerCatalog('ko', { ...upstreamKoCatalog, ...hopKo } as Catalog);
+registerCatalog('en', { ...upstreamEnCatalog, ...hopEn } as Catalog);
 
 export { getLocale, t };
