@@ -65,7 +65,7 @@ pub(crate) fn request_app_quit(app: &AppHandle) -> Result<(), String> {
         let mut quit_requests = state
             .quit_requests
             .lock()
-            .map_err(|_| "앱 종료 상태 잠금 실패".to_string())?;
+            .map_err(|_| crate::ui_text::text("quit.lockFailed").to_string())?;
         if quit_requests.is_in_progress() {
             return Ok(());
         }
@@ -85,7 +85,7 @@ pub(crate) fn cancel_app_quit_request(app: &AppHandle) -> Result<(), String> {
     app.state::<AppState>()
         .quit_requests
         .lock()
-        .map_err(|_| "앱 종료 상태 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("quit.lockFailed").to_string())?
         .cancel();
     Ok(())
 }
@@ -113,7 +113,7 @@ fn handle_quit_window_destroyed(app: &AppHandle, label: &str) -> Result<(), Stri
         let mut quit_requests = state
             .quit_requests
             .lock()
-            .map_err(|_| "앱 종료 상태 잠금 실패".to_string())?;
+            .map_err(|_| crate::ui_text::text("quit.lockFailed").to_string())?;
         quit_requests.advance_after_close(label)
     };
 
@@ -132,7 +132,7 @@ fn emit_app_quit_request(app: &AppHandle, label: &str) -> Result<(), String> {
     app.emit_to(label, APP_QUIT_REQUEST_EVENT, serde_json::json!({}))
         .map_err(|e| {
             let _ = cancel_app_quit_request(app);
-            format!("앱 종료 이벤트 전송 실패 ({}): {}", label, e)
+            crate::ui_text::text_with("quit.emitFailed", &[&label, &e])
         })
 }
 

@@ -29,12 +29,18 @@ pub struct JobProgress {
     pub message: String,
 }
 
+/// 웹뷰가 정한 표시 언어(`ko`/`en`)를 데스크톱 쪽 문구에도 적용한다.
+#[tauri::command]
+pub fn set_ui_locale(locale: String) {
+    crate::ui_text::set_locale(&locale);
+}
+
 #[tauri::command]
 pub fn create_document(state: State<'_, AppState>) -> Result<DocumentOpenResult, String> {
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .create_document()
 }
 
@@ -48,7 +54,7 @@ pub fn open_document_tracking(
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .open_document_tracking(path, source_fingerprint)
 }
 
@@ -72,7 +78,7 @@ pub fn close_document(doc_id: String, state: State<'_, AppState>) -> Result<(), 
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .close_document(&doc_id)
 }
 
@@ -81,7 +87,7 @@ pub fn mark_document_dirty(doc_id: String, state: State<'_, AppState>) -> Result
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .mark_document_dirty(&doc_id)
 }
 
@@ -122,7 +128,7 @@ pub fn commit_staged_hwp_save(
     let result = state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .commit_staged_hwp_save(
             &doc_id,
             PathBuf::from(staged_path),
@@ -171,15 +177,11 @@ pub fn render_document_preview(path: String) -> Result<String, String> {
     let path = PathBuf::from(path);
     ensure_document_open_path(&path)?;
     let bytes = std::fs::read(&path).map_err(|e| {
-        format!(
-            "미리보기용 문서를 읽을 수 없습니다: {} ({})",
-            path.display(),
-            e
-        )
+        crate::ui_text::text_with("preview.readFailed", &[&path.display(), &e])
     })?;
-    let core = editable_core_from_bytes(&bytes, "문서 파싱 실패", "미리보기용 문서 변환 실패")?;
+    let core = editable_core_from_bytes(&bytes, crate::ui_text::text("doc.parseFailed"), crate::ui_text::text("preview.convertFailed"))?;
     core.render_page_svg_native(0)
-        .map_err(|e| format!("문서 미리보기를 렌더링할 수 없습니다: {}", e))
+        .map_err(|e| crate::ui_text::text_with("preview.renderFailed", &[&e]))
 }
 
 #[tauri::command]
@@ -191,7 +193,7 @@ pub fn check_external_modification(
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .external_modification_status(&doc_id, target_path.map(PathBuf::from))
 }
 
@@ -205,7 +207,7 @@ pub fn render_page_svg(
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .render_page_svg(&doc_id, page_index, revision)
 }
 
@@ -219,7 +221,7 @@ pub fn query_document(
     let mut sessions = state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?;
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?;
     sessions.query_document(&doc_id, &query, args)
 }
 
@@ -234,7 +236,7 @@ pub fn mutate_document(
     state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?
         .mutate_document(&doc_id, &operation, args, expected_revision)
 }
 
@@ -252,7 +254,7 @@ pub fn export_pdf(
     let mut sessions = state
         .sessions
         .lock()
-        .map_err(|_| "문서 세션 잠금 실패".to_string())?;
+        .map_err(|_| crate::ui_text::text("session.lockFailed").to_string())?;
     let session = sessions.session_mut(&doc_id)?;
     let core = session.ensure_core_loaded()?;
     export_pdf_from_core(&app, &job_id, core, target_path, page_range, open_after)?;
@@ -271,16 +273,12 @@ pub fn export_pdf_from_hwp_path(
 
     let staged_path = PathBuf::from(staged_path);
     let bytes = std::fs::read(&staged_path).map_err(|e| {
-        format!(
-            "PDF 내보내기용 staging 파일을 읽을 수 없습니다: {} ({})",
-            staged_path.display(),
-            e
-        )
+        crate::ui_text::text_with("pdf.stagingReadFailed", &[&staged_path.display(), &e])
     })?;
     let core = editable_core_from_bytes(
         &bytes,
-        "문서 바이트 파싱 실패",
-        "PDF 내보내기용 문서 변환 실패",
+        crate::ui_text::text("doc.bytesParseFailed"),
+        crate::ui_text::text("pdf.convertFailed"),
     )?;
     export_pdf_from_core(&app, &job_id, &core, target_path, page_range, open_after)?;
     Ok(job_id)
@@ -293,29 +291,26 @@ pub fn reveal_in_folder(path: String) -> Result<(), String> {
         path.as_path()
     } else {
         path.parent()
-            .ok_or_else(|| format!("파일 위치를 찾을 수 없습니다: {}", path.display()))?
+            .ok_or_else(|| crate::ui_text::text_with("reveal.notFound", &[&path.display()]))?
     };
     if !reveal_path.is_dir() {
-        return Err(format!(
-            "파일 위치가 로컬 디렉터리가 아닙니다: {}",
-            reveal_path.display()
-        ));
+        return Err(crate::ui_text::text_with("reveal.notLocalDir", &[&reveal_path.display()]));
     }
-    open::that(reveal_path).map_err(|e| format!("파일 위치를 열 수 없습니다: {}", e))
+    open::that(reveal_path).map_err(|e| crate::ui_text::text_with("reveal.openFailed", &[&e]))
 }
 
 #[tauri::command]
 pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
     window
         .print()
-        .map_err(|e| format!("인쇄 대화상자를 열 수 없습니다: {}", e))
+        .map_err(|e| crate::ui_text::text_with("print.dialogFailed", &[&e]))
 }
 
 #[tauri::command]
 pub fn destroy_current_window(window: WebviewWindow) -> Result<(), String> {
     window
         .destroy()
-        .map_err(|e| format!("창을 닫을 수 없습니다: {}", e))
+        .map_err(|e| crate::ui_text::text_with("window.closeFailed", &[&e]))
 }
 
 #[tauri::command]
@@ -350,7 +345,7 @@ fn allow_frontend_fs_file(app: &AppHandle, path: &Path) -> Result<(), String> {
     let scope = app.fs_scope();
     scope
         .allow_file(path)
-        .map_err(|e| format!("filesystem scope 갱신 실패: {}", e))?;
+        .map_err(|e| crate::ui_text::text_with("fs.scopeFailed", &[&e]))?;
     Ok(())
 }
 
@@ -369,17 +364,17 @@ fn prepare_staged_file(
 fn ensure_document_open_path(path: &Path) -> Result<(), String> {
     DocumentFormat::from_path(path)?;
     if !path.is_file() {
-        return Err(format!("문서 파일을 찾을 수 없습니다: {}", path.display()));
+        return Err(crate::ui_text::text_with("doc.fileNotFound", &[&path.display()]));
     }
     Ok(())
 }
 
 fn ensure_hwp_target_path(path: &Path) -> Result<(), String> {
-    ensure_target_parent(path, "저장 경로")?;
+    ensure_target_parent(path, crate::ui_text::text("path.saveContext"))?;
     let format = DocumentFormat::from_path(path)?;
     if format == DocumentFormat::Hwpx {
         return Err(
-            "HWPX 경로에는 HWP 바이트를 저장할 수 없습니다. .hwp 파일로 저장하세요.".to_string(),
+            crate::ui_text::text("save.hwpxTarget").to_string(),
         );
     }
     Ok(())
@@ -390,7 +385,7 @@ fn staged_hwp_save_path(target_path: &Path) -> Result<PathBuf, String> {
 }
 
 fn ensure_pdf_target_path(path: &Path) -> Result<(), String> {
-    ensure_target_parent(path, "PDF 경로")?;
+    ensure_target_parent(path, crate::ui_text::text("path.pdfContext"))?;
     crate::pdf_export::ensure_pdf_path(path)
 }
 
@@ -403,28 +398,17 @@ fn ensure_target_parent(path: &Path, context: &str) -> Result<(), String> {
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
         .ok_or_else(|| {
-            format!(
-                "{}의 상위 디렉터리를 찾을 수 없습니다: {}",
-                context,
-                path.display()
-            )
+            crate::ui_text::text_with("path.parentMissing", &[&context, &path.display()])
         })?;
     if !parent.is_dir() {
-        return Err(format!(
-            "{}의 상위 디렉터리가 유효하지 않습니다: {}",
-            context,
-            parent.display()
-        ));
+        return Err(crate::ui_text::text_with("path.parentInvalid", &[&context, &parent.display()]));
     }
     Ok(())
 }
 
 fn staged_sibling_path(target_path: &Path, marker: &str, suffix: &str) -> Result<PathBuf, String> {
     let file_name = target_path.file_name().ok_or_else(|| {
-        format!(
-            "저장 경로의 파일 이름을 찾을 수 없습니다: {}",
-            target_path.display()
-        )
+        crate::ui_text::text_with("path.fileNameMissing", &[&target_path.display()])
     })?;
     let mut staged_name = file_name.to_os_string();
     staged_name.push(format!("{}{}{}", marker, Uuid::new_v4().simple(), suffix));
@@ -435,7 +419,7 @@ fn staged_sibling_path(target_path: &Path, marker: &str, suffix: &str) -> Result
 pub async fn create_editor_window(app: AppHandle) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || crate::windows::create_editor_window(&app))
         .await
-        .map_err(|e| format!("새 창 생성 작업 실패: {}", e))?
+        .map_err(|e| crate::ui_text::text_with("window.createJobFailed", &[&e]))?
 }
 
 fn export_pdf_from_core(
@@ -460,11 +444,7 @@ fn export_pdf_from_core(
 
     if open_after {
         open::that(&path).map_err(|e| {
-            format!(
-                "파일은 저장됐지만 OS 기본 앱으로 열 수 없습니다: {} ({})",
-                path.display(),
-                e
-            )
+            crate::ui_text::text_with("pdf.openAfterFailed", &[&path.display(), &e])
         })?;
     }
 
@@ -474,7 +454,7 @@ fn export_pdf_from_core(
         "done",
         total,
         total,
-        "PDF 내보내기가 완료되었습니다",
+        crate::ui_text::text("pdf.done"),
     );
     Ok(())
 }

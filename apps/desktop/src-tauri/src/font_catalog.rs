@@ -64,13 +64,10 @@ pub fn collect_desktop_local_font_entries() -> Vec<LocalFontEntry> {
 
 pub fn read_desktop_local_font(path: &Path) -> Result<Vec<u8>, String> {
     let path = normalize_existing_path(path)
-        .ok_or_else(|| format!("로컬 폰트 파일을 찾을 수 없습니다: {}", path.display()))?;
+        .ok_or_else(|| crate::ui_text::text_with("font.notFound", &[&path.display()]))?;
 
     if !has_supported_font_extension(&path) {
-        return Err(format!(
-            "지원하지 않는 로컬 폰트 확장자입니다: {}",
-            path.display()
-        ));
+        return Err(crate::ui_text::text_with("font.unsupportedExtension", &[&path.display()]));
     }
 
     let allowed_roots = desktop_extra_font_dirs();
@@ -78,18 +75,11 @@ pub fn read_desktop_local_font(path: &Path) -> Result<Vec<u8>, String> {
         .iter()
         .any(|root| path_is_within_root(&path, root))
     {
-        return Err(format!(
-            "지원된 로컬 폰트 디렉터리 밖의 파일입니다: {}",
-            path.display()
-        ));
+        return Err(crate::ui_text::text_with("font.outsideDirs", &[&path.display()]));
     }
 
     fs::read(&path).map_err(|error| {
-        format!(
-            "로컬 폰트 파일을 읽을 수 없습니다: {} ({})",
-            path.display(),
-            error
-        )
+        crate::ui_text::text_with("font.readFailed", &[&path.display(), &error])
     })
 }
 
