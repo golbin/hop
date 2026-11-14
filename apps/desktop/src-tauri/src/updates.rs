@@ -60,20 +60,20 @@ impl UpdateManagerState {
                 version.clone()
             }
             UpdateNoticeState::Idle => {
-                return Err("새 업데이트가 준비되지 않았습니다.".to_string());
+                return Err(crate::ui_text::text("update.notReady").to_string());
             }
             UpdateNoticeState::Downloading { .. } => {
-                return Err("업데이트를 이미 준비하고 있습니다.".to_string());
+                return Err(crate::ui_text::text("update.alreadyPreparing").to_string());
             }
             UpdateNoticeState::Ready { .. } => {
-                return Err("업데이트가 이미 준비되었습니다. 다시 시작해서 적용하세요.".to_string());
+                return Err(crate::ui_text::text("update.alreadyReady").to_string());
             }
         };
 
         let update = self
             .pending_update
             .take()
-            .ok_or_else(|| "업데이트 준비 정보가 없어 다시 확인이 필요합니다.".to_string())?;
+            .ok_or_else(|| crate::ui_text::text("update.needsRecheck").to_string())?;
 
         self.notice = UpdateNoticeState::Downloading {
             version: version.clone(),
@@ -147,7 +147,7 @@ pub fn get_update_state(app: AppHandle) -> Result<UpdateNoticeState, String> {
         .state::<AppState>()
         .updater
         .lock()
-        .map_err(|_| "업데이트 상태 잠금 실패".to_string())?
+        .map_err(|_| crate::ui_text::text("update.lockFailed").to_string())?
         .current_notice())
 }
 
@@ -155,7 +155,7 @@ pub fn get_update_state(app: AppHandle) -> Result<UpdateNoticeState, String> {
 pub fn start_update_install(app: AppHandle) -> Result<(), String> {
     if has_dirty_documents(&app) {
         return Err(
-            "저장되지 않은 변경사항이 있어 지금은 업데이트할 수 없습니다. 저장 후 다시 시도하세요."
+            crate::ui_text::text("update.unsavedChanges")
                 .to_string(),
         );
     }
@@ -163,7 +163,7 @@ pub fn start_update_install(app: AppHandle) -> Result<(), String> {
     #[cfg(debug_assertions)]
     {
         let _ = app;
-        Err("업데이트 설치는 릴리즈 빌드에서만 사용할 수 있습니다.".to_string())
+        Err(crate::ui_text::text("update.releaseOnly").to_string())
     }
 
     #[cfg(not(debug_assertions))]
@@ -173,7 +173,7 @@ pub fn start_update_install(app: AppHandle) -> Result<(), String> {
             let mut updater = state
                 .updater
                 .lock()
-                .map_err(|_| "업데이트 상태 잠금 실패".to_string())?;
+                .map_err(|_| crate::ui_text::text("update.lockFailed").to_string())?;
             updater.begin_install()?
         };
 
@@ -211,7 +211,7 @@ async fn run_update_install(app: AppHandle, update: Update, version: String) {
                 update,
                 &version,
                 format_retryable_error(
-                    "업데이트 다운로드에 실패했습니다. 네트워크를 확인하고 다시 시도하세요.",
+                    crate::ui_text::text("update.downloadFailed"),
                     &error,
                 ),
             );
@@ -224,7 +224,7 @@ async fn run_update_install(app: AppHandle, update: Update, version: String) {
             &app,
             update,
             &version,
-            "업데이트를 준비하는 동안 저장되지 않은 변경사항이 생겨 적용을 보류했습니다. 저장 후 다시 시도하세요."
+            crate::ui_text::text("update.deferredUnsaved")
                 .to_string(),
         );
         return;
@@ -235,7 +235,7 @@ async fn run_update_install(app: AppHandle, update: Update, version: String) {
             &app,
             update,
             &version,
-            format_retryable_error("업데이트 설치에 실패했습니다. 다시 시도하세요.", &error),
+            format_retryable_error(crate::ui_text::text("update.installFailed"), &error),
         );
         return;
     }
@@ -261,17 +261,17 @@ pub fn restart_to_apply_update(app: AppHandle) -> Result<(), String> {
         let updater = state
             .updater
             .lock()
-            .map_err(|_| "업데이트 상태 잠금 실패".to_string())?;
+            .map_err(|_| crate::ui_text::text("update.lockFailed").to_string())?;
         matches!(updater.current_notice(), UpdateNoticeState::Ready { .. })
     };
 
     if !ready {
-        return Err("적용할 업데이트가 아직 준비되지 않았습니다.".to_string());
+        return Err(crate::ui_text::text("update.notReadyToApply").to_string());
     }
 
     if has_dirty_documents(&app) {
         return Err(
-            "저장되지 않은 변경사항이 있어 다시 시작할 수 없습니다. 저장 후 다시 시도하세요."
+            crate::ui_text::text("update.restartBlocked")
                 .to_string(),
         );
     }

@@ -44,7 +44,7 @@ pub fn create_editor_window_with_label(app: &AppHandle, label: &str) -> Result<(
 
     let window = builder
         .build()
-        .map_err(|e| format!("새 창 생성 실패: {}", e))?;
+        .map_err(|e| crate::ui_text::text_with("window.createFailed", &[&e]))?;
     install_editor_window_minimum_with_size(&window, geometry.min_width, geometry.min_height);
     configure_editor_webview(app, &window);
     attach_pending_open_cleanup(app, &window);

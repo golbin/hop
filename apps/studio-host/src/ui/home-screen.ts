@@ -1,5 +1,6 @@
 import type { DesktopBridgeApi, RecentDocument } from '@/core/tauri-bridge';
 import { parsePreviewSvg } from '@/ui/preview-svg';
+import { t } from '../hop-i18n';
 
 type HomeScreenBridge = Partial<Pick<
   DesktopBridgeApi,
@@ -66,17 +67,17 @@ export class HomeScreen {
     hero.className = 'home-hero';
     const title = document.createElement('h1');
     title.className = 'home-title';
-    title.textContent = '최근에 작업한 문서를 바로 이어서 열어보세요';
+    title.textContent = t('hop.home.title');
     const subtitle = document.createElement('p');
     subtitle.className = 'home-subtitle';
-    subtitle.textContent = 'HWP/HWPX 문서를 열거나 새 문서를 만들고, 드래그 앤 드롭으로 바로 시작할 수 있습니다.';
+    subtitle.textContent = t('hop.home.subtitle');
     const actions = document.createElement('div');
     actions.className = 'home-actions';
     actions.append(
-      this.createActionButton('문서 열기', '홈 화면에서 파일 선택', () => {
+      this.createActionButton(t('hop.home.openTitle'), t('hop.home.openDescription'), () => {
         this.actions.openFile();
       }),
-      this.createActionButton('새 문서', '빈 HWP 문서 만들기', () => {
+      this.createActionButton(t('hop.home.newTitle'), t('hop.home.newDescription'), () => {
         this.actions.createNewDocument();
       }),
     );
@@ -91,13 +92,13 @@ export class HomeScreen {
     recentHeader.className = 'home-section-header';
     const recentTitle = document.createElement('h2');
     recentTitle.className = 'home-section-title';
-    recentTitle.textContent = '최근 문서';
+    recentTitle.textContent = t('menu.file.label.x625d99');
     const recentPagination = document.createElement('div');
     recentPagination.className = 'home-recent-pagination';
     const prevButton = document.createElement('button');
     prevButton.type = 'button';
     prevButton.className = 'home-recent-page-btn home-recent-page-prev';
-    prevButton.textContent = '이전';
+    prevButton.textContent = t('hop.home.previous');
     prevButton.addEventListener('click', () => {
       this.changePage(-1);
     });
@@ -106,7 +107,7 @@ export class HomeScreen {
     const nextButton = document.createElement('button');
     nextButton.type = 'button';
     nextButton.className = 'home-recent-page-btn home-recent-page-next';
-    nextButton.textContent = '다음';
+    nextButton.textContent = t('hop.home.next');
     nextButton.addEventListener('click', () => {
       this.changePage(1);
     });
@@ -123,7 +124,7 @@ export class HomeScreen {
   private createDropHint(): HTMLElement {
     const dropHint = document.createElement('div');
     dropHint.className = 'home-drop-hint';
-    dropHint.textContent = '파일을 이 창으로 끌어다 놓아도 열 수 있습니다.';
+    dropHint.textContent = t('hop.home.dropHint');
     return dropHint;
   }
 
@@ -159,13 +160,13 @@ export class HomeScreen {
     this.recentTrack.replaceChildren();
     if (documents.length === 0) {
       this.recentSection.classList.add('is-empty');
-      this.recentHint.textContent = '아직 최근 문서가 없습니다. 문서를 한 번 열면 여기에 바로 나타납니다.';
+      this.recentHint.textContent = t('hop.home.recentEmpty');
       this.updatePagination();
       return;
     }
 
     this.recentSection.classList.remove('is-empty');
-    this.recentHint.textContent = '앱을 실행하자마자 이어서 작업할 수 있도록 최근에 연 문서를 보여줍니다.';
+    this.recentHint.textContent = t('hop.home.recentHint');
 
     const pageStart = this.currentPage * RECENT_DOCUMENTS_PER_PAGE;
     const pageItems = documents.slice(pageStart, pageStart + RECENT_DOCUMENTS_PER_PAGE);
@@ -260,12 +261,12 @@ export class HomeScreen {
     if (!this.bridge.openDocumentByPath) return;
 
     try {
-      this.actions.setMessage('파일 로딩 중...');
+      this.actions.setMessage(t('hop.status.loadingFile'));
       const payload = await this.bridge.openDocumentByPath(documentInfo.path);
       if (payload) this.actions.onDocumentLoaded(payload);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.actions.setMessage(`파일 로드 실패: ${message}`);
+      this.actions.setMessage(t('hop.status.fileLoadFailed', { error: message }));
       console.error('[home-screen] recent document open failed:', error);
     }
   }

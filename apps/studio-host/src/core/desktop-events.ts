@@ -3,6 +3,7 @@ import type { EventBus } from '@/upstream/core';
 import { isTauriRuntime } from '@/core/bridge-factory';
 import { findLatestSupportedDocumentPath, hasSupportedDocumentPath } from '@/core/document-files';
 import type { DesktopBridgeApi, DesktopLoadPayload, DesktopUpdateState } from './tauri-bridge';
+import { t } from '../hop-i18n';
 
 type DesktopRuntimeBridge = Partial<
   Pick<
@@ -77,7 +78,7 @@ export async function setupDesktopEvents({
     const payload = event.payload as { paths?: string[] };
     if (hasSupportedDocumentPath(payload.paths ?? [])) {
       setDesktopDragActive(true);
-      setMessage('HWP/HWPX 파일을 놓으면 문서를 엽니다');
+      setMessage(t('hop.status.dropToOpen'));
     }
   });
 
@@ -125,7 +126,7 @@ async function handleDesktopCloseRequest(
   event.preventDefault();
   await confirmAndDestroyWindow(desktop, {
     context: 'close request',
-    errorPrefix: '창 닫기 실패',
+    errorPrefix: t('hop.status.windowCloseFailed'),
     setMessage,
   });
 }
@@ -137,7 +138,7 @@ async function handleDesktopAppQuitRequest(
   if (!desktop.destroyCurrentWindow) return;
   await confirmAndDestroyWindow(desktop, {
     context: 'app quit request',
-    errorPrefix: '앱 종료 실패',
+    errorPrefix: t('hop.status.appQuitFailed'),
     onCancel: () => desktop.cancelAppQuit?.(),
     setMessage,
   });
@@ -194,17 +195,17 @@ async function openLatestDesktopDocument({
 }): Promise<void> {
   const path = findLatestSupportedDocumentPath(paths);
   if (!path) {
-    if (paths.length > 0) setMessage('HWP/HWPX 파일만 열 수 있습니다');
+    if (paths.length > 0) setMessage(t('hop.status.onlyHwpOpen'));
     return;
   }
   if (!bridge.openDocumentByPath) return;
 
   try {
-    setMessage('파일 로딩 중...');
+    setMessage(t('hop.status.loadingFile'));
     const loaded = await bridge.openDocumentByPath(path);
     if (loaded) eventBus.emit('desktop-document-loaded', loaded);
   } catch (error) {
-    const errMsg = `파일 로드 실패: ${error}`;
+    const errMsg = t('hop.status.fileLoadFailed', { error: String(error) });
     setMessage(errMsg);
     console.error('[desktop-events] 데스크톱 파일 로드 실패:', error);
   }

@@ -13,7 +13,7 @@ pub fn export_core_to_pdf(
     mut on_progress: impl FnMut(&str, u32, u32, String),
 ) -> Result<u32, String> {
     ensure_pdf_path(target_path)?;
-    on_progress("start", 0, 1, "PDF 내보내기를 시작합니다".to_string());
+    on_progress("start", 0, 1, crate::ui_text::text("pdf.start").to_string());
 
     let page_count = core.page_count();
     let pages = resolve_page_range(page_range, page_count)?;
@@ -23,19 +23,19 @@ pub fn export_core_to_pdf(
     for (idx, page) in pages.iter().enumerate() {
         let svg = core
             .render_page_svg_native(*page)
-            .map_err(|e| format!("페이지 {} 렌더링 실패: {}", page + 1, e))?;
+            .map_err(|e| crate::ui_text::text_with("pdf.pageRenderFailed", &[&(page + 1), &e]))?;
         svg_pages.push(add_font_fallbacks(&svg));
         on_progress(
             "render",
             idx as u32 + 1,
             total,
-            format!("{} / {} 페이지 렌더링", idx + 1, total),
+            crate::ui_text::text_with("pdf.pageProgress", &[&(idx + 1), &total]),
         );
     }
 
     let pdf_bytes = searchable_pdf_from_svg_pages(&svg_pages, font_dirs)?;
     atomic_write(target_path, &pdf_bytes)?;
-    on_progress("write", total, total, "PDF 파일을 저장했습니다".to_string());
+    on_progress("write", total, total, crate::ui_text::text("pdf.written").to_string());
 
     Ok(total)
 }
@@ -47,14 +47,14 @@ pub(crate) fn ensure_pdf_path(path: &Path) -> Result<(), String> {
         .map(|ext| ext.eq_ignore_ascii_case("pdf"))
         != Some(true)
     {
-        return Err("PDF 파일 경로는 .pdf 확장자여야 합니다".to_string());
+        return Err(crate::ui_text::text("pdf.extensionRequired").to_string());
     }
     Ok(())
 }
 
 fn resolve_page_range(page_range: Option<PageRange>, page_count: u32) -> Result<Vec<u32>, String> {
     if page_count == 0 {
-        return Err("내보낼 페이지가 없습니다".to_string());
+        return Err(crate::ui_text::text("pdf.noPages").to_string());
     }
     let Some(range) = page_range else {
         return Ok((0..page_count).collect());
@@ -62,12 +62,7 @@ fn resolve_page_range(page_range: Option<PageRange>, page_count: u32) -> Result<
     let start = range.start.unwrap_or(0);
     let end = range.end.unwrap_or(page_count - 1);
     if start > end || end >= page_count {
-        return Err(format!(
-            "페이지 범위가 올바르지 않습니다: {}..{} / 총 {}페이지",
-            start + 1,
-            end + 1,
-            page_count
-        ));
+        return Err(crate::ui_text::text_with("pdf.invalidRange", &[&(start + 1), &(end + 1), &page_count]));
     }
     Ok((start..=end).collect())
 }

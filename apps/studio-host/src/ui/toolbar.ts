@@ -7,6 +7,7 @@ import { sanitizeAuthoringFontFamily } from '@/core/font-authoring-policy';
 import { getCustomSelectRoot, syncCustomSelect } from './custom-select';
 import { setupColorPicker } from './color-picker';
 import { closeToolbarPopup } from './toolbar-popup';
+import { t } from '../hop-i18n';
 
 /** 서식 도구 모음 (style-bar) 컨트롤러 */
 export class Toolbar {
@@ -576,10 +577,11 @@ export class Toolbar {
     if (fontSets.length === 0) return;
 
     // 기존 optgroup 제거 (재호출 대비)
-    this.fontName.querySelectorAll('optgroup[label="대표 글꼴"]').forEach(g => g.remove());
+    this.fontName.querySelectorAll('optgroup[data-hop-font-group="font-set"]').forEach(g => g.remove());
 
     const group = document.createElement('optgroup');
-    group.label = '대표 글꼴';
+    group.label = t('dialog.toolbar.label.xfef286');
+    group.dataset.hopFontGroup = 'font-set';
 
     for (const fs of fontSets) {
       const opt = document.createElement('option');
@@ -595,13 +597,14 @@ export class Toolbar {
   /** 로컬 글꼴 optgroup을 #font-name 드롭다운에 추가 */
   private populateLocalFontOptions(): void {
     // 기존 로컬 글꼴 optgroup 제거 (재호출 대비)
-    this.fontName.querySelectorAll('optgroup[label="로컬 글꼴"]').forEach(g => g.remove());
+    this.fontName.querySelectorAll('optgroup[data-hop-font-group="local"]').forEach(g => g.remove());
 
     const localFonts = getLocalFonts();
     if (localFonts.length === 0) return;
 
     const group = document.createElement('optgroup');
-    group.label = '로컬 글꼴';
+    group.label = t('dialog.options.localTitle.text');
+    group.dataset.hopFontGroup = 'local';
 
     for (const name of localFonts) {
       const opt = document.createElement('option');
@@ -611,7 +614,7 @@ export class Toolbar {
     }
 
     // 대표 글꼴 optgroup 다음에 삽입
-    const fontSetGroup = this.fontName.querySelector('optgroup[label="대표 글꼴"]');
+    const fontSetGroup = this.fontName.querySelector('optgroup[data-hop-font-group="font-set"]');
     if (fontSetGroup?.nextSibling) {
       this.fontName.insertBefore(group, fontSetGroup.nextSibling);
     } else {

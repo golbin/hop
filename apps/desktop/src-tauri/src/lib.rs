@@ -12,6 +12,7 @@ mod pdf_font_fallbacks;
 mod pending_open;
 mod recent_documents;
 mod state;
+mod ui_text;
 #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
 mod updates;
 mod windows;
@@ -30,7 +31,7 @@ use commands::{
     open_document_tracking, prepare_document_open, prepare_staged_hwp_pdf_export,
     prepare_staged_hwp_save, print_webview, query_document, read_local_font,
     record_recent_document, render_document_preview, render_page_svg, reveal_in_folder,
-    take_pending_open_paths,
+    set_ui_locale, take_pending_open_paths,
 };
 use state::AppState;
 use updates::{get_update_state, restart_to_apply_update, start_update_install};
@@ -110,6 +111,7 @@ pub fn run() {
             get_update_state,
             start_update_install,
             restart_to_apply_update,
+            set_ui_locale,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build HOP desktop app");

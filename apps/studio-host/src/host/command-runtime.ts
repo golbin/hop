@@ -16,6 +16,8 @@ import { editCommands } from '@/command/commands/edit';
 import { fileCommands } from '@/command/commands/file';
 import { assertUniqueCommandIds } from '../command/replace-upstream-commands';
 import { toolbarLabelsCommand } from './toolbar-labels';
+import { languageCommands } from './language';
+import { t } from '../hop-i18n';
 
 interface CommandRuntimeDependencies {
   wasm: WasmBridge;
@@ -40,7 +42,7 @@ export interface CommandRuntime {
 const commandContributions: readonly CommandDef[][] = [
   fileCommands,
   editCommands,
-  [...viewCommands, toolbarLabelsCommand],
+  [...viewCommands, toolbarLabelsCommand, ...languageCommands],
   formatCommands,
   insertCommands,
   tableCommands,
@@ -92,7 +94,7 @@ export function createCommandRuntime(dependencies: CommandRuntimeDependencies): 
     document.querySelectorAll('[data-cmd="view:form-mode"]').forEach((element) => {
       element.classList.toggle('active', mode === 'form');
     });
-    setStatusMessage(mode === 'form' ? '양식 모드' : '기본 편집 모드');
+    setStatusMessage(mode === 'form' ? t('ui.sbMessage.formMode') : t('ui.sbMessage.editMode'));
     eventBus.emit('edit-mode-changed', mode);
     eventBus.emit('command-state-changed');
   };
@@ -106,7 +108,7 @@ export function createCommandRuntime(dependencies: CommandRuntimeDependencies): 
     getViewportManager: () => getCanvasView()?.getViewportManager() ?? null,
     gotoPage: (globalPage) => getCanvasView()?.gotoPage(globalPage) ?? false,
     refreshDocumentStatus: () => {
-      setStatusMessage(`${wasm.fileName} — ${wasm.pageCount}페이지`);
+      setStatusMessage(t('ui.sbMessage.filePages', { p1: wasm.fileName, p2: wasm.pageCount }));
     },
     setEditMode,
   };
