@@ -13,56 +13,56 @@
     <div id="menu-bar">
       <!-- ── 파일 ── -->
       <div class="menu-item" data-menu="file">
-        <span class="menu-title">파일</span>
+        <span class="menu-title" data-i18n="menu.file">파일</span>
         <div class="menu-dropdown">
-          <div class="md-item disabled" data-cmd="file:new-doc"><span class="md-icon icon-new-doc"></span><span class="md-label">새로 만들기</span></div>
-          <div class="md-item" data-cmd="file:new-window"><span class="md-icon"></span><span class="md-label">새 창</span><span class="md-shortcut">Ctrl+Shift+N</span></div>
-          <div class="md-item" data-cmd="file:open"><span class="md-icon"></span><span class="md-label">열기</span><span class="md-shortcut">Ctrl+O</span></div>
-          <div class="md-item" data-cmd="file:open-recent"><span class="md-icon"></span><span class="md-label">최근 문서</span><span class="md-shortcut">Ctrl+Alt+O</span></div>
-          <div class="md-item disabled" data-cmd="file:save"><span class="md-icon icon-save"></span><span class="md-label">저장</span><span class="md-shortcut">Ctrl+S</span></div>
-          <div class="md-item disabled" data-cmd="file:save-as"><span class="md-icon"></span><span class="md-label">다른 이름으로 저장</span><span class="md-shortcut">Ctrl+Shift+S</span></div>
+          <div class="md-item disabled" data-cmd="file:new-doc"><span class="md-icon icon-new-doc"></span><span class="md-label" data-i18n="command.file.newDoc.label">새로 만들기</span></div>
+          <div class="md-item" data-cmd="file:new-window"><span class="md-icon"></span><span class="md-label" data-i18n="hop.menu.newWindow">새 창</span><span class="md-shortcut">Ctrl+Shift+N</span></div>
+          <div class="md-item" data-cmd="file:open"><span class="md-icon"></span><span class="md-label" data-i18n="command.file.open.label">열기</span><span class="md-shortcut">Ctrl+O</span></div>
+          <div class="md-item" data-cmd="file:open-recent"><span class="md-icon"></span><span class="md-label" data-i18n="menu.file.label.x625d99">최근 문서</span><span class="md-shortcut">Ctrl+Alt+O</span></div>
+          <div class="md-item disabled" data-cmd="file:save"><span class="md-icon icon-save"></span><span class="md-label" data-i18n="command.file.save.label">저장</span><span class="md-shortcut">Ctrl+S</span></div>
+          <div class="md-item disabled" data-cmd="file:save-as"><span class="md-icon"></span><span class="md-label" data-i18n="command.file.saveAs.registryLabel">다른 이름으로 저장</span><span class="md-shortcut">Ctrl+Shift+S</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="file:export-pdf"><span class="md-icon"></span><span class="md-label">PDF 내보내기</span></div>
-          <div class="md-item disabled" data-cmd="file:page-setup"><span class="md-icon icon-page-setup"></span><span class="md-label">편집 용지</span><span class="md-shortcut">F7</span></div>
-          <div class="md-item disabled" data-cmd="file:print"><span class="md-icon icon-print"></span><span class="md-label">인쇄</span><span class="md-shortcut">Ctrl+P</span></div>
+          <div class="md-item disabled" data-cmd="file:export-pdf"><span class="md-icon"></span><span class="md-label" data-i18n="hop.menu.exportPdf">PDF 내보내기</span></div>
+          <div class="md-item disabled" data-cmd="file:page-setup"><span class="md-icon icon-page-setup"></span><span class="md-label" data-i18n="command.file.pageSetup.label">편집 용지</span><span class="md-shortcut">F7</span></div>
+          <div class="md-item disabled" data-cmd="file:print"><span class="md-icon icon-print"></span><span class="md-label" data-i18n="command.file.print.label">인쇄</span><span class="md-shortcut">Ctrl+P</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="file:about"><span class="md-icon icon-help"></span><span class="md-label">제품 정보</span></div>
+          <div class="md-item" data-cmd="file:about"><span class="md-icon icon-help"></span><span class="md-label" data-i18n="command.file.about.label">제품 정보</span></div>
         </div>
       </div>
       <!-- ── 편집 ── -->
       <div class="menu-item" data-menu="edit">
-        <span class="menu-title">편집</span>
+        <span class="menu-title" data-i18n="menu.edit">편집</span>
         <div class="menu-dropdown">
-          <div class="md-item" data-cmd="edit:undo"><span class="md-icon icon-undo"></span><span class="md-label">되돌리기</span><span class="md-shortcut">Ctrl+Z</span></div>
-          <div class="md-item" data-cmd="edit:redo"><span class="md-icon icon-redo"></span><span class="md-label">다시 실행</span><span class="md-shortcut">Ctrl+Shift+Z</span></div>
+          <div class="md-item" data-cmd="edit:undo"><span class="md-icon icon-undo"></span><span class="md-label" data-i18n="command.edit.undo.label">되돌리기</span><span class="md-shortcut">Ctrl+Z</span></div>
+          <div class="md-item" data-cmd="edit:redo"><span class="md-icon icon-redo"></span><span class="md-label" data-i18n="command.edit.redo.label">다시 실행</span><span class="md-shortcut">Ctrl+Shift+Z</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="edit:cut"><span class="md-icon icon-cut"></span><span class="md-label">오려 두기</span><span class="md-shortcut">Ctrl+X</span></div>
-          <div class="md-item" data-cmd="edit:copy"><span class="md-icon icon-copy"></span><span class="md-label">복사하기</span><span class="md-shortcut">Ctrl+C</span></div>
-          <div class="md-item" data-cmd="edit:paste"><span class="md-icon icon-paste"></span><span class="md-label">붙이기</span><span class="md-shortcut">Ctrl+V</span></div>
-          <div class="md-item disabled" data-cmd="edit:format-copy"><span class="md-icon icon-format-copy"></span><span class="md-label">모양 복사</span><span class="md-shortcut">Ctrl+Alt+C</span></div>
+          <div class="md-item" data-cmd="edit:cut"><span class="md-icon icon-cut"></span><span class="md-label" data-i18n="command.edit.cut.label">오려 두기</span><span class="md-shortcut">Ctrl+X</span></div>
+          <div class="md-item" data-cmd="edit:copy"><span class="md-icon icon-copy"></span><span class="md-label" data-i18n="command.edit.copy.label">복사하기</span><span class="md-shortcut">Ctrl+C</span></div>
+          <div class="md-item" data-cmd="edit:paste"><span class="md-icon icon-paste"></span><span class="md-label" data-i18n="command.edit.paste.label">붙이기</span><span class="md-shortcut">Ctrl+V</span></div>
+          <div class="md-item disabled" data-cmd="edit:format-copy"><span class="md-icon icon-format-copy"></span><span class="md-label" data-i18n="command.edit.formatCopy.label">모양 복사</span><span class="md-shortcut">Ctrl+Alt+C</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="edit:delete"><span class="md-icon icon-delete"></span><span class="md-label">지우기</span><span class="md-shortcut">Ctrl+E</span></div>
-          <div class="md-item disabled" data-cmd="edit:select-all"><span class="md-icon icon-select-all"></span><span class="md-label">모두 선택</span><span class="md-shortcut">Ctrl+A</span></div>
+          <div class="md-item disabled" data-cmd="edit:delete"><span class="md-icon icon-delete"></span><span class="md-label" data-i18n="command.edit.delete.label">지우기</span><span class="md-shortcut">Ctrl+E</span></div>
+          <div class="md-item disabled" data-cmd="edit:select-all"><span class="md-icon icon-select-all"></span><span class="md-label" data-i18n="command.edit.selectAll.label">모두 선택</span><span class="md-shortcut">Ctrl+A</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="edit:find"><span class="md-icon icon-find"></span><span class="md-label">찾기(F)</span><span class="md-shortcut">Ctrl+F</span></div>
-          <div class="md-item" data-cmd="edit:find-replace"><span class="md-icon icon-find-replace"></span><span class="md-label">찾아 바꾸기(E)</span><span class="md-shortcut">Ctrl+F2</span></div>
-          <div class="md-item" data-cmd="edit:find-again"><span class="md-icon"></span><span class="md-label">다시 찾기(X)</span><span class="md-shortcut">Ctrl+L</span></div>
-          <div class="md-item" data-cmd="edit:goto"><span class="md-icon"></span><span class="md-label">찾아가기(G)</span><span class="md-shortcut">Alt+G</span></div>
+          <div class="md-item" data-cmd="edit:find"><span class="md-icon icon-find"></span><span class="md-label" data-i18n="command.edit.find.label">찾기(F)</span><span class="md-shortcut">Ctrl+F</span></div>
+          <div class="md-item" data-cmd="edit:find-replace"><span class="md-icon icon-find-replace"></span><span class="md-label" data-i18n="command.edit.findReplace.label">찾아 바꾸기(E)</span><span class="md-shortcut">Ctrl+F2</span></div>
+          <div class="md-item" data-cmd="edit:find-again"><span class="md-icon"></span><span class="md-label" data-i18n="command.edit.findAgain.label">다시 찾기(X)</span><span class="md-shortcut">Ctrl+L</span></div>
+          <div class="md-item" data-cmd="edit:goto"><span class="md-icon"></span><span class="md-label" data-i18n="command.edit.goto.label">찾아가기(G)</span><span class="md-shortcut">Alt+G</span></div>
         </div>
       </div>
       <!-- ── 보기 ── -->
       <div class="menu-item" data-menu="view">
-        <span class="menu-title">보기</span>
+        <span class="menu-title" data-i18n="menu.view">보기</span>
         <div class="menu-dropdown">
-          <div class="md-item" data-cmd="view:zoom-in"><span class="md-icon icon-zoom-menu-in"></span><span class="md-label">확대</span><span class="md-shortcut">Shift+Num +</span></div>
-          <div class="md-item" data-cmd="view:zoom-out"><span class="md-icon icon-zoom-menu-out"></span><span class="md-label">축소</span><span class="md-shortcut">Shift+Num -</span></div>
-          <div class="md-item" data-cmd="view:zoom-dialog"><span class="md-icon"></span><span class="md-label">화면 확대/축소...</span></div>
+          <div class="md-item" data-cmd="view:zoom-in"><span class="md-icon icon-zoom-menu-in"></span><span class="md-label" data-i18n="command.view.zoomIn.label">확대</span><span class="md-shortcut">Shift+Num +</span></div>
+          <div class="md-item" data-cmd="view:zoom-out"><span class="md-icon icon-zoom-menu-out"></span><span class="md-label" data-i18n="command.view.zoomOut.label">축소</span><span class="md-shortcut">Shift+Num -</span></div>
+          <div class="md-item" data-cmd="view:zoom-dialog"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.zoomDialog.label">화면 확대/축소...</span></div>
           <div class="md-sep"></div>
           <div class="md-sub">
-            <span class="md-label">배율</span><span class="md-arrow">▶</span>
+            <span class="md-label" data-i18n="menu.view.label.x3310ef">배율</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
-              <div class="md-item" data-cmd="view:zoom-fit-page"><span class="md-icon"></span><span class="md-label">쪽 맞춤</span><span class="md-shortcut">Ctrl+G,P</span></div>
-              <div class="md-item" data-cmd="view:zoom-fit-width"><span class="md-icon"></span><span class="md-label">폭 맞춤</span><span class="md-shortcut">Ctrl+G,W</span></div>
+              <div class="md-item" data-cmd="view:zoom-fit-page"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.zoomFitPage.label">쪽 맞춤</span><span class="md-shortcut">Ctrl+G,P</span></div>
+              <div class="md-item" data-cmd="view:zoom-fit-width"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.zoomFitWidth.label">폭 맞춤</span><span class="md-shortcut">Ctrl+G,W</span></div>
               <div class="md-sep"></div>
               <div class="md-item" data-cmd="view:zoom-50"><span class="md-icon"></span><span class="md-label">50%</span></div>
               <div class="md-item" data-cmd="view:zoom-75"><span class="md-icon"></span><span class="md-label">75%</span></div>
@@ -75,316 +75,324 @@
           </div>
           <div class="md-sep"></div>
           <div class="md-sub">
-            <span class="md-label">테마</span><span class="md-arrow">▶</span>
+            <span class="md-label" data-i18n="menu.view.label.xe7ded2">테마</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
-              <div class="md-item" role="menuitemradio" data-cmd="view:theme-system" data-theme-mode-choice="system"><span class="md-icon"></span><span class="md-label">시스템 설정</span></div>
-              <div class="md-item" role="menuitemradio" data-cmd="view:theme-light" data-theme-mode-choice="light"><span class="md-icon"></span><span class="md-label">밝게</span></div>
-              <div class="md-item" role="menuitemradio" data-cmd="view:theme-dark" data-theme-mode-choice="dark"><span class="md-icon"></span><span class="md-label">어둡게</span></div>
+              <div class="md-item" role="menuitemradio" data-cmd="view:theme-system" data-theme-mode-choice="system"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.themeSystem.themeModeChoiceSystem.label">시스템 설정</span></div>
+              <div class="md-item" role="menuitemradio" data-cmd="view:theme-light" data-theme-mode-choice="light"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.themeLight.themeModeChoiceLight.label">밝게</span></div>
+              <div class="md-item" role="menuitemradio" data-cmd="view:theme-dark" data-theme-mode-choice="dark"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.themeDark.themeModeChoiceDark.label">어둡게</span></div>
+            </div>
+          </div>
+          <div class="md-sub">
+            <span class="md-label" data-i18n="hop.menu.language">언어</span><span class="md-arrow">▶</span>
+            <div class="md-sub-panel">
+              <div class="md-item" role="menuitemradio" data-cmd="view:language-system" data-language-choice="system"><span class="md-icon"></span><span class="md-label" data-i18n="hop.language.system">시스템 설정</span></div>
+              <div class="md-item" role="menuitemradio" data-cmd="view:language-ko" data-language-choice="ko"><span class="md-icon"></span><span class="md-label" data-i18n="hop.language.ko">한국어</span></div>
+              <div class="md-item" role="menuitemradio" data-cmd="view:language-en" data-language-choice="en"><span class="md-icon"></span><span class="md-label" data-i18n="hop.language.en">English</span></div>
             </div>
           </div>
           <div class="md-sep"></div>
-          <div class="md-item" role="menuitemcheckbox" data-cmd="view:toolbar-labels"><span class="md-icon"></span><span class="md-label">도구 상자 라벨 표시</span></div>
-          <div class="md-item" data-cmd="view:ctrl-mark"><span class="md-icon icon-ctrl-mark"></span><span class="md-label">조판 부호</span><span class="md-shortcut">Ctrl+G,C</span></div>
-          <div class="md-item" data-cmd="view:para-mark"><span class="md-icon icon-para-mark"></span><span class="md-label">문단 부호</span><span class="md-shortcut">Ctrl+G,T</span></div>
-          <div class="md-item" data-cmd="view:border-transparent"><span class="md-icon"></span><span class="md-label">투명 선</span><span class="md-shortcut">Alt+V,T</span></div>
-          <div class="md-item" data-cmd="view:toggle-clip"><span class="md-icon"></span><span class="md-label">잘림 보기</span></div>
-          <div class="md-item" data-cmd="view:grid-settings"><span class="md-icon icon-grid"></span><span class="md-label">격자 설정</span></div>
+          <div class="md-item" role="menuitemcheckbox" data-cmd="view:toolbar-labels"><span class="md-icon"></span><span class="md-label" data-i18n="hop.menu.toolbarLabels">도구 상자 라벨 표시</span></div>
+          <div class="md-item" data-cmd="view:ctrl-mark"><span class="md-icon icon-ctrl-mark"></span><span class="md-label" data-i18n="command.view.ctrlMark.label">조판 부호</span><span class="md-shortcut">Ctrl+G,C</span></div>
+          <div class="md-item" data-cmd="view:para-mark"><span class="md-icon icon-para-mark"></span><span class="md-label" data-i18n="command.view.paraMark.label">문단 부호</span><span class="md-shortcut">Ctrl+G,T</span></div>
+          <div class="md-item" data-cmd="view:border-transparent"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.borderTransparent.label">투명 선</span><span class="md-shortcut">Alt+V,T</span></div>
+          <div class="md-item" data-cmd="view:toggle-clip"><span class="md-icon"></span><span class="md-label" data-i18n="command.view.toggleClip.label">잘림 보기</span></div>
+          <div class="md-item" data-cmd="view:grid-settings"><span class="md-icon icon-grid"></span><span class="md-label" data-i18n="command.view.gridSettings.label">격자 설정</span></div>
           <div class="md-sep"></div>
           <div class="md-sub">
-            <span class="md-label">도구 상자</span><span class="md-arrow">▶</span>
+            <span class="md-label" data-i18n="menu.view.label.xec36d5">도구 상자</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
-              <div class="md-item disabled" data-cmd="view:toolbox-basic"><span class="md-label">기본</span></div>
-              <div class="md-item disabled" data-cmd="view:toolbox-format"><span class="md-label">서식</span></div>
+              <div class="md-item disabled" data-cmd="view:toolbox-basic"><span class="md-label" data-i18n="command.view.toolboxBasic.label">기본</span></div>
+              <div class="md-item disabled" data-cmd="view:toolbox-format"><span class="md-label" data-i18n="command.view.toolboxFormat.label">서식</span></div>
             </div>
           </div>
         </div>
       </div>
       <!-- ── 입력 ── -->
       <div class="menu-item" data-menu="insert">
-        <span class="menu-title">입력</span>
+        <span class="menu-title" data-i18n="menu.insert">입력</span>
         <div class="menu-dropdown">
-          <div class="md-item" data-cmd="insert:shape"><span class="md-icon icon-shape"></span><span class="md-label">도형</span></div>
+          <div class="md-item" data-cmd="insert:shape"><span class="md-icon icon-shape"></span><span class="md-label" data-i18n="command.insert.shape.label">도형</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="insert:image"><span class="md-icon icon-image"></span><span class="md-label">그림</span></div>
-          <div class="md-item" data-cmd="insert:textbox"><span class="md-icon icon-textbox"></span><span class="md-label">글상자</span></div>
+          <div class="md-item" data-cmd="insert:image"><span class="md-icon icon-image"></span><span class="md-label" data-i18n="command.insert.image.label">그림</span></div>
+          <div class="md-item" data-cmd="insert:textbox"><span class="md-icon icon-textbox"></span><span class="md-label" data-i18n="command.insert.textbox.label">글상자</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="insert:field"><span class="md-icon"></span><span class="md-label">필드 입력</span><span class="md-shortcut">Ctrl+K+E</span></div>
+          <div class="md-item disabled" data-cmd="insert:field"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.field.label">필드 입력</span><span class="md-shortcut">Ctrl+K+E</span></div>
           <div class="md-sep"></div>
           <div class="md-sub disabled">
-            <span class="md-label">캡션 넣기</span><span class="md-arrow">▶</span>
+            <span class="md-label" data-i18n="menu.insert.label.xe8cab5">캡션 넣기</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
-              <div class="md-item disabled" data-cmd="insert:caption-top"><span class="md-icon"></span><span class="md-label">위</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-lt"><span class="md-icon"></span><span class="md-label">왼쪽 위</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-lm"><span class="md-icon"></span><span class="md-label">왼쪽 가운데</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-lb"><span class="md-icon"></span><span class="md-label">왼쪽 아래</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-rt"><span class="md-icon"></span><span class="md-label">오른쪽 위</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-rm"><span class="md-icon"></span><span class="md-label">오른쪽 가운데</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-rb"><span class="md-icon"></span><span class="md-label">오른쪽 아래</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-bottom"><span class="md-icon"></span><span class="md-label">아래</span></div>
-              <div class="md-item disabled" data-cmd="insert:caption-none"><span class="md-icon"></span><span class="md-label">캡션 없음</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-top"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionTop.label">위</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-lt"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionLt.label">왼쪽 위</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-lm"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionLm.label">왼쪽 가운데</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-lb"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionLb.label">왼쪽 아래</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-rt"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionRt.label">오른쪽 위</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-rm"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionRm.label">오른쪽 가운데</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-rb"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionRb.label">오른쪽 아래</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-bottom"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionBottom.label">아래</span></div>
+              <div class="md-item disabled" data-cmd="insert:caption-none"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.captionNone.label">캡션 없음</span></div>
             </div>
           </div>
-          <div class="md-item disabled" data-cmd="insert:para-band"><span class="md-icon"></span><span class="md-label">문단 띠</span></div>
+          <div class="md-item disabled" data-cmd="insert:para-band"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.paraBand.label">문단 띠</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="insert:comment"><span class="md-icon icon-comment"></span><span class="md-label">주석</span></div>
-          <div class="md-item" data-cmd="insert:footnote"><span class="md-icon icon-footnote"></span><span class="md-label">각주</span></div>
-          <div class="md-item disabled" data-cmd="insert:endnote"><span class="md-icon icon-endnote"></span><span class="md-label">미주</span></div>
+          <div class="md-item disabled" data-cmd="insert:comment"><span class="md-icon icon-comment"></span><span class="md-label" data-i18n="command.insert.comment.label">주석</span></div>
+          <div class="md-item" data-cmd="insert:footnote"><span class="md-icon icon-footnote"></span><span class="md-label" data-i18n="command.insert.footnote.label">각주</span></div>
+          <div class="md-item disabled" data-cmd="insert:endnote"><span class="md-icon icon-endnote"></span><span class="md-label" data-i18n="command.insert.endnote.label">미주</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="insert:symbols"><span class="md-icon icon-symbols"></span><span class="md-label">문자표</span><span class="md-shortcut">Alt+F10</span></div>
+          <div class="md-item" data-cmd="insert:symbols"><span class="md-icon icon-symbols"></span><span class="md-label" data-i18n="command.insert.symbols.label">문자표</span><span class="md-shortcut">Alt+F10</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="insert:hyperlink"><span class="md-icon icon-hyperlink"></span><span class="md-label">하이퍼링크</span><span class="md-shortcut">Ctrl+K+H</span></div>
-          <div class="md-item" data-cmd="insert:bookmark"><span class="md-icon"></span><span class="md-label">책갈피</span><span class="md-shortcut">Ctrl+K,B</span></div>
+          <div class="md-item disabled" data-cmd="insert:hyperlink"><span class="md-icon icon-hyperlink"></span><span class="md-label" data-i18n="command.insert.hyperlink.label">하이퍼링크</span><span class="md-shortcut">Ctrl+K+H</span></div>
+          <div class="md-item" data-cmd="insert:bookmark"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.bookmark.label">책갈피</span><span class="md-shortcut">Ctrl+K,B</span></div>
           <div class="md-sep"></div>
           <div class="md-sub">
-            <span class="md-label">회전/대칭</span><span class="md-arrow">&#x25B6;</span>
+            <span class="md-label" data-i18n="menu.insert.label.x4096eb">회전/대칭</span><span class="md-arrow">&#x25B6;</span>
             <div class="md-sub-panel">
-              <div class="md-item" data-cmd="insert:rotate-cw"><span class="md-icon"></span><span class="md-label">오른쪽 90° 회전</span></div>
-              <div class="md-item" data-cmd="insert:rotate-ccw"><span class="md-icon"></span><span class="md-label">왼쪽 90° 회전</span></div>
+              <div class="md-item" data-cmd="insert:rotate-cw"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.rotateCw.label">오른쪽 90° 회전</span></div>
+              <div class="md-item" data-cmd="insert:rotate-ccw"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.rotateCcw.label">왼쪽 90° 회전</span></div>
               <div class="md-sep"></div>
-              <div class="md-item" data-cmd="insert:flip-horz"><span class="md-icon"></span><span class="md-label">좌우 대칭</span></div>
-              <div class="md-item" data-cmd="insert:flip-vert"><span class="md-icon"></span><span class="md-label">상하 대칭</span></div>
+              <div class="md-item" data-cmd="insert:flip-horz"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.flipHorz.label">좌우 대칭</span></div>
+              <div class="md-item" data-cmd="insert:flip-vert"><span class="md-icon"></span><span class="md-label" data-i18n="command.insert.flipVert.label">상하 대칭</span></div>
             </div>
           </div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="insert:picture-props"><span class="md-icon icon-obj-props"></span><span class="md-label">개체 속성</span></div>
-          <div class="md-item" data-cmd="insert:picture-delete"><span class="md-icon icon-delete"></span><span class="md-label">개체 지우기</span></div>
+          <div class="md-item" data-cmd="insert:picture-props"><span class="md-icon icon-obj-props"></span><span class="md-label" data-i18n="command.insert.pictureProps.label">개체 속성</span></div>
+          <div class="md-item" data-cmd="insert:picture-delete"><span class="md-icon icon-delete"></span><span class="md-label" data-i18n="command.insert.pictureDelete.label">개체 지우기</span></div>
         </div>
       </div>
       <!-- ── 서식 ── -->
       <div class="menu-item" data-menu="format">
-        <span class="menu-title">서식</span>
+        <span class="menu-title" data-i18n="menu.format">서식</span>
         <div class="menu-dropdown">
-          <div class="md-item" data-cmd="format:bold"><span class="md-icon"></span><span class="md-label">진하게</span><span class="md-shortcut">Ctrl+B</span></div>
-          <div class="md-item" data-cmd="format:italic"><span class="md-icon"></span><span class="md-label">기울임</span><span class="md-shortcut">Ctrl+I</span></div>
-          <div class="md-item" data-cmd="format:underline"><span class="md-icon"></span><span class="md-label">밑줄</span><span class="md-shortcut">Ctrl+U</span></div>
+          <div class="md-item" data-cmd="format:bold"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.bold.label">진하게</span><span class="md-shortcut">Ctrl+B</span></div>
+          <div class="md-item" data-cmd="format:italic"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.italic.label">기울임</span><span class="md-shortcut">Ctrl+I</span></div>
+          <div class="md-item" data-cmd="format:underline"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.underline.label">밑줄</span><span class="md-shortcut">Ctrl+U</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="format:char-shape"><span class="md-icon icon-char-shape"></span><span class="md-label">글자 모양</span><span class="md-shortcut">Alt+L</span></div>
-          <div class="md-item disabled" data-cmd="format:para-shape"><span class="md-icon icon-para-shape"></span><span class="md-label">문단 모양</span><span class="md-shortcut">Alt+T</span></div>
+          <div class="md-item disabled" data-cmd="format:char-shape"><span class="md-icon icon-char-shape"></span><span class="md-label" data-i18n="command.format.charShape.label">글자 모양</span><span class="md-shortcut">Alt+L</span></div>
+          <div class="md-item disabled" data-cmd="format:para-shape"><span class="md-icon icon-para-shape"></span><span class="md-label" data-i18n="command.format.paraShape.label">문단 모양</span><span class="md-shortcut">Alt+T</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="format:para-num-shape"><span class="md-icon"></span><span class="md-label">문단 번호 모양</span></div>
-          <div class="md-item disabled" data-cmd="format:bullet-shape"><span class="md-icon"></span><span class="md-label">글머리표 모양</span></div>
+          <div class="md-item disabled" data-cmd="format:para-num-shape"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.paraNumShape.label">문단 번호 모양</span></div>
+          <div class="md-item disabled" data-cmd="format:bullet-shape"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.bulletShape.label">글머리표 모양</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="format:level-increase"><span class="md-icon"></span><span class="md-label">한 수준 증가</span><span class="md-shortcut">Ctrl+Num -</span></div>
-          <div class="md-item" data-cmd="format:level-decrease"><span class="md-icon"></span><span class="md-label">한 수준 감소</span><span class="md-shortcut">Ctrl+Num +</span></div>
+          <div class="md-item" data-cmd="format:level-increase"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.levelIncrease.label">한 수준 증가</span><span class="md-shortcut">Ctrl+Num -</span></div>
+          <div class="md-item" data-cmd="format:level-decrease"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.levelDecrease.label">한 수준 감소</span><span class="md-shortcut">Ctrl+Num +</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="format:font-size-increase"><span class="md-icon"></span><span class="md-label">글자 크기 크게</span><span class="md-shortcut">Alt+Shift+E</span></div>
-          <div class="md-item" data-cmd="format:font-size-decrease"><span class="md-icon"></span><span class="md-label">글자 크기 작게</span><span class="md-shortcut">Alt+Shift+R</span></div>
+          <div class="md-item" data-cmd="format:font-size-increase"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.fontSizeIncrease.label">글자 크기 크게</span><span class="md-shortcut">Alt+Shift+E</span></div>
+          <div class="md-item" data-cmd="format:font-size-decrease"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.fontSizeDecrease.label">글자 크기 작게</span><span class="md-shortcut">Alt+Shift+R</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="format:align-left"><span class="md-icon"></span><span class="md-label">왼쪽 정렬</span><span class="md-shortcut">Ctrl+Shift+L</span></div>
-          <div class="md-item" data-cmd="format:align-center"><span class="md-icon"></span><span class="md-label">가운데 정렬</span><span class="md-shortcut">Alt+Shift+C</span></div>
-          <div class="md-item" data-cmd="format:align-right"><span class="md-icon"></span><span class="md-label">오른쪽 정렬</span><span class="md-shortcut">Alt+Shift+H</span></div>
-          <div class="md-item" data-cmd="format:align-justify"><span class="md-icon"></span><span class="md-label">양쪽 정렬</span><span class="md-shortcut">Ctrl+Shift+M</span></div>
-          <div class="md-item" data-cmd="format:align-distribute"><span class="md-icon"></span><span class="md-label">배분 정렬</span><span class="md-shortcut">Alt+Shift+D</span></div>
+          <div class="md-item" data-cmd="format:align-left"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.alignLeft.label">왼쪽 정렬</span><span class="md-shortcut">Ctrl+Shift+L</span></div>
+          <div class="md-item" data-cmd="format:align-center"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.alignCenter.label">가운데 정렬</span><span class="md-shortcut">Alt+Shift+C</span></div>
+          <div class="md-item" data-cmd="format:align-right"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.alignRight.label">오른쪽 정렬</span><span class="md-shortcut">Alt+Shift+H</span></div>
+          <div class="md-item" data-cmd="format:align-justify"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.alignJustify.label">양쪽 정렬</span><span class="md-shortcut">Ctrl+Shift+M</span></div>
+          <div class="md-item" data-cmd="format:align-distribute"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.alignDistribute.label">배분 정렬</span><span class="md-shortcut">Alt+Shift+D</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="format:line-spacing-increase"><span class="md-icon"></span><span class="md-label">줄 간격 늘림</span><span class="md-shortcut">Alt+Shift+Z</span></div>
-          <div class="md-item" data-cmd="format:line-spacing-decrease"><span class="md-icon"></span><span class="md-label">줄 간격 줄임</span><span class="md-shortcut">Alt+Shift+A</span></div>
+          <div class="md-item" data-cmd="format:line-spacing-increase"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.lineSpacingIncrease.label">줄 간격 늘림</span><span class="md-shortcut">Alt+Shift+Z</span></div>
+          <div class="md-item" data-cmd="format:line-spacing-decrease"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.lineSpacingDecrease.label">줄 간격 줄임</span><span class="md-shortcut">Alt+Shift+A</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="format:style-dialog"><span class="md-icon"></span><span class="md-label">스타일</span><span class="md-shortcut">F6</span></div>
+          <div class="md-item disabled" data-cmd="format:style-dialog"><span class="md-icon"></span><span class="md-label" data-i18n="command.format.styleDialog.label">스타일</span><span class="md-shortcut">F6</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="format:object-properties"><span class="md-icon icon-obj-props"></span><span class="md-label">개체 속성</span><span class="md-shortcut">P</span></div>
+          <div class="md-item" data-cmd="format:object-properties"><span class="md-icon icon-obj-props"></span><span class="md-label" data-i18n="command.insert.pictureProps.label">개체 속성</span><span class="md-shortcut">P</span></div>
         </div>
       </div>
       <!-- ── 쪽 ── -->
       <div class="menu-item" data-menu="page">
-        <span class="menu-title">쪽</span>
+        <span class="menu-title" data-i18n="menu.page">쪽</span>
         <div class="menu-dropdown">
-          <div class="md-item disabled" data-cmd="page:setup"><span class="md-icon icon-page-setup"></span><span class="md-label">편집 용지</span><span class="md-shortcut">F7</span></div>
+          <div class="md-item disabled" data-cmd="page:setup"><span class="md-icon icon-page-setup"></span><span class="md-label" data-i18n="command.file.pageSetup.label">편집 용지</span><span class="md-shortcut">F7</span></div>
           <div class="md-sep"></div>
           <!-- ── 머리말 (부모 서브메뉴) ── -->
           <div class="md-sub disabled">
-            <span class="md-icon icon-header"></span><span class="md-label">머리말</span><span class="md-arrow">▶</span>
+            <span class="md-icon icon-header"></span><span class="md-label" data-i18n="menu.page.label.xa76ec3">머리말</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
               <!-- 양쪽 -->
               <div class="md-sub">
-                <span class="md-label">양쪽</span><span class="md-arrow">▶</span>
+                <span class="md-label" data-i18n="menu.page.label.xac51a1">양쪽</span><span class="md-arrow">▶</span>
                 <div class="md-sub-panel md-hf-template-panel">
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="0"><span class="md-label">빈 머리말</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="0"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId0.label">빈 머리말</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="1"><span class="md-label">왼쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="2"><span class="md-label">가운데 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="3"><span class="md-label">오른쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="4"><span class="md-label">쪽 번호 + 파일 이름</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="5"><span class="md-label">파일 이름 + 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="1"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId1.label">왼쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="2"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId2.label">가운데 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="3"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId3.label">오른쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="4"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId4.label">쪽 번호 + 파일 이름</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="5"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId5.label">파일 이름 + 쪽 번호</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="6"><span class="md-label"><b>왼쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="7"><span class="md-label"><b>가운데 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="8"><span class="md-label"><b>오른쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="9"><span class="md-label"><b>쪽 번호 + 파일 이름</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="10"><span class="md-label"><b>파일 이름 + 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="6"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId6.label">왼쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="7"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId7.label">가운데 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="8"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId8.label">오른쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="9"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId9.label">쪽 번호 + 파일 이름</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="0" data-template-id="10"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId10.label">파일 이름 + 쪽 번호</b></span></div>
                 </div>
               </div>
               <!-- 홀수 쪽 -->
               <div class="md-sub">
-                <span class="md-label">홀수 쪽</span><span class="md-arrow">▶</span>
+                <span class="md-label" data-i18n="menu.page.label.xf8c0bd">홀수 쪽</span><span class="md-arrow">▶</span>
                 <div class="md-sub-panel md-hf-template-panel">
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="0"><span class="md-label">빈 머리말</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="0"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId0.label">빈 머리말</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="1"><span class="md-label">왼쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="2"><span class="md-label">가운데 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="3"><span class="md-label">오른쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="4"><span class="md-label">쪽 번호 + 파일 이름</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="5"><span class="md-label">파일 이름 + 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="1"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId1.label">왼쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="2"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId2.label">가운데 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="3"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId3.label">오른쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="4"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId4.label">쪽 번호 + 파일 이름</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="5"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId5.label">파일 이름 + 쪽 번호</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="6"><span class="md-label"><b>왼쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="7"><span class="md-label"><b>가운데 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="8"><span class="md-label"><b>오른쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="9"><span class="md-label"><b>쪽 번호 + 파일 이름</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="10"><span class="md-label"><b>파일 이름 + 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="6"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId6.label">왼쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="7"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId7.label">가운데 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="8"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId8.label">오른쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="9"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId9.label">쪽 번호 + 파일 이름</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="2" data-template-id="10"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId10.label">파일 이름 + 쪽 번호</b></span></div>
                 </div>
               </div>
               <!-- 짝수 쪽 -->
               <div class="md-sub">
-                <span class="md-label">짝수 쪽</span><span class="md-arrow">▶</span>
+                <span class="md-label" data-i18n="menu.page.label.xcf8117">짝수 쪽</span><span class="md-arrow">▶</span>
                 <div class="md-sub-panel md-hf-template-panel">
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="0"><span class="md-label">빈 머리말</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="0"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId0.label">빈 머리말</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="1"><span class="md-label">왼쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="2"><span class="md-label">가운데 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="3"><span class="md-label">오른쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="4"><span class="md-label">쪽 번호 + 파일 이름</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="5"><span class="md-label">파일 이름 + 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="1"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId1.label">왼쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="2"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId2.label">가운데 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="3"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId3.label">오른쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="4"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId4.label">쪽 번호 + 파일 이름</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="5"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId5.label">파일 이름 + 쪽 번호</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="6"><span class="md-label"><b>왼쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="7"><span class="md-label"><b>가운데 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="8"><span class="md-label"><b>오른쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="9"><span class="md-label"><b>쪽 번호 + 파일 이름</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="10"><span class="md-label"><b>파일 이름 + 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="6"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId6.label">왼쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="7"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId7.label">가운데 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="8"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId8.label">오른쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="9"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId9.label">쪽 번호 + 파일 이름</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="true" data-apply-to="1" data-template-id="10"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId10.label">파일 이름 + 쪽 번호</b></span></div>
                 </div>
               </div>
               <div class="md-sep"></div>
-              <div class="md-item" data-cmd="page:header-create"><span class="md-icon"></span><span class="md-label">머리말 편집...</span></div>
+              <div class="md-item" data-cmd="page:header-create"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.headerCreate.label">머리말 편집...</span></div>
             </div>
           </div>
           <!-- ── 꼬리말 (부모 서브메뉴) ── -->
           <div class="md-sub disabled">
-            <span class="md-icon icon-footer"></span><span class="md-label">꼬리말</span><span class="md-arrow">▶</span>
+            <span class="md-icon icon-footer"></span><span class="md-label" data-i18n="menu.page.label.xb0333e">꼬리말</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
               <!-- 양쪽 -->
               <div class="md-sub">
-                <span class="md-label">양쪽</span><span class="md-arrow">▶</span>
+                <span class="md-label" data-i18n="menu.page.label.xac51a1">양쪽</span><span class="md-arrow">▶</span>
                 <div class="md-sub-panel md-hf-template-panel">
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="0"><span class="md-label">빈 꼬리말</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="0"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeaderNo.templateId0.label">빈 꼬리말</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="1"><span class="md-label">왼쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="2"><span class="md-label">가운데 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="3"><span class="md-label">오른쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="4"><span class="md-label">쪽 번호 + 파일 이름</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="5"><span class="md-label">파일 이름 + 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="1"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId1.label">왼쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="2"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId2.label">가운데 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="3"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId3.label">오른쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="4"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId4.label">쪽 번호 + 파일 이름</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="5"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId5.label">파일 이름 + 쪽 번호</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="6"><span class="md-label"><b>왼쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="7"><span class="md-label"><b>가운데 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="8"><span class="md-label"><b>오른쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="9"><span class="md-label"><b>쪽 번호 + 파일 이름</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="10"><span class="md-label"><b>파일 이름 + 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="6"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId6.label">왼쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="7"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId7.label">가운데 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="8"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId8.label">오른쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="9"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId9.label">쪽 번호 + 파일 이름</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="0" data-template-id="10"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId10.label">파일 이름 + 쪽 번호</b></span></div>
                 </div>
               </div>
               <!-- 홀수 쪽 -->
               <div class="md-sub">
-                <span class="md-label">홀수 쪽</span><span class="md-arrow">▶</span>
+                <span class="md-label" data-i18n="menu.page.label.xf8c0bd">홀수 쪽</span><span class="md-arrow">▶</span>
                 <div class="md-sub-panel md-hf-template-panel">
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="0"><span class="md-label">빈 꼬리말</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="0"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeaderNo.templateId0.label">빈 꼬리말</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="1"><span class="md-label">왼쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="2"><span class="md-label">가운데 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="3"><span class="md-label">오른쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="4"><span class="md-label">쪽 번호 + 파일 이름</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="5"><span class="md-label">파일 이름 + 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="1"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId1.label">왼쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="2"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId2.label">가운데 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="3"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId3.label">오른쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="4"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId4.label">쪽 번호 + 파일 이름</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="5"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId5.label">파일 이름 + 쪽 번호</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="6"><span class="md-label"><b>왼쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="7"><span class="md-label"><b>가운데 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="8"><span class="md-label"><b>오른쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="9"><span class="md-label"><b>쪽 번호 + 파일 이름</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="10"><span class="md-label"><b>파일 이름 + 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="6"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId6.label">왼쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="7"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId7.label">가운데 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="8"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId8.label">오른쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="9"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId9.label">쪽 번호 + 파일 이름</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="2" data-template-id="10"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId10.label">파일 이름 + 쪽 번호</b></span></div>
                 </div>
               </div>
               <!-- 짝수 쪽 -->
               <div class="md-sub">
-                <span class="md-label">짝수 쪽</span><span class="md-arrow">▶</span>
+                <span class="md-label" data-i18n="menu.page.label.xcf8117">짝수 쪽</span><span class="md-arrow">▶</span>
                 <div class="md-sub-panel md-hf-template-panel">
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="0"><span class="md-label">빈 꼬리말</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="0"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeaderNo.templateId0.label">빈 꼬리말</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="1"><span class="md-label">왼쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="2"><span class="md-label">가운데 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="3"><span class="md-label">오른쪽 쪽 번호</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="4"><span class="md-label">쪽 번호 + 파일 이름</span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="5"><span class="md-label">파일 이름 + 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="1"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId1.label">왼쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="2"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId2.label">가운데 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="3"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId3.label">오른쪽 쪽 번호</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="4"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId4.label">쪽 번호 + 파일 이름</span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="5"><span class="md-label" data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId5.label">파일 이름 + 쪽 번호</span></div>
                   <div class="md-sep"></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="6"><span class="md-label"><b>왼쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="7"><span class="md-label"><b>가운데 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="8"><span class="md-label"><b>오른쪽 쪽 번호</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="9"><span class="md-label"><b>쪽 번호 + 파일 이름</b></span></div>
-                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="10"><span class="md-label"><b>파일 이름 + 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="6"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId6.label">왼쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="7"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId7.label">가운데 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="8"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId8.label">오른쪽 쪽 번호</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="9"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId9.label">쪽 번호 + 파일 이름</b></span></div>
+                  <div class="md-item" data-cmd="page:apply-hf-template" data-is-header="false" data-apply-to="1" data-template-id="10"><span class="md-label"><b data-i18n="command.page.applyHfTemplate.applyTo0.isHeader.templateId10.label">파일 이름 + 쪽 번호</b></span></div>
                 </div>
               </div>
               <div class="md-sep"></div>
-              <div class="md-item" data-cmd="page:footer-create"><span class="md-icon"></span><span class="md-label">꼬리말 편집...</span></div>
+              <div class="md-item" data-cmd="page:footer-create"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.footerCreate.label">꼬리말 편집...</span></div>
             </div>
           </div>
-          <div class="md-item disabled" data-cmd="page:new-page-num"><span class="md-icon"></span><span class="md-label">새 번호로 시작</span></div>
-          <div class="md-item disabled" data-cmd="page:hide-current"><span class="md-icon"></span><span class="md-label">현재 쪽만 감추기</span></div>
+          <div class="md-item disabled" data-cmd="page:new-page-num"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.newPageNum.label">새 번호로 시작</span></div>
+          <div class="md-item disabled" data-cmd="page:hide-current"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.hideCurrent.label">현재 쪽만 감추기</span></div>
           <div class="md-sep"></div>
-          <div class="md-item" data-cmd="page:break"><span class="md-icon"></span><span class="md-label">쪽 나누기</span><span class="md-shortcut">Ctrl+Enter</span></div>
-          <div class="md-item disabled" data-cmd="page:column-break"><span class="md-icon"></span><span class="md-label">단 나누기</span><span class="md-shortcut">Ctrl+Shift+Enter</span></div>
+          <div class="md-item" data-cmd="page:break"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.break.label">쪽 나누기</span><span class="md-shortcut">Ctrl+Enter</span></div>
+          <div class="md-item disabled" data-cmd="page:column-break"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.columnBreak.label">단 나누기</span><span class="md-shortcut">Ctrl+Shift+Enter</span></div>
           <div class="md-sep"></div>
           <div class="md-sub">
-            <span class="md-label">단</span><span class="md-arrow">▶</span>
+            <span class="md-label" data-i18n="menu.page.label.x0a2ddb">단</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
-              <div class="md-item" data-cmd="page:col-1"><span class="md-icon"></span><span class="md-label">하나</span></div>
-              <div class="md-item" data-cmd="page:col-2"><span class="md-icon"></span><span class="md-label">둘</span></div>
-              <div class="md-item" data-cmd="page:col-3"><span class="md-icon"></span><span class="md-label">셋</span></div>
-              <div class="md-item" data-cmd="page:col-left"><span class="md-icon"></span><span class="md-label">왼쪽</span></div>
-              <div class="md-item" data-cmd="page:col-right"><span class="md-icon"></span><span class="md-label">오른쪽</span></div>
+              <div class="md-item" data-cmd="page:col-1"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.col1.label">하나</span></div>
+              <div class="md-item" data-cmd="page:col-2"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.col2.label">둘</span></div>
+              <div class="md-item" data-cmd="page:col-3"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.col3.label">셋</span></div>
+              <div class="md-item" data-cmd="page:col-left"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.colLeft.label">왼쪽</span></div>
+              <div class="md-item" data-cmd="page:col-right"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.colRight.label">오른쪽</span></div>
               <div class="md-sep"></div>
-              <div class="md-item disabled" data-cmd="page:col-settings"><span class="md-icon"></span><span class="md-label">다단 설정</span><span class="md-shortcut">Ctrl+Alt+Enter</span></div>
+              <div class="md-item disabled" data-cmd="page:col-settings"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.colSettings.label">다단 설정</span><span class="md-shortcut">Ctrl+Alt+Enter</span></div>
             </div>
           </div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="page:section-settings"><span class="md-icon"></span><span class="md-label">구역 설정</span></div>
+          <div class="md-item disabled" data-cmd="page:section-settings"><span class="md-icon"></span><span class="md-label" data-i18n="command.page.sectionSettings.label">구역 설정</span></div>
         </div>
       </div>
       <!-- ── 표 ── -->
       <div class="menu-item" data-menu="table">
-        <span class="menu-title">표</span>
+        <span class="menu-title" data-i18n="menu.table">표</span>
         <div class="menu-dropdown">
-          <div class="md-item disabled" data-cmd="table:create"><span class="md-icon icon-table"></span><span class="md-label">표 만들기</span></div>
-          <div class="md-item disabled" data-cmd="table:cell-props"><span class="md-icon"></span><span class="md-label">표/셀 속성</span></div>
+          <div class="md-item disabled" data-cmd="table:create"><span class="md-icon icon-table"></span><span class="md-label" data-i18n="command.table.create.label">표 만들기</span></div>
+          <div class="md-item disabled" data-cmd="table:cell-props"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.cellProps.label">표/셀 속성</span></div>
           <div class="md-sep"></div>
           <div class="md-sub disabled">
-            <span class="md-label">셀 테두리/배경</span><span class="md-arrow">▶</span>
+            <span class="md-label" data-i18n="menu.table.label">셀 테두리/배경</span><span class="md-arrow">▶</span>
             <div class="md-sub-panel">
-              <div class="md-item disabled" data-cmd="table:border-each"><span class="md-icon"></span><span class="md-label">각 셀마다 적용</span></div>
-              <div class="md-item disabled" data-cmd="table:border-one"><span class="md-icon"></span><span class="md-label">하나의 셀처럼 적용</span></div>
+              <div class="md-item disabled" data-cmd="table:border-each"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.borderEach.label">각 셀마다 적용</span></div>
+              <div class="md-item disabled" data-cmd="table:border-one"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.borderOne.label">하나의 셀처럼 적용</span></div>
             </div>
           </div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="table:insert-row-above"><span class="md-icon"></span><span class="md-label">위쪽에 줄 추가하기</span></div>
-          <div class="md-item disabled" data-cmd="table:insert-row-below"><span class="md-icon"></span><span class="md-label">아래쪽에 줄 추가하기</span></div>
+          <div class="md-item disabled" data-cmd="table:insert-row-above"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.insertRowAbove.registryLabel">위쪽에 줄 추가하기</span></div>
+          <div class="md-item disabled" data-cmd="table:insert-row-below"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.insertRowBelow.registryLabel">아래쪽에 줄 추가하기</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="table:insert-col-left"><span class="md-icon"></span><span class="md-label">왼쪽에 칸 추가하기</span><span class="md-shortcut">Alt+Insert</span></div>
-          <div class="md-item disabled" data-cmd="table:insert-col-right"><span class="md-icon"></span><span class="md-label">오른쪽에 칸 추가하기</span></div>
+          <div class="md-item disabled" data-cmd="table:insert-col-left"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.insertColLeft.registryLabel">왼쪽에 칸 추가하기</span><span class="md-shortcut">Alt+Insert</span></div>
+          <div class="md-item disabled" data-cmd="table:insert-col-right"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.insertColRight.registryLabel">오른쪽에 칸 추가하기</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="table:delete-row"><span class="md-icon"></span><span class="md-label">줄 지우기</span></div>
-          <div class="md-item disabled" data-cmd="table:delete-col"><span class="md-icon"></span><span class="md-label">칸 지우기</span><span class="md-shortcut">Alt+Delete</span></div>
+          <div class="md-item disabled" data-cmd="table:delete-row"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.deleteRow.registryLabel">줄 지우기</span></div>
+          <div class="md-item disabled" data-cmd="table:delete-col"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.deleteCol.registryLabel">칸 지우기</span><span class="md-shortcut">Alt+Delete</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="table:cell-split"><span class="md-icon"></span><span class="md-label">셀 나누기</span><span class="md-shortcut">S</span></div>
-          <div class="md-item disabled" data-cmd="table:cell-merge"><span class="md-icon"></span><span class="md-label">셀 합치기</span><span class="md-shortcut">M</span></div>
-          <div class="md-item disabled" data-cmd="table:cell-height-equal"><span class="md-icon"></span><span class="md-label">셀 높이를 같게</span><span class="md-shortcut">H</span></div>
-          <div class="md-item disabled" data-cmd="table:cell-width-equal"><span class="md-icon"></span><span class="md-label">셀 너비를 같게</span><span class="md-shortcut">W</span></div>
+          <div class="md-item disabled" data-cmd="table:cell-split"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.cellSplit.label">셀 나누기</span><span class="md-shortcut">S</span></div>
+          <div class="md-item disabled" data-cmd="table:cell-merge"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.cellMerge.label">셀 합치기</span><span class="md-shortcut">M</span></div>
+          <div class="md-item disabled" data-cmd="table:cell-height-equal"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.cellHeightEqual.label">셀 높이를 같게</span><span class="md-shortcut">H</span></div>
+          <div class="md-item disabled" data-cmd="table:cell-width-equal"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.cellWidthEqual.label">셀 너비를 같게</span><span class="md-shortcut">W</span></div>
           <div class="md-sep"></div>
-          <div class="md-item disabled" data-cmd="table:block-formula"><span class="md-icon"></span><span class="md-label">블록 계산식</span></div>
-          <div class="md-item disabled" data-cmd="table:block-sum"><span class="md-icon"></span><span class="md-label">블록 합계</span><span class="md-shortcut">Ctrl+Shift+S</span></div>
-          <div class="md-item disabled" data-cmd="table:block-avg"><span class="md-icon"></span><span class="md-label">블록 평균</span><span class="md-shortcut">Ctrl+Shift+A</span></div>
-          <div class="md-item disabled" data-cmd="table:block-product"><span class="md-icon"></span><span class="md-label">블록 곱</span><span class="md-shortcut">Ctrl+Shift+P</span></div>
-          <div class="md-item disabled" data-cmd="table:thousand-sep"><span class="md-icon"></span><span class="md-label">1,000 단위 구분 쉼표</span></div>
-          <div class="md-item disabled" data-cmd="table:decimal-add"><span class="md-icon"></span><span class="md-label">자릿점 넣기</span></div>
-          <div class="md-item disabled" data-cmd="table:decimal-remove"><span class="md-icon"></span><span class="md-label">자릿점 빼기</span></div>
+          <div class="md-item disabled" data-cmd="table:block-formula"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.blockFormula.label">블록 계산식</span></div>
+          <div class="md-item disabled" data-cmd="table:block-sum"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.blockSum.label">블록 합계</span><span class="md-shortcut">Ctrl+Shift+S</span></div>
+          <div class="md-item disabled" data-cmd="table:block-avg"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.blockAvg.label">블록 평균</span><span class="md-shortcut">Ctrl+Shift+A</span></div>
+          <div class="md-item disabled" data-cmd="table:block-product"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.blockProduct.label">블록 곱</span><span class="md-shortcut">Ctrl+Shift+P</span></div>
+          <div class="md-item disabled" data-cmd="table:thousand-sep"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.thousandSep.label">1,000 단위 구분 쉼표</span></div>
+          <div class="md-item disabled" data-cmd="table:decimal-add"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.decimalAdd.label">자릿점 넣기</span></div>
+          <div class="md-item disabled" data-cmd="table:decimal-remove"><span class="md-icon"></span><span class="md-label" data-i18n="command.table.decimalRemove.label">자릿점 빼기</span></div>
         </div>
       </div>
       <!-- ── 도구 ── -->
       <div class="menu-item" data-menu="tool">
-        <span class="menu-title">도구</span>
+        <span class="menu-title" data-i18n="menu.tool">도구</span>
         <div class="menu-dropdown">
-          <div class="md-item" data-cmd="tool:options"><span class="md-icon"></span><span class="md-label">환경 설정</span></div>
+          <div class="md-item" data-cmd="tool:options"><span class="md-icon"></span><span class="md-label" data-i18n="command.tool.options.label">환경 설정</span></div>
         </div>
       </div>
     </div>
@@ -392,81 +400,81 @@
     <!-- 아이콘 툴바 -->
     <div id="icon-toolbar">
       <div class="tb-group">
-        <button class="tb-btn" data-cmd="edit:cut" title="오려두기 (Ctrl+X)"><span class="tb-sprite icon-cut"></span><span class="tb-label">오려<br/>두기</span></button>
-        <button class="tb-btn" data-cmd="edit:copy" title="복사하기 (Ctrl+C)"><span class="tb-sprite icon-copy"></span><span class="tb-label">복사<br/>하기</span></button>
-        <button class="tb-btn tb-paste" data-cmd="edit:paste" title="붙이기 (Ctrl+V)">
-          <span class="tb-sprite icon-paste"></span><span class="tb-label">붙이기</span>
+        <button class="tb-btn" data-cmd="edit:cut" title="오려두기 (Ctrl+X)" data-i18n-title="ui.iconToolbarViewport.tooltip.x408313"><span class="tb-sprite icon-cut"></span><span class="tb-label" data-i18n-lines="ui.iconToolbarViewport.toolbarLabel.x05c63e">오려<br/>두기</span></button>
+        <button class="tb-btn" data-cmd="edit:copy" title="복사하기 (Ctrl+C)" data-i18n-title="ui.iconToolbarViewport.tooltip.xfbf194"><span class="tb-sprite icon-copy"></span><span class="tb-label" data-i18n-lines="ui.iconToolbarViewport.toolbarLabel.x06e1ec">복사<br/>하기</span></button>
+        <button class="tb-btn tb-paste" data-cmd="edit:paste" title="붙이기 (Ctrl+V)" data-i18n-title="ui.iconToolbarViewport.tooltip.x0821b2">
+          <span class="tb-sprite icon-paste"></span><span class="tb-label" data-i18n="ui.iconToolbarViewport.toolbarLabel.x5d1ad0">붙이기</span>
         </button>
-        <button class="tb-btn" title="모양 복사"><span class="tb-sprite icon-format-copy"></span><span class="tb-label">모양<br/>복사</span></button>
+        <button class="tb-btn" title="모양 복사" data-i18n-title="command.edit.formatCopy.label"><span class="tb-sprite icon-format-copy"></span><span class="tb-label" data-i18n-lines="command.edit.formatCopy.toolbarLabel">모양<br/>복사</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group">
-        <button class="tb-btn" data-cmd="view:ctrl-mark" title="조판 부호"><span class="tb-sprite icon-ctrl-mark"></span><span class="tb-label">조판<br/>부호</span></button>
-        <button class="tb-btn" data-cmd="view:para-mark" title="문단 부호"><span class="tb-sprite icon-para-mark"></span><span class="tb-label">문단<br/>부호</span></button>
-        <button class="tb-btn" title="격자 보기"><span class="tb-sprite icon-grid"></span><span class="tb-label">격자<br/>보기</span></button>
+        <button class="tb-btn" data-cmd="view:ctrl-mark" title="조판 부호" data-i18n-title="command.view.ctrlMark.tooltip"><span class="tb-sprite icon-ctrl-mark"></span><span class="tb-label" data-i18n-lines="command.view.ctrlMark.toolbarLabel">조판<br/>부호</span></button>
+        <button class="tb-btn" data-cmd="view:para-mark" title="문단 부호" data-i18n-title="command.view.paraMark.tooltip"><span class="tb-sprite icon-para-mark"></span><span class="tb-label" data-i18n-lines="command.view.paraMark.toolbarLabel">문단<br/>부호</span></button>
+        <button class="tb-btn" title="격자 보기" data-i18n-title="command.view.toggleGrid.tooltip"><span class="tb-sprite icon-grid"></span><span class="tb-label" data-i18n-lines="command.view.toggleGrid.toolbarLabel">격자<br/>보기</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group">
-        <button class="tb-btn" id="tb-char-format" data-cmd="format:char-shape" title="글자 모양"><span class="tb-sprite icon-char-shape"></span><span class="tb-label">글자<br/>모양</span></button>
-        <button class="tb-btn" data-cmd="format:para-shape" title="문단 모양"><span class="tb-sprite icon-para-shape"></span><span class="tb-label">문단<br/>모양</span></button>
+        <button class="tb-btn" id="tb-char-format" data-cmd="format:char-shape" title="글자 모양" data-i18n-title="command.format.charShape.tooltip"><span class="tb-sprite icon-char-shape"></span><span class="tb-label" data-i18n-lines="command.format.charShape.toolbarLabel">글자<br/>모양</span></button>
+        <button class="tb-btn" data-cmd="format:para-shape" title="문단 모양" data-i18n-title="command.format.paraShape.tooltip"><span class="tb-sprite icon-para-shape"></span><span class="tb-label" data-i18n-lines="command.format.paraShape.toolbarLabel">문단<br/>모양</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group">
-        <button class="tb-btn" id="tb-numbering" data-cmd="format:toggle-numbering" title="문단 번호"><span class="tb-icon-text">1.</span><span class="tb-label">문단<br/>번호</span></button>
-        <button class="tb-btn" id="tb-bullet" title="글머리표"><span class="tb-icon-text">●</span><span class="tb-label">글머리<br/>표</span></button>
-        <button class="tb-btn" id="tb-level-up" data-cmd="format:level-increase" title="한 수준 증가"><span class="tb-icon-text">⇤</span><span class="tb-label">수준▲</span></button>
-        <button class="tb-btn" id="tb-level-down" data-cmd="format:level-decrease" title="한 수준 감소"><span class="tb-icon-text">⇥</span><span class="tb-label">수준▼</span></button>
+        <button class="tb-btn" id="tb-numbering" data-cmd="format:toggle-numbering" title="문단 번호" data-i18n-title="command.format.toggleNumbering.tooltip"><span class="tb-icon-text">1.</span><span class="tb-label" data-i18n-lines="command.format.toggleNumbering.toolbarLabel">문단<br/>번호</span></button>
+        <button class="tb-btn" id="tb-bullet" title="글머리표" data-i18n-title="ui.tbBullet.tooltip"><span class="tb-icon-text">●</span><span class="tb-label" data-i18n-lines="ui.tbBullet.toolbarLabel">글머리<br/>표</span></button>
+        <button class="tb-btn" id="tb-level-up" data-cmd="format:level-increase" title="한 수준 증가" data-i18n-title="command.format.levelIncrease.tooltip"><span class="tb-icon-text">⇤</span><span class="tb-label" data-i18n="command.format.levelIncrease.toolbarLabel">수준▲</span></button>
+        <button class="tb-btn" id="tb-level-down" data-cmd="format:level-decrease" title="한 수준 감소" data-i18n-title="command.format.levelDecrease.tooltip"><span class="tb-icon-text">⇥</span><span class="tb-label" data-i18n="command.format.levelDecrease.toolbarLabel">수준▼</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group">
-        <button class="tb-btn" data-cmd="table:create" title="표"><span class="tb-sprite icon-table"></span><span class="tb-label">표 ▾</span></button>
-        <button class="tb-btn" id="tb-shape" data-cmd="insert:shape" title="도형"><span class="tb-sprite icon-shape"></span><span class="tb-label">도형 ▾</span></button>
-        <button class="tb-btn" data-cmd="insert:image" title="그림"><span class="tb-sprite icon-image"></span><span class="tb-label">그림</span></button>
+        <button class="tb-btn" data-cmd="table:create" title="표" data-i18n-title="command.table.create.tooltip"><span class="tb-sprite icon-table"></span><span class="tb-label" data-i18n="command.table.create.toolbarLabel">표 ▾</span></button>
+        <button class="tb-btn" id="tb-shape" data-cmd="insert:shape" title="도형" data-i18n-title="command.insert.shape.tooltip"><span class="tb-sprite icon-shape"></span><span class="tb-label" data-i18n="command.insert.shape.toolbarLabel">도형 ▾</span></button>
+        <button class="tb-btn" data-cmd="insert:image" title="그림" data-i18n-title="command.insert.image.tooltip"><span class="tb-sprite icon-image"></span><span class="tb-label" data-i18n="command.insert.image.toolbarLabel">그림</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group">
-        <button class="tb-btn" title="개체 속성 (P)" data-cmd="format:object-properties"><span class="tb-sprite icon-obj-props"></span><span class="tb-label">개체<br/>속성</span></button>
-        <button class="tb-btn" title="문자표 (Alt+F10)" data-cmd="insert:symbols"><span class="tb-sprite icon-symbols"></span><span class="tb-label">문자표</span></button>
-        <button class="tb-btn" title="하이퍼링크"><span class="tb-sprite icon-hyperlink"></span><span class="tb-label">하이퍼<br/>링크</span></button>
+        <button class="tb-btn" title="개체 속성 (P)" data-cmd="format:object-properties" data-i18n-title="command.format.objectProperties.tooltip"><span class="tb-sprite icon-obj-props"></span><span class="tb-label" data-i18n-lines="command.format.objectProperties.toolbarLabel">개체<br/>속성</span></button>
+        <button class="tb-btn" title="문자표 (Alt+F10)" data-cmd="insert:symbols" data-i18n-title="command.insert.symbols.tooltip"><span class="tb-sprite icon-symbols"></span><span class="tb-label" data-i18n="command.insert.symbols.toolbarLabel">문자표</span></button>
+        <button class="tb-btn" title="하이퍼링크" data-i18n-title="command.insert.hyperlink.tooltip"><span class="tb-sprite icon-hyperlink"></span><span class="tb-label" data-i18n-lines="command.insert.hyperlink.toolbarLabel">하이퍼<br/>링크</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group tb-rotate-group" style="display:none">
-        <button class="tb-btn" data-cmd="insert:rotate-ccw" title="왼쪽 90° 회전"><span class="tb-icon-text">&#x21B6;</span><span class="tb-label">왼쪽<br/>회전</span></button>
-        <button class="tb-btn" data-cmd="insert:rotate-cw" title="오른쪽 90° 회전"><span class="tb-icon-text">&#x21B7;</span><span class="tb-label">오른쪽<br/>회전</span></button>
-        <button class="tb-btn" data-cmd="insert:flip-horz" title="좌우 대칭"><span class="tb-icon-text">&#x21C4;</span><span class="tb-label">좌우<br/>대칭</span></button>
-        <button class="tb-btn" data-cmd="insert:flip-vert" title="상하 대칭"><span class="tb-icon-text">&#x21C5;</span><span class="tb-label">상하<br/>대칭</span></button>
+        <button class="tb-btn" data-cmd="insert:rotate-ccw" title="왼쪽 90° 회전" data-i18n-title="command.insert.rotateCcw.tooltip"><span class="tb-icon-text">&#x21B6;</span><span class="tb-label" data-i18n-lines="command.insert.rotateCcw.toolbarLabel">왼쪽<br/>회전</span></button>
+        <button class="tb-btn" data-cmd="insert:rotate-cw" title="오른쪽 90° 회전" data-i18n-title="command.insert.rotateCw.tooltip"><span class="tb-icon-text">&#x21B7;</span><span class="tb-label" data-i18n-lines="command.insert.rotateCw.toolbarLabel">오른쪽<br/>회전</span></button>
+        <button class="tb-btn" data-cmd="insert:flip-horz" title="좌우 대칭" data-i18n-title="command.insert.flipHorz.tooltip"><span class="tb-icon-text">&#x21C4;</span><span class="tb-label" data-i18n-lines="command.insert.flipHorz.toolbarLabel">좌우<br/>대칭</span></button>
+        <button class="tb-btn" data-cmd="insert:flip-vert" title="상하 대칭" data-i18n-title="command.insert.flipVert.tooltip"><span class="tb-icon-text">&#x21C5;</span><span class="tb-label" data-i18n-lines="command.insert.flipVert.toolbarLabel">상하<br/>대칭</span></button>
       </div>
       <span class="tb-sep"></span>
       <div class="tb-group">
-        <button class="tb-btn" data-cmd="page:header-create" title="머리말"><span class="tb-sprite icon-header"></span><span class="tb-label">머리말</span></button>
-        <button class="tb-btn" data-cmd="page:footer-create" title="꼬리말"><span class="tb-sprite icon-footer"></span><span class="tb-label">꼬리말</span></button>
-        <button class="tb-btn" data-cmd="insert:footnote" title="각주"><span class="tb-sprite icon-footnote"></span><span class="tb-label">각주</span></button>
-        <button class="tb-btn" title="미주"><span class="tb-sprite icon-endnote"></span><span class="tb-label">미주</span></button>
+        <button class="tb-btn" data-cmd="page:header-create" title="머리말" data-i18n-title="command.page.headerCreate.tooltip"><span class="tb-sprite icon-header"></span><span class="tb-label" data-i18n="command.page.headerCreate.toolbarLabel">머리말</span></button>
+        <button class="tb-btn" data-cmd="page:footer-create" title="꼬리말" data-i18n-title="command.page.footerCreate.tooltip"><span class="tb-sprite icon-footer"></span><span class="tb-label" data-i18n="command.page.footerCreate.toolbarLabel">꼬리말</span></button>
+        <button class="tb-btn" data-cmd="insert:footnote" title="각주" data-i18n-title="command.insert.footnote.tooltip.x195a3d"><span class="tb-sprite icon-footnote"></span><span class="tb-label" data-i18n="command.insert.footnote.toolbarLabel.x195a3d">각주</span></button>
+        <button class="tb-btn" title="미주" data-i18n-title="command.insert.endnote.tooltip.x25a949"><span class="tb-sprite icon-endnote"></span><span class="tb-label" data-i18n="command.insert.endnote.toolbarLabel.x25a949">미주</span></button>
         <div class="tb-split">
-          <button class="tb-btn tb-split-main" title="찾기 (Ctrl+F)" data-cmd="edit:find"><span class="tb-sprite icon-find"></span><span class="tb-label">찾기</span></button>
-          <button class="tb-btn tb-split-arrow" title="찾기 메뉴"><span class="tb-arrow-icon">▾</span></button>
+          <button class="tb-btn tb-split-main" title="찾기 (Ctrl+F)" data-cmd="edit:find" data-i18n-title="command.edit.find.tooltip"><span class="tb-sprite icon-find"></span><span class="tb-label" data-i18n="command.edit.find.toolbarLabel">찾기</span></button>
+          <button class="tb-btn tb-split-arrow" title="찾기 메뉴" data-i18n-title="ui.iconToolbarViewport.tooltip.xbaf454"><span class="tb-arrow-icon">▾</span></button>
           <div class="tb-split-menu">
-            <div class="tb-split-item" data-cmd="edit:find">찾기(F) <span class="tb-split-shortcut">Ctrl+F</span></div>
-            <div class="tb-split-item" data-cmd="edit:find-replace">찾아 바꾸기(E) <span class="tb-split-shortcut">Ctrl+F2</span></div>
-            <div class="tb-split-item" data-cmd="edit:find-again">다시 찾기(X) <span class="tb-split-shortcut">Ctrl+L</span></div>
+            <div class="tb-split-item" data-cmd="edit:find" data-i18n="command.edit.find.label">찾기(F) <span class="tb-split-shortcut">Ctrl+F</span></div>
+            <div class="tb-split-item" data-cmd="edit:find-replace" data-i18n="command.edit.findReplace.label">찾아 바꾸기(E) <span class="tb-split-shortcut">Ctrl+F2</span></div>
+            <div class="tb-split-item" data-cmd="edit:find-again" data-i18n="command.edit.findAgain.label">다시 찾기(X) <span class="tb-split-shortcut">Ctrl+L</span></div>
             <div class="tb-split-sep"></div>
-            <div class="tb-split-item" data-cmd="edit:goto">찾아가기(G) <span class="tb-split-shortcut">Alt+G</span></div>
+            <div class="tb-split-item" data-cmd="edit:goto" data-i18n="command.edit.goto.label">찾아가기(G) <span class="tb-split-shortcut">Alt+G</span></div>
           </div>
         </div>
       </div>
       <!-- 머리말/꼬리말 편집 모드 전용 도구상자 (숨김) -->
       <div class="tb-group tb-headerfooter-group" style="display:none">
-        <span class="tb-hf-label">머리말</span>
+        <span class="tb-hf-label" data-i18n="ui.iconToolbarViewport.toolbarLabel.xa76ec3">머리말</span>
         <span class="tb-sep"></span>
-        <button class="tb-btn" data-cmd="page:headerfooter-prev" title="이전"><span class="tb-icon-text">◀</span><span class="tb-label">이전</span></button>
-        <button class="tb-btn" data-cmd="page:headerfooter-next" title="다음"><span class="tb-icon-text">▶</span><span class="tb-label">다음</span></button>
+        <button class="tb-btn" data-cmd="page:headerfooter-prev" title="이전" data-i18n-title="command.page.headerfooterPrev.tooltip"><span class="tb-icon-text">◀</span><span class="tb-label" data-i18n="command.page.headerfooterPrev.toolbarLabel">이전</span></button>
+        <button class="tb-btn" data-cmd="page:headerfooter-next" title="다음" data-i18n-title="command.page.headerfooterNext.tooltip"><span class="tb-icon-text">▶</span><span class="tb-label" data-i18n="command.page.headerfooterNext.toolbarLabel">다음</span></button>
         <span class="tb-sep"></span>
-        <button class="tb-btn" data-cmd="page:headerfooter-close" title="닫기"><span class="tb-icon-text">✕</span><span class="tb-label">닫기</span></button>
-        <button class="tb-btn tb-hf-delete" data-cmd="page:headerfooter-delete" title="지우기"><span class="tb-icon-text">🗑</span><span class="tb-label">지우기</span></button>
+        <button class="tb-btn" data-cmd="page:headerfooter-close" title="닫기" data-i18n-title="command.page.headerfooterClose.tooltip"><span class="tb-icon-text">✕</span><span class="tb-label" data-i18n="command.page.headerfooterClose.toolbarLabel">닫기</span></button>
+        <button class="tb-btn tb-hf-delete" data-cmd="page:headerfooter-delete" title="지우기" data-i18n-title="command.page.headerfooterDelete.tooltip"><span class="tb-icon-text">🗑</span><span class="tb-label" data-i18n="command.page.headerfooterDelete.toolbarLabel">지우기</span></button>
         <span class="tb-sep"></span>
-        <button class="tb-btn" data-cmd="page:insert-field-pagenum" title="쪽 번호 삽입"><span class="tb-icon-text">#</span><span class="tb-label">쪽번호</span></button>
-        <button class="tb-btn" data-cmd="page:insert-field-totalpage" title="총 쪽수 삽입"><span class="tb-icon-text">##</span><span class="tb-label">총쪽수</span></button>
-        <button class="tb-btn" data-cmd="page:insert-field-filename" title="파일 이름 삽입"><span class="tb-icon-text">F</span><span class="tb-label">파일명</span></button>
+        <button class="tb-btn" data-cmd="page:insert-field-pagenum" title="쪽 번호 삽입" data-i18n-title="command.page.insertFieldPagenum.tooltip"><span class="tb-icon-text">#</span><span class="tb-label" data-i18n="command.page.insertFieldPagenum.toolbarLabel">쪽번호</span></button>
+        <button class="tb-btn" data-cmd="page:insert-field-totalpage" title="총 쪽수 삽입" data-i18n-title="command.page.insertFieldTotalpage.tooltip"><span class="tb-icon-text">##</span><span class="tb-label" data-i18n="command.page.insertFieldTotalpage.toolbarLabel">총쪽수</span></button>
+        <button class="tb-btn" data-cmd="page:insert-field-filename" title="파일 이름 삽입" data-i18n-title="command.page.insertFieldFilename.tooltip"><span class="tb-icon-text">F</span><span class="tb-label" data-i18n="command.page.insertFieldFilename.toolbarLabel">파일명</span></button>
       </div>
       <!-- 파일 열기 (숨김) -->
       <input type="file" id="file-input" accept=".hwp,.hwpx" style="display:none" />
@@ -627,20 +635,20 @@
 
     <!-- 하단 상태 바 -->
     <div id="status-bar">
-      <span id="sb-page" class="stb-item">1 / 1 쪽</span>
+      <span id="sb-page" class="stb-item" data-i18n="ui.sbPage.label">1 / 1 쪽</span>
       <span class="stb-divider"></span>
-      <span id="sb-section" class="stb-item">구역: 1 / 1</span>
+      <span id="sb-section" class="stb-item" data-i18n="ui.sbSection.label">구역: 1 / 1</span>
       <span class="stb-divider"></span>
-      <span id="sb-mode" class="stb-item">삽입</span>
+      <span id="sb-mode" class="stb-item" data-i18n="ui.sbMode.label">삽입</span>
       <span id="sb-field" class="stb-item" style="display:none"></span>
       <span id="sb-message" class="stb-message"></span>
       <span class="stb-right">
-        <button id="sb-zoom-fit-width" class="stb-icon-btn" title="폭 맞춤"><span class="tb-sprite icon-zoom-fit-width"></span></button>
-        <button id="sb-zoom-fit" class="stb-icon-btn" title="쪽 맞춤"><span class="tb-sprite icon-zoom-fit"></span></button>
+        <button id="sb-zoom-fit-width" class="stb-icon-btn" title="폭 맞춤" data-i18n-title="ui.sbZoomFitWidth.tooltip"><span class="tb-sprite icon-zoom-fit-width"></span></button>
+        <button id="sb-zoom-fit" class="stb-icon-btn" title="쪽 맞춤" data-i18n-title="ui.sbZoomFit.tooltip"><span class="tb-sprite icon-zoom-fit"></span></button>
         <span class="stb-divider"></span>
-        <button id="sb-zoom-val" class="stb-zoom-display" type="button" title="화면 확대/축소...">100%</button>
-        <button id="sb-zoom-out" class="stb-icon-btn" title="축소"><span class="tb-sprite icon-zoom-out"></span></button>
-        <button id="sb-zoom-in" class="stb-icon-btn" title="확대"><span class="tb-sprite icon-zoom-in"></span></button>
+        <button id="sb-zoom-val" class="stb-zoom-display" type="button" title="화면 확대/축소..." data-i18n-title="command.view.zoomDialog.label">100%</button>
+        <button id="sb-zoom-out" class="stb-icon-btn" title="축소" data-i18n-title="ui.sbZoomOut.tooltip"><span class="tb-sprite icon-zoom-out"></span></button>
+        <button id="sb-zoom-in" class="stb-icon-btn" title="확대" data-i18n-title="ui.sbZoomIn.tooltip"><span class="tb-sprite icon-zoom-in"></span></button>
       </span>
     </div>
   </div>

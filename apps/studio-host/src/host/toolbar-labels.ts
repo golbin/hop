@@ -1,4 +1,5 @@
 import type { CommandDef } from '@/upstream/commands';
+import { t } from '../hop-i18n';
 
 const STORAGE_KEY = 'hop.toolbar-labels';
 const COMMAND_ID = 'view:toolbar-labels';
@@ -25,7 +26,7 @@ export function initToolbarLabels(): void {
 
 export const toolbarLabelsCommand: CommandDef = {
   id: COMMAND_ID,
-  label: '도구 상자 라벨 표시',
+  label: t('hop.menu.toolbarLabels'),
   execute() {
     const visible = document.documentElement.dataset.toolbarLabels === 'hidden';
     applyToolbarLabels(visible);

@@ -1,4 +1,5 @@
 import type { DesktopBridgeApi, DesktopUpdateState } from '@/core/tauri-bridge';
+import { t } from '../hop-i18n';
 
 export type UpdateNoticeActions = Partial<
   Pick<DesktopBridgeApi, 'startUpdateInstall' | 'restartToApplyUpdate'>
@@ -67,19 +68,19 @@ export class UpdateNotice {
 
     switch (this.state.status) {
       case 'available':
-        this.titleEl.textContent = `새 버전 ${this.state.version} 사용 가능`;
-        this.bodyEl.textContent = '원할 때 업데이트하고 다시 시작할 수 있습니다.';
-        this.setOptionalText(this.metaEl, '업데이트는 명시적으로 시작할 때만 진행됩니다.');
+        this.titleEl.textContent = t('hop.update.availableTitle', { version: this.state.version });
+        this.bodyEl.textContent = t('hop.update.availableBody');
+        this.setOptionalText(this.metaEl, t('hop.update.availableMeta'));
         this.errorEl.hidden = true;
         this.actionsEl.append(
-          this.createActionButton('업데이트', true, () => this.startInstall()),
-          this.createActionButton('닫기', false, () => this.dismiss()),
+          this.createActionButton(t('hop.update.update'), true, () => this.startInstall()),
+          this.createActionButton(t('hop.common.close'), false, () => this.dismiss()),
         );
         break;
 
       case 'downloading':
-        this.titleEl.textContent = `버전 ${this.state.version} 준비 중`;
-        this.bodyEl.textContent = '업데이트 파일을 내려받고 있습니다.';
+        this.titleEl.textContent = t('hop.update.downloadingTitle', { version: this.state.version });
+        this.bodyEl.textContent = t('hop.update.downloadingBody');
         this.setOptionalText(this.metaEl, this.progressText(
           this.state.downloadedBytes,
           this.state.totalBytes ?? null,
@@ -88,24 +89,24 @@ export class UpdateNotice {
         break;
 
       case 'ready':
-        this.titleEl.textContent = `버전 ${this.state.version} 준비 완료`;
-        this.bodyEl.textContent = '다시 시작하면 새 버전이 적용됩니다.';
+        this.titleEl.textContent = t('hop.update.readyTitle', { version: this.state.version });
+        this.bodyEl.textContent = t('hop.update.readyBody');
         this.setOptionalText(this.metaEl, null);
         this.errorEl.hidden = true;
         this.actionsEl.append(
-          this.createActionButton('지금 다시 시작', true, () => this.restartToApply()),
-          this.createActionButton('나중에', false, () => this.dismiss()),
+          this.createActionButton(t('hop.update.restartNow'), true, () => this.restartToApply()),
+          this.createActionButton(t('hop.update.later'), false, () => this.dismiss()),
         );
         break;
 
       case 'error':
-        this.titleEl.textContent = `버전 ${this.state.version} 업데이트 실패`;
+        this.titleEl.textContent = t('hop.update.failedTitle', { version: this.state.version });
         this.bodyEl.textContent = this.state.message;
         this.setOptionalText(this.metaEl, null);
         this.errorEl.hidden = true;
         this.actionsEl.append(
-          this.createActionButton('다시 시도', true, () => this.startInstall()),
-          this.createActionButton('닫기', false, () => this.dismiss()),
+          this.createActionButton(t('hop.update.retry'), true, () => this.startInstall()),
+          this.createActionButton(t('hop.common.close'), false, () => this.dismiss()),
         );
         break;
     }
@@ -173,7 +174,7 @@ export class UpdateNotice {
       const percent = Math.max(0, Math.min(100, Math.round((downloadedBytes / totalBytes) * 100)));
       return `${this.formatBytes(downloadedBytes)} / ${this.formatBytes(totalBytes)} (${percent}%)`;
     }
-    return `${this.formatBytes(downloadedBytes)} 다운로드됨`;
+    return t('hop.update.downloaded', { size: this.formatBytes(downloadedBytes) });
   }
 
   private formatBytes(bytes: number): string {
