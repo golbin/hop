@@ -1,4 +1,5 @@
 import type { RecentDocument } from '@/core/tauri-bridge';
+import { t } from '../hop-i18n';
 
 export function openRecentDocumentsDialog(
   documents: RecentDocument[],
@@ -18,7 +19,7 @@ export function openRecentDocumentsDialog(
 
     const titleBar = document.createElement('div');
     titleBar.className = 'dialog-title';
-    titleBar.textContent = '최근 문서';
+    titleBar.textContent = t('menu.file.label.x625d99');
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'dialog-close';
@@ -38,18 +39,18 @@ export function openRecentDocumentsDialog(
 
     const clearBtn = document.createElement('button');
     clearBtn.className = 'dialog-btn recent-documents-clear';
-    clearBtn.textContent = '목록 비우기';
+    clearBtn.textContent = t('hop.recent.clearList');
 
     const spacer = document.createElement('span');
     spacer.className = 'recent-documents-footer-spacer';
 
     const openBtn = document.createElement('button');
     openBtn.className = 'dialog-btn dialog-btn-primary';
-    openBtn.textContent = '열기';
+    openBtn.textContent = t('hop.common.open');
 
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'dialog-btn';
-    cancelBtn.textContent = '취소';
+    cancelBtn.textContent = t('hop.common.cancel');
 
     footer.append(clearBtn, spacer, openBtn, cancelBtn);
     dialog.append(titleBar, body, footer);

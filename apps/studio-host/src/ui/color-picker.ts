@@ -1,4 +1,5 @@
 import { createToolbarPopup } from './toolbar-popup';
+import { t } from '../hop-i18n';
 
 /** 기존 형광펜과 같은 색상표를 글자색 팔레트에도 사용한다. */
 const COLOR_PALETTE = [
@@ -57,7 +58,7 @@ function appendRecentColors(panel: HTMLElement, onSelect: (color: string) => voi
   const recent = document.createElement('div');
   recent.className = 'hop-recent-colors';
   const label = document.createElement('div');
-  label.textContent = '최근에 사용한 색';
+  label.textContent = t('hop.color.recent');
   const row = document.createElement('div');
   row.className = 'sb-hl-palette-row';
   recent.append(label, row);
@@ -66,7 +67,7 @@ function appendRecentColors(panel: HTMLElement, onSelect: (color: string) => voi
   let hasUnsavedColors = false;
   const render = () => {
     row.replaceChildren(...colors.map(color => createSwatch(color, onSelect)));
-    if (colors.length === 0) row.textContent = '아직 없음';
+    if (colors.length === 0) row.textContent = t('hop.color.noneYet');
   };
   render();
   return (color: string) => {
@@ -121,8 +122,8 @@ export function setupColorPicker(
   const remember = options.remember ? appendRecentColors(panel, applyColor) : undefined;
   const actions = document.createElement('div');
   actions.className = 'sb-hl-palette-actions';
-  if (options.clear) actions.appendChild(createButton('색 없음', () => applyColor('#ffffff')));
-  actions.appendChild(createButton('다른 색...', () => {
+  if (options.clear) actions.appendChild(createButton(t('hop.color.noColor'), () => applyColor('#ffffff')));
+  actions.appendChild(createButton(t('hop.color.moreColors'), () => {
     nativeChoice = { documentVersion: options.documentVersion?.(), color: picker.value };
     picker.click();
   }));

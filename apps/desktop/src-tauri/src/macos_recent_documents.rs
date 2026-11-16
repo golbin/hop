@@ -15,7 +15,7 @@ pub fn note_recent_document(app: &AppHandle, path: &Path) -> Result<(), String> 
     app.run_on_main_thread(move || {
         note_recent_document_on_main_thread(&path);
     })
-    .map_err(|e| format!("macOS 최근 항목 등록 작업을 예약할 수 없습니다: {}", e))
+    .map_err(|e| crate::ui_text::text_with("recent.macosScheduleFailed", &[&e]))
 }
 
 fn note_recent_document_on_main_thread(path: &Path) {

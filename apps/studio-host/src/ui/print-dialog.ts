@@ -1,4 +1,5 @@
 import type { PageInfo } from '@/upstream/core';
+import { t } from '../hop-i18n';
 
 interface PrintableDocument {
   fileName: string;
@@ -34,14 +35,14 @@ export async function openPrintDialog(
     heightMm,
   });
   for (let i = 0; i < pageCount; i += 1) {
-    options.onStatus?.(`인쇄 준비 중... (${i + 1}/${pageCount})`);
+    options.onStatus?.(t('hop.status.preparingPrint', { current: i + 1, total: pageCount }));
     appendPrintPage(root, document.renderPageSvg(i));
     if ((i + 1) % 5 === 0 && i + 1 < pageCount) {
       await nextTask();
     }
   }
 
-  options.onStatus?.('인쇄 대화상자를 여는 중...');
+  options.onStatus?.(t('hop.status.openingPrintDialog'));
   await nextFrame();
 
   let cleaned = false;

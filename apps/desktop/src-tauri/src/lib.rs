@@ -12,6 +12,7 @@ mod pdf_font_fallbacks;
 mod pending_open;
 mod recent_documents;
 mod state;
+mod ui_text;
 #[cfg(any(target_os = "macos", windows, target_os = "linux"))]
 mod updates;
 mod windows;
@@ -25,7 +26,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use commands::{
     cancel_app_quit, check_external_modification, clear_recent_documents, close_document,
     commit_staged_hwp_save, create_document, create_editor_window, desktop_platform,
-    destroy_current_window, export_pdf, export_pdf_from_hwp_path, list_local_fonts,
+    destroy_current_window, export_pdf, export_pdf_from_hwp_path, init_ui_locale, list_local_fonts,
     list_recent_documents, mark_document_dirty, mutate_document, note_finder_recent_document,
     open_document_tracking, prepare_document_open, prepare_staged_hwp_pdf_export,
     prepare_staged_hwp_save, print_webview, query_document, read_local_font,
@@ -110,6 +111,7 @@ pub fn run() {
             get_update_state,
             start_update_install,
             restart_to_apply_update,
+            init_ui_locale,
         ])
         .build(tauri::generate_context!())
         .expect("failed to build HOP desktop app");

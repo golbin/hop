@@ -39,7 +39,7 @@ impl PendingOpenPaths {
         if let Some(paths) = self
             .by_window
             .lock()
-            .map_err(|_| "창별 대기 중인 파일 열기 큐 잠금 실패".to_string())?
+            .map_err(|_| crate::ui_text::text("open.windowQueueLockFailed").to_string())?
             .remove(window_label)
         {
             return Ok(paths);
@@ -48,7 +48,7 @@ impl PendingOpenPaths {
         let mut paths = self
             .global
             .lock()
-            .map_err(|_| "대기 중인 파일 열기 큐 잠금 실패".to_string())?;
+            .map_err(|_| crate::ui_text::text("open.queueLockFailed").to_string())?;
         Ok(paths.drain(..).collect())
     }
 }
