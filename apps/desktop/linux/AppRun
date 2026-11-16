@@ -3,6 +3,11 @@ set -e
 APPDIR=${APPDIR:-$(readlink -f "$(dirname "$0")")}
 export APPDIR
 
+# Both runtimes may inherit a directory that has already been removed.
+if ! hop_working_directory=$(pwd -P 2>/dev/null); then
+  cd "$HOME"
+fi
+
 # Tauri relaunches inherit the old AppImage environment. Remove only paths
 # owned by that bundle; explicit paths elsewhere and logical IME choices survive.
 hop_bundle_prefix=${GTK_DATA_PREFIX-}
@@ -30,8 +35,8 @@ if [[ -n "$hop_bundle_prefix" ]]; then
   case "${GTK_EXE_PREFIX-}" in
     "$hop_bundle_prefix"/usr|"$hop_bundle_prefix"//usr)
       # A retiring bundle must not remain cwd. Keep normal caller directories.
-      case "$(pwd -P 2>/dev/null || true)" in
-        ""|"$hop_bundle_prefix"|"$hop_bundle_prefix"/*) cd "$HOME" ;;
+      case "$hop_working_directory" in
+        "$hop_bundle_prefix"|"$hop_bundle_prefix"/*) cd "$HOME" ;;
       esac
       for hop_variable in PATH LD_LIBRARY_PATH XDG_DATA_DIRS \
         GTK_DATA_PREFIX GTK_EXE_PREFIX GTK_PATH GTK_IM_MODULE_FILE \

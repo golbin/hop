@@ -5,7 +5,6 @@ export {
   collectBrowserSources,
   LOCALE_STORAGE_KEY,
   readStoredLocale,
-  storeLocale,
 } from '@upstream/i18n/resolve';
 export { default as upstreamKoCatalog } from '@upstream/i18n/locales/ko';
 export { default as upstreamEnCatalog } from '@upstream/i18n/locales/en';

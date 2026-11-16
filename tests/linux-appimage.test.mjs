@@ -126,3 +126,8 @@ test('AppImage relaunch recovers when its previous working directory is gone', o
   }), { workingDirectory: 'removed' });
   assert.equal(environment.HOP_LAUNCHER_CWD, realpathSync(homedir()));
 });
+
+test('system runtime relaunch recovers a removed working directory without GTK prefixes', options, () => {
+  const { environment } = runLauncher(() => ({}), { workingDirectory: 'removed' });
+  assert.equal(environment.HOP_LAUNCHER_CWD, realpathSync(homedir()));
+});
