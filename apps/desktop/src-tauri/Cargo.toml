@@ -1,6 +1,6 @@
 [package]
 name = "hop-desktop"
-version = "0.5.3"
+version = "0.5.4"
 edition = "2021"
 description = "HOP - Open HWP desktop app"
 license = "MIT"
