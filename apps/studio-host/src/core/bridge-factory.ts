@@ -1,4 +1,5 @@
 import { WasmBridge } from '@/upstream/core';
+import { batchCharFormat } from './char-format-batch';
 import { TauriBridge } from './tauri-bridge';
 
 export function isTauriRuntime(): boolean {
@@ -11,7 +12,7 @@ export function isTauriRuntime(): boolean {
 
 export function createBridge(): WasmBridge {
   if (isTauriRuntime()) {
-    return new TauriBridge();
+    return batchCharFormat(new TauriBridge());
   }
   return new WasmBridge();
 }
