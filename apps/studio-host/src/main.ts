@@ -30,6 +30,7 @@ import { HomeScreen } from '@/ui/home-screen';
 import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 import { createCommandRuntime } from './host/command-runtime';
 import { createRendererSession } from './host/renderer-session';
+import { installImagePaste } from './host/image-paste';
 
 const wasm = createBridge();
 const eventBus = new EventBus();
@@ -129,6 +130,10 @@ async function initialize(): Promise<void> {
       canvasView.getViewportManager(),
     );
     inputHandler.setEditMode(commandRuntime.getEditMode());
+    installImagePaste(container, {
+      input: inputHandler, wasm, eventBus,
+      onError: () => { sbMessage().textContent = t('hop.status.imagePasteFailed'); },
+    });
 
     toolbar = new Toolbar(document.getElementById('style-bar')!, wasm, eventBus, dispatcher);
     initStyleToolbarOverflow(document.getElementById('style-bar'));

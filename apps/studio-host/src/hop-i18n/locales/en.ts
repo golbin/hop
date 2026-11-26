@@ -24,6 +24,7 @@ const catalog = {
   "hop.status.onlyHwpOpen": "Only HWP/HWPX files can be opened",
   "hop.status.dropToOpen": "Drop an HWP/HWPX file to open it",
   "hop.status.modified": "Modified",
+  "hop.status.imagePasteFailed": "Could not paste the image. Check the cursor position and try again.",
   "hop.status.field": "[Field] {label}",
   "hop.status.loadingFonts": "Loading fonts... ({loaded}/{total})",
   "hop.status.initError": "Initialization error: {error}",

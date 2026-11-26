@@ -27,6 +27,7 @@ const catalog = {
   "hop.status.onlyHwpOpen": "HWP/HWPX 파일만 열 수 있습니다",
   "hop.status.dropToOpen": "HWP/HWPX 파일을 놓으면 문서를 엽니다",
   "hop.status.modified": "수정됨",
+  "hop.status.imagePasteFailed": "사진을 붙여넣지 못했습니다. 커서를 확인하고 다시 붙여넣어 주세요.",
   "hop.status.field": "[누름틀] {label}",
   "hop.status.loadingFonts": "폰트 로딩 중... ({loaded}/{total})",
   "hop.status.initError": "초기화 오류: {error}",
