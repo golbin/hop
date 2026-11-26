@@ -65,6 +65,12 @@ describe('inline clipboard images with the shipped WASM', () => {
     expect(properties.treatAsChar).toBe(true);
     expect(properties.width).toBeLessThanOrEqual(cell.width - cell.paddingLeft - cell.paddingRight);
     expect(properties.width / properties.height).toBeCloseTo(2, 2);
+    const reopened = new HwpDocument(wasm.exportHwp());
+    try {
+      expect(JSON.parse(reopened.getCellPicturePropertiesByPath(0, table.paraIdx, JSON.stringify(path), 0)))
+        .toMatchObject({ treatAsChar: true, width: properties.width, height: properties.height });
+      expect(reopened.renderPageSvg(0)).toContain('<image');
+    } finally { reopened.free(); }
   });
 
   it('scales a tall image to the page while preserving the aspect ratio', () => {
